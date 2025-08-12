@@ -1,0 +1,4 @@
+[submodule "recipes-proto"]
+	path = recipes-proto
+	url = https://github.com/vultisig/recipes.git
+	branch = master
