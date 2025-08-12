@@ -1,6 +1,6 @@
 version: v2
 inputs:
-  - directory: proto
+  - directory: recipes-proto/proto
 plugins:
   - local: protoc-gen-es
     opt: target=ts

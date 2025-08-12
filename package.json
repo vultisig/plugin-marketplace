@@ -10,7 +10,9 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "knip": "knip",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "proto:pull": "git submodule init && git submodule update",
+    "proto:setup": "buf generate"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.6.2",
