@@ -45,6 +45,21 @@ export const getAccount = async () => {
   }
 };
 
+export const getReshareUrl = async (id: string) => {
+  await isAvailable();
+
+  try {
+    const url: string = await window.vultisig.plugin.request({
+      method: "plugin_request_url",
+      params: [{ id }],
+    });
+
+    return url;
+  } catch {
+    return undefined;
+  }
+};
+
 export const getVault = async () => {
   await isAvailable();
 
@@ -76,54 +91,18 @@ export const signCustomMessage = async (
   return signature as string;
 };
 
-export const startReshareSession = async (pluginId: string) => {
+export const startReshareSession = async (id: string, url: string) => {
   await isAvailable();
 
   try {
-    const response = await window.vultisig.plugin.request({
-      method: "plugin_request_reshare",
-      params: [{ id: pluginId }],
+    await window.vultisig.plugin.request({
+      method: "pugiln_request_reshare",
+      params: [{ id, url }],
     });
-    console.log("response", response);
-    // Example response: vultisig://vultisig.com?type=NewVault&tssType=Reshare&jsonData=...
-    const url = new URL(response);
-    console.log("url", url);
-    const jsonData = url.searchParams.get("jsonData");
-    // const tssType = url.searchParams.get("tssType");
-    // console.log("jsonData", jsonData);
-    if (!jsonData) throw new Error("jsonData param missing in deeplink");
-    // Decompress the payload
-    const payload = await decompressQrPayload(jsonData);
 
-    // Decode the binary using the schema and forward to verifier backend
-    const reshareMsg: any = decodeTssPayload(payload);
-
-    // Transform the payload to match backend ReshareRequest structure
-    const backendPayload: ReshareForm = {
-      email: "", // Not provided by extension, using empty string
-      hexChainCode: reshareMsg.hexChainCode,
-      hexEncryptionKey: reshareMsg.encryptionKeyHex,
-      localPartyId: reshareMsg.serviceName,
-      name: reshareMsg.vaultName,
-      oldParties: reshareMsg.oldParties,
-      pluginId, // Use the pluginId parameter passed to function
-      publicKey: reshareMsg.publicKeyEcdsa,
-      sessionId: reshareMsg.sessionId,
-    };
-
-    console.log("Transformed payload for backend:", backendPayload);
-
-    try {
-      await reshareVault(backendPayload);
-    } catch (err) {
-      console.error("Failed to call reshare endpoint", err);
-    }
-
-    return backendPayload;
-  } catch (error) {
-    console.error("Failed to process reshare session", error);
-
-    throw new Error("Failed to process reshare session");
+    return true;
+  } catch {
+    return false;
   }
 };
 

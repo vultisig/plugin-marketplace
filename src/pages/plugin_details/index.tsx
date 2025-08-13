@@ -19,13 +19,15 @@ import { useTheme } from "styled-components";
 import { modalHash } from "utils/constants/core";
 import { routeTree } from "utils/constants/routes";
 import { toNumeralFormat } from "utils/functions";
-import { startReshareSession } from "utils/services/extension";
+import { getReshareUrl, startReshareSession } from "utils/services/extension";
 import {
   getPlugin,
   isPluginInstalled,
+  reshareVault,
   uninstallPlugin,
 } from "utils/services/marketplace";
-import { Plugin } from "utils/types";
+import { Plugin, ReshareForm } from "utils/types";
+import { decodeTssPayload, decompressQrPayload } from "utils/vultisigProto";
 
 interface InitialState {
   isInstalled?: boolean;
@@ -92,7 +94,60 @@ export const PluginDetailsPage = () => {
   };
 
   const handleInstall = () => {
-    startReshareSession(id);
+    getReshareUrl(id).then((url) => {
+      if (url) {
+        const data = new URL(url);
+        const jsonData = data.searchParams.get("jsonData");
+
+        if (jsonData) {
+          decompressQrPayload(jsonData)
+            .then((payload) => {
+              const reshareMsg = decodeTssPayload(payload);
+
+              const backendPayload: ReshareForm = {
+                email: "",
+                hexChainCode: reshareMsg.hexChainCode,
+                hexEncryptionKey: reshareMsg.encryptionKeyHex,
+                localPartyId: reshareMsg.serviceName,
+                name: reshareMsg.vaultName,
+                oldParties: reshareMsg.oldParties,
+                pluginId: id,
+                publicKey: reshareMsg.publicKeyEcdsa,
+                sessionId: reshareMsg.sessionId,
+              };
+
+              reshareVault(backendPayload)
+                .then(() => {
+                  startReshareSession(id, url).then((isInstalled) => {
+                    setState((prevState) => ({ ...prevState, isInstalled }));
+                  });
+                })
+                .catch(() => {
+                  messageApi.open({
+                    type: "error",
+                    content: "Failed to reshare vault.",
+                  });
+                });
+            })
+            .catch(() => {
+              messageApi.open({
+                type: "error",
+                content: "Failed to decompress data.",
+              });
+            });
+        } else {
+          messageApi.open({
+            type: "error",
+            content: "Data is missing in deeplink.",
+          });
+        }
+      } else {
+        messageApi.open({
+          type: "error",
+          content: "Failed to get reshare data.",
+        });
+      }
+    });
   };
 
   useEffect(() => {
