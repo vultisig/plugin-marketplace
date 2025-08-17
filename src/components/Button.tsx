@@ -196,11 +196,13 @@ export const Button: FC<ButtonProps> = (props) => {
     loading = false,
     status = "default",
     type = "button",
+    onClick,
     ...rest
   } = props;
 
   return (
     <StyledButton
+      onClick={(e) => !disabled && onClick && onClick(e)}
       $disabled={disabled}
       $kind={kind}
       $status={status}

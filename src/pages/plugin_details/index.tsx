@@ -22,21 +22,23 @@ import { toNumeralFormat } from "utils/functions";
 import { startReshareSession } from "utils/services/extension";
 import {
   getPlugin,
+  getRecipeSpecification,
   isPluginInstalled,
   uninstallPlugin,
 } from "utils/services/marketplace";
-import { Plugin } from "utils/types";
+import { CustomRecipeSchema, Plugin } from "utils/types";
 
 interface InitialState {
   isInstalled?: boolean;
   loading?: boolean;
   plugin?: Plugin;
+  schema?: CustomRecipeSchema;
 }
 
 export const PluginDetailsPage = () => {
   const initialState: InitialState = {};
   const [state, setState] = useState(initialState);
-  const { isInstalled, loading, plugin } = state;
+  const { isInstalled, loading, plugin, schema } = state;
   const { id = "" } = useParams<{ id: string }>();
   const { connect, isConnected } = useApp();
   const [messageApi, messageHolder] = message.useMessage();
@@ -98,6 +100,16 @@ export const PluginDetailsPage = () => {
   useEffect(() => {
     if (isInstalled === false) checkStatus();
   }, [checkStatus, isInstalled]);
+
+  useEffect(() => {
+    if (isInstalled) {
+      getRecipeSpecification(id)
+        .then((schema) => {
+          setState((prevState) => ({ ...prevState, schema }));
+        })
+        .catch(() => {});
+    }
+  }, [id, isInstalled]);
 
   useEffect(() => {
     if (isConnected) {
@@ -290,13 +302,13 @@ export const PluginDetailsPage = () => {
                       ) : isInstalled ? (
                         <>
                           <Button
-                            disabled={loading}
+                            disabled={loading || !schema}
                             kind="primary"
                             onClick={() =>
                               navigate(modalHash.policy, { state: true })
                             }
                           >
-                            Add recipeint
+                            Add recipient
                           </Button>
                           <Button
                             loading={loading}
@@ -343,7 +355,7 @@ export const PluginDetailsPage = () => {
               schedule, and manage payroll so you can focus on building while
               your contributors get paid on time.
             </Stack>
-            <PluginPolicyList {...plugin} />
+            <PluginPolicyList plugin={plugin} schema={schema} />
             <PluginReviewList
               isInstalled={isInstalled}
               onInstall={handleInstall}
