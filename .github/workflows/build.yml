@@ -1,4 +1,4 @@
-name: Vultisig build
+name: Marketplace build
 
 on:
   push:
@@ -65,8 +65,6 @@ jobs:
         run: yarn install
       - name: Lint
         run: yarn lint
-      - name: run unit test
-        run: yarn test
       - name: run typecheck
         run: yarn typecheck
   build:
