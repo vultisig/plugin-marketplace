@@ -13,8 +13,6 @@ env:
 jobs:
   setup:
     runs-on: ubuntu-22.04
-    outputs:
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
