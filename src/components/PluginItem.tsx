@@ -1,13 +1,14 @@
-import { Button } from "components/Button";
-import { Pricing } from "components/Pricing";
-import { Stack } from "components/Stack";
-import { CircleArrowDownIcon } from "icons/CircleArrowDownIcon";
-import { StarIcon } from "icons/StarIcon";
 import { FC } from "react";
 import { useTheme } from "styled-components";
-import { routeTree } from "utils/constants/routes";
-import { toNumeralFormat } from "utils/functions";
-import { Plugin } from "utils/types";
+
+import { Button } from "@/components/Button";
+import { Pricing } from "@/components/Pricing";
+import { HStack, Stack, VStack } from "@/components/Stack";
+import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
+import { StarIcon } from "@/icons/StarIcon";
+import { routeTree } from "@/utils/constants/routes";
+import { toNumeralFormat } from "@/utils/functions";
+import { Plugin } from "@/utils/types";
 
 type PluginItemProps = {
   plugin: Plugin;
@@ -23,6 +24,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
       $style={{
         border: `solid 1px ${colors.borderNormal.toHex()}`,
         borderRadius: "24px",
+        display: "flex",
         flexDirection: horizontal ? "row" : "column",
         gap: "24px",
         height: "100%",
@@ -38,28 +40,21 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
         }}
       />
-      <Stack
+      <VStack
         $style={{
           alignItems: horizontal ? "start" : "normal",
-          flexDirection: "column",
           flexGrow: "1",
           gap: "20px",
         }}
       >
-        <Stack $style={{ flexDirection: "row", gap: "12px" }}>
+        <HStack $style={{ gap: "12px" }}>
           <Stack
             as="img"
             alt={title}
             src={`/plugins/payroll.png`}
             $style={{ width: "56px" }}
           />
-          <Stack
-            $style={{
-              flexDirection: "column",
-              gap: "8px",
-              justifyContent: "center",
-            }}
-          >
+          <VStack $style={{ gap: "8px", justifyContent: "center" }}>
             <Stack
               as="span"
               $style={{
@@ -70,14 +65,13 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
             >
               {title}
             </Stack>
-            <Stack
+            <HStack
               $style={{
                 alignItems: "center",
-                flexDirection: "row",
                 gap: "8px",
               }}
             >
-              <Stack $style={{ alignItems: "center", gap: "2px" }}>
+              <HStack $style={{ alignItems: "center", gap: "2px" }}>
                 <Stack
                   as={CircleArrowDownIcon}
                   $style={{
@@ -96,7 +90,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
                 >
                   {toNumeralFormat(1258)}
                 </Stack>
-              </Stack>
+              </HStack>
               <Stack
                 $style={{
                   backgroundColor: colors.borderLight.toHex(),
@@ -104,7 +98,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
                   width: "3px",
                 }}
               />
-              <Stack $style={{ alignItems: "center", gap: "2px" }}>
+              <HStack $style={{ alignItems: "center", gap: "2px" }}>
                 <Stack
                   as={StarIcon}
                   $style={{
@@ -122,28 +116,23 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
                     lineHeight: "16px",
                   }}
                 >{`${4.5}/5 (${128})`}</Stack>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack>
-        <Stack
+              </HStack>
+            </HStack>
+          </VStack>
+        </HStack>
+        <VStack
           as="span"
           $style={{ flexGrow: 1, fontWeight: "500", lineHeight: "20px" }}
         >
           {description}
-        </Stack>
-        <Stack
-          $style={{
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
+        </VStack>
+        <VStack $style={{ gap: "12px" }}>
           <Button href={routeTree.pluginDetails.link(id)} kind="primary">
             See Details
           </Button>
           <Pricing pricing={pricing} center={!horizontal} />
-        </Stack>
-      </Stack>
+        </VStack>
+      </VStack>
     </Stack>
   );
 };

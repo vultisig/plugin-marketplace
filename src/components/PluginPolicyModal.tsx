@@ -12,34 +12,35 @@ import {
   SelectProps,
   Tag,
 } from "antd";
-import { Button } from "components/Button";
-import { DatePicker } from "components/DatePicker";
-import { Input } from "components/Input";
-import { InputNumber } from "components/InputNumber";
-import { Select } from "components/Select";
-import { Spin } from "components/Spin";
-import { Stack } from "components/Stack";
 import dayjs, { Dayjs } from "dayjs";
-import { useGoBack } from "hooks/useGoBack";
-import { ConstraintSchema, MagicConstant } from "proto/constraint_pb";
-import { ParameterConstraintSchema } from "proto/parameter_constraint_pb";
+import { FC, ReactNode, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { v4 as uuidv4 } from "uuid";
+
+import { Button } from "@/components/Button";
+import { DatePicker } from "@/components/DatePicker";
+import { Input } from "@/components/Input";
+import { InputNumber } from "@/components/InputNumber";
+import { Select } from "@/components/Select";
+import { Spin } from "@/components/Spin";
+import { Stack } from "@/components/Stack";
+import { useGoBack } from "@/hooks/useGoBack";
+import { ConstraintSchema, MagicConstant } from "@/proto/constraint_pb";
+import { ParameterConstraintSchema } from "@/proto/parameter_constraint_pb";
 import {
   BillingFrequency,
   FeePolicySchema,
   FeeType,
   PolicySchema,
-} from "proto/policy_pb";
-import { RecipeSchema } from "proto/recipe_specification_pb";
-import { Effect, RuleSchema, TargetSchema, TargetType } from "proto/rule_pb";
-import { FC, ReactNode, useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { getVaultId } from "storage/vaultId";
-import { modalHash } from "utils/constants/core";
-import { toCapitalizeFirst, toTimestamp } from "utils/functions";
-import { signPluginPolicy } from "utils/services/extension";
-import { addPluginPolicy } from "utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "utils/types";
-import { v4 as uuidv4 } from "uuid";
+} from "@/proto/policy_pb";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
+import { getVaultId } from "@/storage/vaultId";
+import { modalHash } from "@/utils/constants/core";
+import { toCapitalizeFirst, toTimestamp } from "@/utils/functions";
+import { signPluginPolicy } from "@/utils/services/extension";
+import { addPluginPolicy } from "@/utils/services/marketplace";
+import { Configuration, Plugin, PluginPolicy } from "@/utils/types";
 
 type FieldType = {
   maxTxsPerWindow: number;

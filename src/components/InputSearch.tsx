@@ -1,10 +1,11 @@
 import { Input, InputProps } from "antd";
-import { Stack } from "components/Stack";
-import { SearchIcon } from "icons/SearchIcon";
 import { FC } from "react";
 import { useTheme } from "styled-components";
 
-export const SearchInput: FC<InputProps> = (props) => {
+import { Stack } from "@/components/Stack";
+import { SearchIcon } from "@/icons/SearchIcon";
+
+export const InputSearch: FC<InputProps> = (props) => {
   const colors = useTheme();
 
   return (

@@ -1,0 +1,3 @@
+{
+  "ignoreDependencies": ["@bufbuild/buf", "@bufbuild/protoc-gen-es"]
+}

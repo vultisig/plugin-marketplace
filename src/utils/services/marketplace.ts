@@ -1,12 +1,13 @@
-import { RecipeSchema } from "proto/recipe_specification_pb";
-import { getVaultId } from "storage/vaultId";
-import { PAGE_SIZE } from "utils/constants/core";
-import { toSnakeCase } from "utils/functions";
-import { del, get, post } from "utils/services/api";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { getVaultId } from "@/storage/vaultId";
+import { PAGE_SIZE } from "@/utils/constants/core";
+import { toSnakeCase } from "@/utils/functions";
+import { del, get, post } from "@/utils/services/api";
 import {
   AuthTokenForm,
   Category,
   Configuration,
+  ListFilters,
   Plugin,
   PluginFilters,
   PluginPolicy,
@@ -15,7 +16,9 @@ import {
   ReshareForm,
   Review,
   ReviewForm,
-} from "utils/types";
+  Transaction,
+  TransactionFilters,
+} from "@/utils/types";
 
 const baseUrl = import.meta.env.VITE_MARKETPLACE_URL;
 
@@ -56,15 +59,16 @@ export const getPlugin = async (id: string) =>
     };
   });
 
-export const getPlugins = (
-  skip: number,
-  { category, sort = "-created_at", term }: PluginFilters
-) =>
-  get<{ plugins: Plugin[]; totalCount: number }>(
-    `${baseUrl}/plugins?skip=${skip}&take=12${term ? `&term=${term}` : ""}${
-      category ? `&category_id=${category}` : ""
-    }&sort=${sort}`
-  ).then(({ plugins, totalCount }) => ({
+export const getPlugins = ({
+  categoryId,
+  skip,
+  sort = "-created_at",
+  take = 12,
+  term,
+}: ListFilters & PluginFilters) =>
+  get<{ plugins: Plugin[]; totalCount: number }>(`${baseUrl}/plugins`, {
+    params: toSnakeCase({ categoryId, skip, sort, take, term }),
+  }).then(({ plugins, totalCount }) => ({
     plugins:
       plugins.map((plugin) => ({ ...plugin, pricing: plugin.pricing || [] })) ||
       [],
@@ -113,6 +117,16 @@ export const getPluginReviews = async (
 export const getRecipeSpecification = async (pluginId: string) =>
   get<Omit<RecipeSchema, "configuration"> & { configuration?: Configuration }>(
     `${baseUrl}/plugins/${pluginId}/recipe-specification`
+  );
+
+export const getTransactions = ({
+  skip,
+  take = 12,
+  term,
+}: ListFilters & TransactionFilters) =>
+  get<{ transactions: Transaction[]; totalCount: number }>(
+    `${baseUrl}/plugins`,
+    { params: toSnakeCase({ skip, take, term }) }
   );
 
 export const isPluginInstalled = async (id: string) =>

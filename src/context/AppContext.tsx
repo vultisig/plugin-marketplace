@@ -1,11 +1,12 @@
 import { createContext } from "react";
-import { setChain } from "storage/chain";
-import { setCurrency } from "storage/currency";
-import { setLanguage } from "storage/language";
-import { setTheme } from "storage/theme";
-import { Currency } from "utils/constants/currency";
-import { Language } from "utils/constants/language";
-import { Theme } from "utils/constants/theme";
+
+import { setChain } from "@/storage/chain";
+import { setCurrency } from "@/storage/currency";
+import { setLanguage } from "@/storage/language";
+import { setTheme } from "@/storage/theme";
+import { Currency } from "@/utils/constants/currency";
+import { Language } from "@/utils/constants/language";
+import { Theme } from "@/utils/constants/theme";
 
 interface AppContextType {
   address?: string;

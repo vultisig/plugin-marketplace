@@ -1,17 +1,17 @@
 import { List, Modal } from "antd";
-import { useApp } from "hooks/useApp";
-import { useGoBack } from "hooks/useGoBack";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
-import { modalHash } from "utils/constants/core";
+
+import { Stack } from "@/components/Stack";
+import { useApp } from "@/hooks/useApp";
+import { useGoBack } from "@/hooks/useGoBack";
+import { modalHash } from "@/utils/constants/core";
 import {
   currencies,
   Currency,
   currencySymbols,
-} from "utils/constants/currency";
-
-import { Stack } from "./Stack";
+} from "@/utils/constants/currency";
 
 export const CurrencyModal = () => {
   const [visible, setVisible] = useState(false);

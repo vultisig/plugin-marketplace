@@ -1,15 +1,19 @@
 import { ConfigProvider, Empty, Form, FormProps, Input, Rate } from "antd";
-import { Button } from "components/Button";
-import { MiddleTruncate } from "components/MiddleTruncate";
-import { Spin } from "components/Spin";
-import { Stack } from "components/Stack";
 import dayjs from "dayjs";
-import { useApp } from "hooks/useApp";
-import { StarIcon } from "icons/StarIcon";
 import { FC, useCallback, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
-import { addPluginReview, getPluginReviews } from "utils/services/marketplace";
-import { Plugin, Review, ReviewForm } from "utils/types";
+
+import { Button } from "@/components/Button";
+import { MiddleTruncate } from "@/components/MiddleTruncate";
+import { Spin } from "@/components/Spin";
+import { Stack } from "@/components/Stack";
+import { useApp } from "@/hooks/useApp";
+import { StarIcon } from "@/icons/StarIcon";
+import {
+  addPluginReview,
+  getPluginReviews,
+} from "@/utils/services/marketplace";
+import { Plugin, Review, ReviewForm } from "@/utils/types";
 
 type PluginReviewListProps = {
   isInstalled?: boolean;

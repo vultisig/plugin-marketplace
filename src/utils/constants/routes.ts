@@ -4,6 +4,7 @@ export const routeKeys = [
   "plugins",
   "pluginDetails",
   "root",
+  "transactions",
 ] as const;
 
 export type RouteKey = (typeof routeKeys)[number];
@@ -17,6 +18,7 @@ export const routeTree = {
     path: "/plugins/:id",
   },
   root: { path: "/" },
+  transactions: { path: "/transactions" },
 } satisfies Record<
   RouteKey,
   { path: string; link?: (...args: (string | number)[]) => string }

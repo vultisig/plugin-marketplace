@@ -1,4 +1,4 @@
-import { ConstraintType } from "proto/constraint_pb";
+import { ConstraintType } from "@/proto/constraint_pb";
 
 export const constraintTypeLabels: Record<ConstraintType, string> = {
   [ConstraintType.FIXED]: "Fixed",

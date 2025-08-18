@@ -24,6 +24,11 @@ export type Configuration = {
   type: "object";
 };
 
+export type ListFilters = {
+  skip: number;
+  take?: number;
+};
+
 export type Plugin = {
   categoryId: string;
   createdAt: string;
@@ -102,6 +107,24 @@ export type Tag = {
   name: string;
 };
 
+export type Transaction = {
+  id: string;
+  pluginId: string;
+  txHash: string;
+  chainId: number;
+  policyId: string;
+  tokenId: string;
+  fromPublicKey: string;
+  toPublicKey: string;
+  proposedTxHex: string;
+  status: "PROPOSED" | "SIGNED" | "VERIFIED";
+  statusOnchain: "FAIL" | "PENDING" | "SUCCESS";
+  lost: boolean;
+  broadcastedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Vault = {
   hexChainCode: string;
   name: string;
@@ -111,8 +134,12 @@ export type Vault = {
 };
 
 export type PluginFilters = {
-  category: string;
+  categoryId: string;
   sort: string;
+  term: string;
+};
+
+export type TransactionFilters = {
   term: string;
 };
 

@@ -1,11 +1,12 @@
-import "styles/normalize.css";
-import "styles/brockmann.css";
+import "@/styles/normalize.css";
+import "@/styles/brockmann.css";
 
-import { App } from "App";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+
+import { App } from "@/App";
 
 dayjs.extend(utc);
 

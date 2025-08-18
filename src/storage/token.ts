@@ -1,6 +1,6 @@
-import { storageKeys } from "storage/constants";
-import { getState } from "storage/state/get";
-import { setState } from "storage/state/set";
+import { storageKeys } from "@/storage/constants";
+import { getState } from "@/storage/state/get";
+import { setState } from "@/storage/state/set";
 
 const initialTokens: Record<string, string> = {};
 

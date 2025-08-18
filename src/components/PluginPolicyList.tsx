@@ -1,21 +1,22 @@
 import { fromBinary } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
 import { List, message, Modal, Table, TableProps } from "antd";
-import { Button } from "components/Button";
-import { MiddleTruncate } from "components/MiddleTruncate";
-import { PluginPolicyModal } from "components/PluginPolicyModal";
-import { Stack } from "components/Stack";
-import { TrashIcon } from "icons/TrashIcon";
-import { Policy, PolicySchema } from "proto/policy_pb";
-import { RecipeSchema } from "proto/recipe_specification_pb";
 import { FC, useCallback, useEffect, useState } from "react";
-import { toCapitalizeFirst, toNumeralFormat } from "utils/functions";
+
+import { Button } from "@/components/Button";
+import { MiddleTruncate } from "@/components/MiddleTruncate";
+import { PluginPolicyModal } from "@/components/PluginPolicyModal";
+import { Stack } from "@/components/Stack";
+import { TrashIcon } from "@/icons/TrashIcon";
+import { Policy, PolicySchema } from "@/proto/policy_pb";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
 import {
   delPluginPolicy,
   getPluginPolicies,
   getRecipeSpecification,
-} from "utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "utils/types";
+} from "@/utils/services/marketplace";
+import { Configuration, Plugin, PluginPolicy } from "@/utils/types";
 
 interface ParsedPluginPolicy extends PluginPolicy {
   parsedRecipe: Policy;

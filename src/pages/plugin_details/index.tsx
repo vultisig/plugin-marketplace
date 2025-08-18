@@ -1,31 +1,32 @@
 import { Menu, message, Modal, Tooltip } from "antd";
-import { Button } from "components/Button";
-import { PluginPolicyList } from "components/PluginPolicyList";
-import { PluginReviewList } from "components/PluginReviewList";
-import { Pricing } from "components/Pricing";
-import { Spin } from "components/Spin";
-import { Stack } from "components/Stack";
-import { useApp } from "hooks/useApp";
-import { useGoBack } from "hooks/useGoBack";
-import { BadgeCheckIcon } from "icons/BadgeCheckIcon";
-import { ChevronLeftIcon } from "icons/ChevronLeftIcon";
-import { CircleArrowDownIcon } from "icons/CircleArrowDownIcon";
-import { CircleInfoIcon } from "icons/CircleInfoIcon";
-import { ShieldCheckIcon } from "icons/ShieldCheckIcon";
-import { StarIcon } from "icons/StarIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
-import { modalHash } from "utils/constants/core";
-import { routeTree } from "utils/constants/routes";
-import { toNumeralFormat } from "utils/functions";
-import { startReshareSession } from "utils/services/extension";
+
+import { Button } from "@/components/Button";
+import { PluginPolicyList } from "@/components/PluginPolicyList";
+import { PluginReviewList } from "@/components/PluginReviewList";
+import { Pricing } from "@/components/Pricing";
+import { Spin } from "@/components/Spin";
+import { Stack } from "@/components/Stack";
+import { useApp } from "@/hooks/useApp";
+import { useGoBack } from "@/hooks/useGoBack";
+import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
+import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
+import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
+import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
+import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
+import { StarIcon } from "@/icons/StarIcon";
+import { modalHash } from "@/utils/constants/core";
+import { routeTree } from "@/utils/constants/routes";
+import { toNumeralFormat } from "@/utils/functions";
+import { startReshareSession } from "@/utils/services/extension";
 import {
   getPlugin,
   isPluginInstalled,
   uninstallPlugin,
-} from "utils/services/marketplace";
-import { Plugin } from "utils/types";
+} from "@/utils/services/marketplace";
+import { Plugin } from "@/utils/types";
 
 interface InitialState {
   isInstalled?: boolean;

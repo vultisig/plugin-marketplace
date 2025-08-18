@@ -1,0 +1,8 @@
+{
+  "ignore": ["src/global.d.ts", "src/styled.d.ts"],
+  "ignoreDependencies": [
+    "@bufbuild/buf",
+    "@bufbuild/protoc-gen-es",
+    "@types/styled-components"
+  ]
+}

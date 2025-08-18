@@ -1,5 +1,6 @@
 import { Dayjs } from "dayjs";
-import { CSSProperties, PluginPolicy } from "utils/types";
+
+import { CSSProperties, PluginPolicy } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -25,6 +26,7 @@ const toSnake = (value: string): string => {
 
 export const cssPropertiesToString = (styles: CSSProperties): string => {
   return Object.entries(styles)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([key, value]) => `${toKebab(key)}: ${value};`)
     .join("\n");
 };

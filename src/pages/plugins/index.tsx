@@ -1,21 +1,21 @@
-import { Empty, SelectProps } from "antd";
-import { Divider } from "components/Divider";
-import { PluginItem } from "components/PluginItem";
-import { Select } from "components/Select";
-import { Spin } from "components/Spin";
-import { Stack } from "components/Stack";
-import { useFilterParams } from "hooks/useFilterParams";
+import { Empty } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
-import { getPluginCategories, getPlugins } from "utils/services/marketplace";
-import { Category, Plugin, PluginFilters } from "utils/types";
+
+import { Divider } from "@/components/Divider";
+import { PluginItem } from "@/components/PluginItem";
+import { Select } from "@/components/Select";
+import { Spin } from "@/components/Spin";
+import { HStack, Stack, VStack } from "@/components/Stack";
+import { useFilterParams } from "@/hooks/useFilterParams";
+import { getPluginCategories, getPlugins } from "@/utils/services/marketplace";
+import { Category, Plugin, PluginFilters } from "@/utils/types";
 
 type InitialState = {
   categories: Category[];
   loading: boolean;
   plugins: Plugin[];
-  sortOptions: NonNullable<SelectProps["options"]>;
 };
 
 export const PluginsPage = () => {
@@ -23,13 +23,9 @@ export const PluginsPage = () => {
     categories: [],
     loading: true,
     plugins: [],
-    sortOptions: [
-      { value: "-created_at", label: "Newest" },
-      { value: "created_at", label: "Oldest" },
-    ],
   };
   const [state, setState] = useState(initialState);
-  const { categories, loading, plugins, sortOptions } = state;
+  const { categories, loading, plugins } = state;
   const { filters, setFilters } = useFilterParams<PluginFilters>();
   const colors = useTheme();
   const [newPlugin] = plugins;
@@ -37,7 +33,7 @@ export const PluginsPage = () => {
   const fetchPlugins = useCallback((skip: number, filters: PluginFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    getPlugins(skip, filters)
+    getPlugins({ ...filters, skip })
       .then(({ plugins }) => {
         setState((prevState) => ({ ...prevState, loading: false, plugins }));
       })
@@ -65,9 +61,8 @@ export const PluginsPage = () => {
   }, []);
 
   return (
-    <Stack
+    <VStack
       $style={{
-        flexDirection: "column",
         gap: "48px",
         maxWidth: "1200px",
         padding: "16px",
@@ -84,8 +79,8 @@ export const PluginsPage = () => {
         }}
       />
 
-      <Stack $style={{ flexDirection: "column", flexGrow: "1", gap: "32px" }}>
-        <Stack $style={{ flexDirection: "column", gap: "24px" }}>
+      <VStack $style={{ flexGrow: "1", gap: "32px" }}>
+        <VStack $style={{ gap: "24px" }}>
           <Stack
             as="span"
             $style={{
@@ -97,15 +92,13 @@ export const PluginsPage = () => {
             Discover Apps
           </Stack>
           <Divider />
-          <Stack $style={{ flexDirection: "row", gap: "12px" }}>
-            <Stack
-              $style={{ flexDirection: "row", flexGrow: "1", gap: "12px" }}
-            >
+          <HStack $style={{ gap: "12px" }}>
+            <HStack $style={{ flexGrow: "1", gap: "12px" }}>
               {categories.map(({ id, name }) => (
-                <Stack
+                <VStack
                   as="span"
                   key={id}
-                  onClick={() => setFilters({ ...filters, category: id })}
+                  onClick={() => setFilters({ ...filters, categoryId: id })}
                   $hover={{
                     backgroundColor: colors.textSecondary.toHex(),
                     color: colors.buttonText.toHex(),
@@ -113,17 +106,16 @@ export const PluginsPage = () => {
                   $style={{
                     alignItems: "center",
                     backgroundColor:
-                      filters.category === id
+                      filters.categoryId === id
                         ? colors.textSecondary.toHex()
                         : colors.bgSecondary.toHex(),
                     border: `solid 1px ${colors.borderNormal.toHex()}`,
                     borderRadius: "8px",
                     color:
-                      filters.category === id
+                      filters.categoryId === id
                         ? colors.buttonText.toHex()
                         : colors.textPrimary.toHex(),
                     cursor: "pointer",
-                    flexDirection: "column",
                     fontSize: "12px",
                     fontWeight: "500",
                     gap: "8px",
@@ -134,13 +126,12 @@ export const PluginsPage = () => {
                   }}
                 >
                   {name}
-                </Stack>
+                </VStack>
               ))}
-            </Stack>
-            <Stack
+            </HStack>
+            <HStack
               $style={{
                 alignItems: "center",
-                flexDirection: "row",
                 gap: "12px",
                 width: "200px",
               }}
@@ -149,14 +140,17 @@ export const PluginsPage = () => {
                 Sort By
               </Stack>
               <Select
-                options={sortOptions}
+                options={[
+                  { value: "-created_at", label: "Newest" },
+                  { value: "created_at", label: "Oldest" },
+                ]}
                 value={filters.sort}
                 onChange={(sort) => setFilters({ ...filters, sort })}
                 allowClear
               />
-            </Stack>
-          </Stack>
-        </Stack>
+            </HStack>
+          </HStack>
+        </VStack>
 
         {loading ? (
           <Spin />
@@ -212,7 +206,7 @@ export const PluginsPage = () => {
         ) : (
           <Empty />
         )}
-      </Stack>
-    </Stack>
+      </VStack>
+    </VStack>
   );
 };
