@@ -8,12 +8,12 @@ reviews:
   poem: true
   review_status: true
   collapse_walkthrough: true
-  sequence_diagram: false
+  sequence_diagrams: false
   auto_review:
     enabled: true
     drafts: false
   path_instructions:
-    - path: '**/*.ts,**/*.tsx,**/*.js,**/*.jsx'
+    - path: '**/*.{ts,tsx,js,jsx}'
       instructions: |
         Review Guidelines - DO NOT suggest these changes:
         - Undefined/Null Checks: Never suggest adding undefined or null checks when TypeScript types already guarantee the value exists. Trust TypeScript's type system - if a property or variable is typed as non-nullable, do not suggest optional chaining (?.) or null checks.
