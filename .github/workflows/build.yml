@@ -25,26 +25,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '23.7.0'
-
-      - name: Enable Corepack
-        run: corepack enable
-
-      - name: Prepare Yarn
-        run: corepack prepare yarn@4.6.0 --activate
-
-      - name: Cache node_modules
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            **/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
 
       - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn install
+        run: npm ci
   lint:
     needs: setup
     runs-on: ubuntu-22.04
@@ -57,16 +43,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '23.7.0'
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Prepare Yarn
-        run: corepack prepare yarn@4.6.0 --activate
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
       - name: Lint
-        run: yarn lint
+        run: npm run lint
       - name: run typecheck
-        run: yarn typecheck
+        run: npm run typecheck
   build:
     needs: [setup, lint]
     runs-on: ubuntu-22.04
@@ -79,11 +64,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '23.7.0'
-      - name: Enable Corepack
-        run: corepack enable
-      - name: Prepare Yarn
-        run: corepack prepare yarn@4.6.0 --activate
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
       - name: Install dependencies
-        run: yarn install
+        run: npm ci
       - name: Build extension
-        run: yarn build
+        run: npm run build
