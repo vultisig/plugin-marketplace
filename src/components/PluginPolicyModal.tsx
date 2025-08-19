@@ -41,14 +41,18 @@ import { addPluginPolicy } from "utils/services/marketplace";
 import { Configuration, Plugin, PluginPolicy } from "utils/types";
 import { v4 as uuidv4 } from "uuid";
 
-type FieldType = {
+type DynamicType = {
+  [key: string]: string | Dayjs;
+};
+
+type StaticType = {
   maxTxsPerWindow: number;
   rateLimitWindow: number;
   supportedResource: number;
   target: string;
-} & {
-  [key: string]: string | Dayjs;
 };
+
+type FieldType = StaticType & DynamicType;
 
 interface PluginPolicyModalProps {
   onFinish: () => void;
@@ -59,6 +63,7 @@ interface PluginPolicyModalProps {
 }
 
 interface InitialState {
+  cachedData: { [key: number]: DynamicType };
   submitting?: boolean;
   visible?: boolean;
 }
@@ -68,9 +73,11 @@ export const PluginPolicyModal: FC<PluginPolicyModalProps> = ({
   plugin,
   schema,
 }) => {
-  const initialState: InitialState = {};
+  const initialState: InitialState = {
+    cachedData: {},
+  };
   const [state, setState] = useState(initialState);
-  const { submitting, visible } = state;
+  const { cachedData, submitting, visible } = state;
   const { hash } = useLocation();
   const [form] = Form.useForm<FieldType>();
   const [messageApi, messageHolder] = message.useMessage();
@@ -320,10 +327,63 @@ export const PluginPolicyModal: FC<PluginPolicyModalProps> = ({
                   <Select disabled={isFeesPlugin} options={resourceOptions} />
                 </Form.Item>
                 <Form.Item<FieldType>
-                  shouldUpdate={(prevValues, currentValues) =>
-                    prevValues.supportedResource !==
-                    currentValues.supportedResource
-                  }
+                  shouldUpdate={(prevValues, currentValues) => {
+                    const updated =
+                      prevValues.supportedResource !==
+                      currentValues.supportedResource;
+
+                    if (updated) {
+                      const currentResource =
+                        schema.supportedResources[
+                          currentValues.supportedResource
+                        ];
+
+                      const prevResource =
+                        schema.supportedResources[prevValues.supportedResource];
+
+                      const currentCachedData =
+                        cachedData[currentValues.supportedResource] || {};
+
+                      const prevCachedData =
+                        prevResource.parameterCapabilities.reduce<DynamicType>(
+                          (acc, { parameterName }) => {
+                            acc[parameterName] = currentValues[parameterName];
+                            return acc;
+                          },
+                          {}
+                        );
+
+                      if (prevResource.target === TargetType.ADDRESS) {
+                        prevCachedData["target"] = currentValues["target"];
+                      }
+
+                      setState((prevState) => ({
+                        ...prevState,
+                        cachedData: {
+                          ...prevState.cachedData,
+                          [prevValues.supportedResource]: prevCachedData,
+                        },
+                      }));
+
+                      currentResource.parameterCapabilities.forEach(
+                        ({ parameterName }) => {
+                          form.setFieldValue(
+                            parameterName,
+                            currentCachedData[parameterName]
+                          );
+                        }
+                      );
+
+                      if (currentResource.target === TargetType.ADDRESS) {
+                        form.setFieldValue(
+                          "target",
+                          currentCachedData["target"]
+                        );
+                      }
+                    }
+
+                    return updated;
+                  }}
                   noStyle
                 >
                   {({ getFieldsValue }) => {
