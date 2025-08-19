@@ -96,20 +96,20 @@ export type ReviewForm = {
 };
 
 export type Transaction = {
-  id: string;
-  pluginId: string;
-  txHash: string;
+  broadcastedAt: string;
   chainId: number;
-  policyId: string;
-  tokenId: string;
+  createdAt: string;
   fromPublicKey: string;
-  toPublicKey: string;
+  id: string;
+  lost: boolean;
+  pluginId: string;
+  policyId: string;
   proposedTxHex: string;
   status: "PROPOSED" | "SIGNED" | "VERIFIED";
   statusOnchain: "FAIL" | "PENDING" | "SUCCESS";
-  lost: boolean;
-  broadcastedAt: string;
-  createdAt: string;
+  txHash: string;
+  tokenId: string;
+  toPublicKey: string;
   updatedAt: string;
 };
 

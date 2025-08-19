@@ -12,6 +12,7 @@ import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { BoxIcon } from "@/icons/BoxIcon";
 import { CircleDollarSignIcon } from "@/icons/CircleDollarSignIcon";
+import { HistoryIcon } from "@/icons/HistoryIcon";
 import { LanguagesIcon } from "@/icons/LanguagesIcon";
 import { LogOutIcon } from "@/icons/LogOutIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
@@ -79,8 +80,8 @@ export const DefaultLayout = () => {
     },
     {
       key: "4",
-      label: "Transactions",
-      icon: <CircleDollarSignIcon />,
+      label: "Transaction history",
+      icon: <HistoryIcon />,
       onClick: () => {
         navigate(routeTree.transactions.path, { state: true });
       },

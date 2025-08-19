@@ -1,9 +1,9 @@
-import { Empty } from "antd";
+import { Empty, Table, TableProps } from "antd";
+import dayjs from "dayjs";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { Divider } from "@/components/Divider";
 import { InputSearch } from "@/components/InputSearch";
 import { Spin } from "@/components/Spin";
 import { HStack, Stack, VStack } from "@/components/Stack";
@@ -27,6 +27,44 @@ export const TransactionsPage = () => {
     id: string;
   }>();
   const { filters, setFilters } = useFilterParams<TransactionFilters>();
+
+  const columns: TableProps<Transaction>["columns"] = [
+    {
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (value) => dayjs(value).format("MMM D, YYYY"),
+      title: "Date",
+      width: 120,
+    },
+    {
+      dataIndex: "pluginId",
+      key: "pluginId",
+      render: (value) => (
+        <HStack $style={{ alignItems: "center", gap: "12px" }}>
+          <Stack
+            as="img"
+            alt={value}
+            src={`/plugins/payroll.png`}
+            $style={{ height: "40px", width: "40px" }}
+          />
+          {value}
+        </HStack>
+      ),
+      title: "App Name",
+    },
+    {
+      align: "center",
+      dataIndex: "status",
+      key: "status",
+      title: "Status",
+    },
+    {
+      align: "center",
+      dataIndex: "txHash",
+      key: "txHash",
+      title: "TxHash",
+    },
+  ];
 
   const fetchTransactions = useCallback(
     (skip: number, filters: TransactionFilters) => {
@@ -62,50 +100,35 @@ export const TransactionsPage = () => {
       $style={{
         gap: "48px",
         maxWidth: "1200px",
-        padding: "16px",
+        padding: "48px 16px",
         width: "100%",
       }}
     >
-      <VStack $style={{ flexGrow: "1", gap: "32px" }}>
-        <VStack $style={{ gap: "24px" }}>
-          <Stack
-            as="span"
-            $style={{
-              fontSize: "40px",
-              fontWeight: "500",
-              lineHeight: "42px",
-            }}
-          >
-            Transaction History
-          </Stack>
-          <Divider />
-          <HStack $style={{ gap: "12px" }}>
-            <InputSearch
-              value={filters.term}
-              onChange={({ target }) =>
-                setFilters({ ...filters, term: target.value })
-              }
-            />
-          </HStack>
-        </VStack>
-
+      <VStack $style={{ flexGrow: "1", gap: "24px" }}>
+        <Stack
+          as="span"
+          $style={{ fontSize: "22px", fontWeight: "500", lineHeight: "24px" }}
+        >
+          Transaction History
+        </Stack>
+        <HStack $style={{ gap: "12px" }}>
+          <InputSearch
+            value={filters.term}
+            onChange={({ target }) =>
+              setFilters({ ...filters, term: target.value })
+            }
+          />
+        </HStack>
         {loading ? (
           <Spin />
         ) : transactions.length ? (
-          <Stack
-            $style={{
-              display: "grid",
-              gap: "32px",
-              gridTemplateColumns: "repeat(2, 1fr)",
-            }}
-            $media={{
-              xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
-            }}
-          >
-            {transactions.map((transaction) => (
-              <Stack key={transaction.id}>{transaction.id}</Stack>
-            ))}
-          </Stack>
+          <Table
+            columns={columns}
+            dataSource={transactions}
+            loading={loading}
+            rowKey="id"
+            size="small"
+          />
         ) : (
           <Empty />
         )}
