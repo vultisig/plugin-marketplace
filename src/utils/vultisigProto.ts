@@ -11,7 +11,7 @@ const normalizeBase64 = (str: string) => {
   return out;
 };
 
-export const getSevenZip = pMemoize(() =>
+const getSevenZip = pMemoize(() =>
   SevenZip({
     locateFile: () => `/7zz.wasm`,
   }).catch(() => SevenZip())

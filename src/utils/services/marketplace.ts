@@ -11,8 +11,6 @@ import {
   Plugin,
   PluginFilters,
   PluginPolicy,
-  PluginPricing,
-  PolicyTransactionHistory,
   ReshareForm,
   Review,
   ReviewForm,
@@ -35,8 +33,6 @@ export const getAuthToken = async (data: AuthTokenForm): Promise<string> =>
   post<{ token: string }>(`${baseUrl}/auth`, toSnakeCase(data)).then(
     ({ token }) => token
   );
-
-export const getFAQ = () => get<{ data: string[] }>(`${baseUrl}/faq`);
 
 export const getPlugin = async (id: string) =>
   get<Plugin>(`${baseUrl}/plugins/${id}`).then((plugin) => {
@@ -90,21 +86,6 @@ export const getPluginPolicies = async (
     totalCount,
   }));
 
-export const getPluginPricing = (id: string) =>
-  get<PluginPricing>(`${baseUrl}/pricing/${id}`);
-
-export const getPolicyTransactionHistory = async (
-  policyId: string,
-  skip: number,
-  take: number
-) =>
-  get<{ history: PolicyTransactionHistory[]; totalCount: number }>(
-    `${baseUrl}/plugins/policies/${policyId}/history?skip=${skip}&take=${take}`,
-    {
-      headers: toSnakeCase({ publicKey: getVaultId() }),
-    }
-  ).then(({ history, totalCount }) => ({ history: history || [], totalCount }));
-
 export const getPluginReviews = async (
   pluginId: string,
   skip = 0,
@@ -119,14 +100,16 @@ export const getRecipeSpecification = async (pluginId: string) =>
     `${baseUrl}/plugins/${pluginId}/recipe-specification`
   );
 
-export const getTransactions = ({
-  skip,
-  take = 12,
-  term,
-}: ListFilters & TransactionFilters) =>
-  get<{ transactions: Transaction[]; totalCount: number }>(
-    `${baseUrl}/plugins`,
-    { params: toSnakeCase({ skip, take, term }) }
+export const getTransactions = (
+  id: string,
+  { skip, take = 12, term }: ListFilters & TransactionFilters
+) =>
+  get<{ history: Transaction[]; totalCount: number }>(
+    `${baseUrl}/plugin/policies/${id}/history`,
+    {
+      //headers: toSnakeCase({ publicKey: getVaultId() }),
+      params: toSnakeCase({ skip, take, term }),
+    }
   );
 
 export const isPluginInstalled = async (id: string) =>

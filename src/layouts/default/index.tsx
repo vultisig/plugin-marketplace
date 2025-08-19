@@ -78,8 +78,16 @@ export const DefaultLayout = () => {
       },
     },
     {
-      danger: true,
       key: "4",
+      label: "Transactions",
+      icon: <CircleDollarSignIcon />,
+      onClick: () => {
+        navigate(routeTree.transactions.path, { state: true });
+      },
+    },
+    {
+      danger: true,
+      key: "5",
       label: "Disconnect",
       icon: <LogOutIcon />,
       onClick: disconnect,

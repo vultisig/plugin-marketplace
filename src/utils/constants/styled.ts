@@ -101,7 +101,7 @@ export type SharedColors = {
   warning: ColorToken;
 };
 
-export const sharedColors: SharedColors = {
+const sharedColors: SharedColors = {
   accentOne: new ColorToken(224, 95, 31), //hsla(224, 95%, 31%, 1)
   accentTwo: new ColorToken(224, 96, 40), //hsla(224, 96%, 40%, 1)
   accentThree: new ColorToken(224, 75, 50), //hsla(224, 75%, 50%, 1)
@@ -145,5 +145,3 @@ export const themes: Record<Theme, DefaultTheme> = {
     textTertiary: new ColorToken(215, 16, 52), //hsla(215, 16%, 52%, 1)
   },
 } as const;
-
-export type ThemeColorKeys = keyof DefaultTheme;

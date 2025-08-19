@@ -111,9 +111,9 @@ export const post = async <T>(
     .post<T>(url, toSnakeCase(data), config)
     .then(({ data }) => toCamelCase(data));
 
-export const put = async <T>(
-  url: string,
-  data?: any,
-  config?: AxiosRequestConfig
-): Promise<T> =>
-  api.put<T>(url, data, config).then(({ data }) => toCamelCase(data));
+// export const put = async <T>(
+//   url: string,
+//   data?: any,
+//   config?: AxiosRequestConfig
+// ): Promise<T> =>
+//   api.put<T>(url, data, config).then(({ data }) => toCamelCase(data));

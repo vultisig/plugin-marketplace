@@ -1,11 +1,12 @@
 import { Empty } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 
 import { Divider } from "@/components/Divider";
 import { InputSearch } from "@/components/InputSearch";
 import { Spin } from "@/components/Spin";
-import { Stack } from "@/components/Stack";
+import { HStack, Stack, VStack } from "@/components/Stack";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { getTransactions } from "@/utils/services/marketplace";
 import { Transaction, TransactionFilters } from "@/utils/types";
@@ -22,14 +23,17 @@ export const TransactionsPage = () => {
   };
   const [state, setState] = useState(initialState);
   const { loading, transactions } = state;
+  const { id = "ccf3cb30-abeb-474b-95ad-9361d0970943" } = useParams<{
+    id: string;
+  }>();
   const { filters, setFilters } = useFilterParams<TransactionFilters>();
 
   const fetchTransactions = useCallback(
     (skip: number, filters: TransactionFilters) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getTransactions(skip, filters)
-        .then(({ transactions }) => {
+      getTransactions(id, { ...filters, skip })
+        .then(({ history: transactions }) => {
           setState((prevState) => ({
             ...prevState,
             loading: false,
@@ -40,7 +44,7 @@ export const TransactionsPage = () => {
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    []
+    [id]
   );
 
   const debouncedFetchTransactions = useMemo(
@@ -54,27 +58,16 @@ export const TransactionsPage = () => {
   );
 
   return (
-    <Stack
+    <VStack
       $style={{
-        flexDirection: "column",
         gap: "48px",
         maxWidth: "1200px",
         padding: "16px",
         width: "100%",
       }}
     >
-      <Stack
-        $style={{
-          backgroundImage: "url(/images/banner.jpg)",
-          backgroundPosition: "center center",
-          backgroundSize: "cover",
-          borderRadius: "16px",
-          height: "336px",
-        }}
-      />
-
-      <Stack $style={{ flexDirection: "column", flexGrow: "1", gap: "32px" }}>
-        <Stack $style={{ flexDirection: "column", gap: "24px" }}>
+      <VStack $style={{ flexGrow: "1", gap: "32px" }}>
+        <VStack $style={{ gap: "24px" }}>
           <Stack
             as="span"
             $style={{
@@ -83,52 +76,40 @@ export const TransactionsPage = () => {
               lineHeight: "42px",
             }}
           >
-            Discover Apps
+            Transaction History
           </Stack>
           <Divider />
-          <Stack $style={{ flexDirection: "row", gap: "12px" }}>
+          <HStack $style={{ gap: "12px" }}>
             <InputSearch
               value={filters.term}
               onChange={({ target }) =>
                 setFilters({ ...filters, term: target.value })
               }
             />
-          </Stack>
-        </Stack>
+          </HStack>
+        </VStack>
 
         {loading ? (
           <Spin />
         ) : transactions.length ? (
-          <Stack $style={{ flexDirection: "column", gap: "16px" }}>
-            <Stack
-              as="span"
-              $style={{
-                fontSize: "17px",
-                fontWeight: "500",
-                lineHeight: "20px",
-              }}
-            >
-              Transaction History
-            </Stack>
-            <Stack
-              $style={{
-                display: "grid",
-                gap: "32px",
-                gridTemplateColumns: "repeat(2, 1fr)",
-              }}
-              $media={{
-                xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
-              }}
-            >
-              {transactions.map((transaction) => (
-                <Stack key={transaction.id}>{transaction.id}</Stack>
-              ))}
-            </Stack>
+          <Stack
+            $style={{
+              display: "grid",
+              gap: "32px",
+              gridTemplateColumns: "repeat(2, 1fr)",
+            }}
+            $media={{
+              xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
+            }}
+          >
+            {transactions.map((transaction) => (
+              <Stack key={transaction.id}>{transaction.id}</Stack>
+            ))}
           </Stack>
         ) : (
           <Empty />
         )}
-      </Stack>
-    </Stack>
+      </VStack>
+    </VStack>
   );
 };

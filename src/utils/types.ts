@@ -12,7 +12,7 @@ export type Category = {
   name: string;
 };
 
-export type Property = {
+type Property = {
   enum: string[];
   format: string;
   type: string;
@@ -63,13 +63,7 @@ export type PluginPricing = {
   updatedAt: string;
 };
 
-export type PolicyTransactionHistory = {
-  id: string;
-  status: string;
-  updatedAt: string;
-};
-
-export type Rating = {
+type Rating = {
   count: number;
   rating: number;
 };
@@ -99,12 +93,6 @@ export type ReviewForm = {
   address: string;
   comment: string;
   rating: number;
-};
-
-export type Tag = {
-  color: string;
-  id: string;
-  name: string;
 };
 
 export type Transaction = {

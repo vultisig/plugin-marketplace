@@ -1,13 +1,10 @@
-export const routeKeys = [
-  "faq",
-  "notFound",
-  "plugins",
-  "pluginDetails",
-  "root",
-  "transactions",
-] as const;
-
-export type RouteKey = (typeof routeKeys)[number];
+type RouteKey =
+  | "faq"
+  | "notFound"
+  | "plugins"
+  | "pluginDetails"
+  | "root"
+  | "transactions";
 
 export const routeTree = {
   faq: { path: "/faq" },

@@ -8,7 +8,7 @@ import { PluginPolicyList } from "@/components/PluginPolicyList";
 import { PluginReviewList } from "@/components/PluginReviewList";
 import { Pricing } from "@/components/Pricing";
 import { Spin } from "@/components/Spin";
-import { Stack } from "@/components/Stack";
+import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
@@ -131,9 +131,8 @@ export const PluginDetailsPage = () => {
   return (
     <>
       {plugin ? (
-        <Stack
+        <VStack
           $style={{
-            flexDirection: "column",
             gap: "64px",
             maxWidth: "1200px",
             padding: "0 16px",
@@ -141,18 +140,14 @@ export const PluginDetailsPage = () => {
           }}
           $media={{ xl: { $style: { flexDirection: "row" } } }}
         >
-          <Stack
-            $style={{
-              flexDirection: "column",
-              gap: "32px",
-              paddingTop: "24px",
-            }}
+          <VStack
+            $style={{ gap: "32px", paddingTop: "24px" }}
             $media={{
               xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
             }}
           >
-            <Stack $style={{ flexDirection: "column", gap: "24px" }}>
-              <Stack
+            <VStack $style={{ gap: "24px" }}>
+              <HStack
                 as="span"
                 $style={{
                   alignItems: "center",
@@ -171,16 +166,15 @@ export const PluginDetailsPage = () => {
               >
                 <ChevronLeftIcon fontSize={16} />
                 Go back
-              </Stack>
-              <Stack
+              </HStack>
+              <VStack
                 $style={{
                   backgroundColor: colors.bgTertiary.toHex(),
                   borderRadius: "32px",
-                  flexDirection: "column",
                   padding: "16px",
                 }}
               >
-                <Stack
+                <HStack
                   $style={{
                     backgroundColor: colors.bgPrimary.toHex(),
                     border: `solid 1px ${colors.borderNormal.toHex()}`,
@@ -189,26 +183,14 @@ export const PluginDetailsPage = () => {
                     padding: "24px",
                   }}
                 >
-                  <Stack
-                    $style={{
-                      alignItems: "center",
-                      flexDirection: "row",
-                      gap: "16px",
-                    }}
-                  >
+                  <HStack $style={{ alignItems: "center", gap: "16px" }}>
                     <Stack
                       as="img"
                       alt={plugin.title}
                       src={`/plugins/payroll.png`}
                       $style={{ height: "72px", width: "72px" }}
                     />
-                    <Stack
-                      $style={{
-                        flexDirection: "column",
-                        gap: "8px",
-                        justifyContent: "center",
-                      }}
-                    >
+                    <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                       <Stack
                         as="span"
                         $style={{
@@ -219,14 +201,8 @@ export const PluginDetailsPage = () => {
                       >
                         {plugin.title}
                       </Stack>
-                      <Stack
-                        $style={{
-                          alignItems: "center",
-                          flexDirection: "row",
-                          gap: "8px",
-                        }}
-                      >
-                        <Stack $style={{ alignItems: "center", gap: "2px" }}>
+                      <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
                           <Stack
                             as={CircleArrowDownIcon}
                             $style={{
@@ -244,7 +220,7 @@ export const PluginDetailsPage = () => {
                           >
                             {toNumeralFormat(1258)}
                           </Stack>
-                        </Stack>
+                        </HStack>
                         <Stack
                           $style={{
                             backgroundColor: colors.borderLight.toHex(),
@@ -252,7 +228,7 @@ export const PluginDetailsPage = () => {
                             width: "3px",
                           }}
                         />
-                        <Stack $style={{ alignItems: "center", gap: "2px" }}>
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
                           <Stack
                             as={StarIcon}
                             $style={{
@@ -273,16 +249,11 @@ export const PluginDetailsPage = () => {
                               ? `${plugin.rating.rate}/5 (${plugin.rating.count})`
                               : "No Rating yet"}
                           </Stack>
-                        </Stack>
-                      </Stack>
-                    </Stack>
-                  </Stack>
-                  <Stack
-                    $style={{
-                      flexDirection: "column",
-                      gap: "16px",
-                    }}
-                  >
+                        </HStack>
+                      </HStack>
+                    </VStack>
+                  </HStack>
+                  <VStack $style={{ gap: "16px" }}>
                     {isConnected ? (
                       isInstalled === undefined ? (
                         <Button kind="primary" disabled loading>
@@ -322,10 +293,10 @@ export const PluginDetailsPage = () => {
                       </Button>
                     )}
                     <Pricing pricing={plugin.pricing} center />
-                  </Stack>
-                </Stack>
-              </Stack>
-            </Stack>
+                  </VStack>
+                </HStack>
+              </VStack>
+            </VStack>
 
             <Stack
               as={Menu}
@@ -350,7 +321,7 @@ export const PluginDetailsPage = () => {
               onInstall={handleInstall}
               plugin={plugin}
             />
-          </Stack>
+          </VStack>
           <Stack
             as="span"
             $style={{
@@ -359,8 +330,8 @@ export const PluginDetailsPage = () => {
             }}
             $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
           />
-          <Stack
-            $style={{ flexDirection: "column", paddingBottom: "24px" }}
+          <VStack
+            $style={{ paddingBottom: "24px" }}
             $media={{
               xl: {
                 $style: {
@@ -371,15 +342,14 @@ export const PluginDetailsPage = () => {
               },
             }}
           >
-            <Stack
-              $style={{ flexDirection: "column", gap: "20px" }}
+            <VStack
+              $style={{ gap: "20px" }}
               $media={{ xl: { $style: { position: "sticky", top: "96px" } } }}
             >
-              <Stack
+              <VStack
                 $style={{
                   border: `solid 1px ${colors.borderNormal.toHex()}`,
                   borderRadius: "24px",
-                  flexDirection: "column",
                   gap: "12px",
                   padding: "32px",
                 }}
@@ -399,17 +369,21 @@ export const PluginDetailsPage = () => {
                   "Fee deduction authorization",
                   "Vault balance visibility",
                 ].map((item, index) => (
-                  <Stack key={index} $style={{ gap: "8px" }}>
-                    <ShieldCheckIcon
-                      color={colors.warning.toHex()}
-                      fontSize={16}
+                  <HStack key={index} $style={{ gap: "8px" }}>
+                    <Stack
+                      as={ShieldCheckIcon}
+                      $style={{
+                        color: colors.warning.toHex(),
+                        flex: "no",
+                        fontSize: "16px",
+                      }}
                     />
                     <Stack
                       as="span"
                       $style={{
                         color: colors.textSecondary.toHex(),
                         fontWeight: "500",
-                        lineHeight: "18px",
+                        lineHeight: "16px",
                       }}
                     >
                       {item}
@@ -417,14 +391,13 @@ export const PluginDetailsPage = () => {
                     <Tooltip title="Required to securely approve and route plugin payment transactions through your vault.">
                       <CircleInfoIcon />
                     </Tooltip>
-                  </Stack>
+                  </HStack>
                 ))}
-              </Stack>
-              <Stack
+              </VStack>
+              <VStack
                 $style={{
                   border: `solid 1px ${colors.borderNormal.toHex()}`,
                   borderRadius: "24px",
-                  flexDirection: "column",
                   gap: "12px",
                   padding: "32px",
                 }}
@@ -440,27 +413,31 @@ export const PluginDetailsPage = () => {
                   Audit
                 </Stack>
                 {["Fully audited, check the certificate"].map((item, index) => (
-                  <Stack key={index} $style={{ gap: "8px" }}>
-                    <BadgeCheckIcon
-                      color={colors.success.toHex()}
-                      fontSize={16}
+                  <HStack key={index} $style={{ gap: "8px" }}>
+                    <Stack
+                      as={BadgeCheckIcon}
+                      $style={{
+                        color: colors.success.toHex(),
+                        flex: "no",
+                        fontSize: "16px",
+                      }}
                     />
                     <Stack
                       as="span"
                       $style={{
                         color: colors.textSecondary.toHex(),
                         fontWeight: "500",
-                        lineHeight: "18px",
+                        lineHeight: "16px",
                       }}
                     >
                       {item}
                     </Stack>
-                  </Stack>
+                  </HStack>
                 ))}
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack>
+              </VStack>
+            </VStack>
+          </VStack>
+        </VStack>
       ) : (
         <Spin />
       )}

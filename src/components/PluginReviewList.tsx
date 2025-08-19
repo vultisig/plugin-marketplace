@@ -6,7 +6,7 @@ import { useTheme } from "styled-components";
 import { Button } from "@/components/Button";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { Spin } from "@/components/Spin";
-import { Stack } from "@/components/Stack";
+import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { StarIcon } from "@/icons/StarIcon";
 import {
@@ -92,7 +92,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
   useEffect(() => fetchReviews(0), [id, fetchReviews]);
 
   return (
-    <Stack $style={{ flexDirection: "column", gap: "16px" }}>
+    <VStack $style={{ gap: "16px" }}>
       <Form
         autoComplete="off"
         form={form}
@@ -100,21 +100,17 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
         onFinish={onFinishSuccess}
         onFinishFailed={onFinishFailed}
       >
-        <Stack
+        <VStack
           $style={{
             backgroundColor: colors.bgSecondary.toHex(),
             borderRadius: "12px",
-            flexDirection: "column",
             gap: "24px",
             height: "100%",
             padding: "16px",
           }}
         >
-          <Stack
-            $style={{
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
+          <HStack
+            $style={{ alignItems: "center", justifyContent: "space-between" }}
           >
             <Stack
               as="span"
@@ -136,7 +132,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
                 <Rate character={<StarIcon />} count={5} />
               </Form.Item>
             </ConfigProvider>
-          </Stack>
+          </HStack>
           <Form.Item<ReviewForm>
             name="comment"
             rules={[{ required: true }]}
@@ -170,13 +166,12 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
               </Button>
             )}
           </Stack>
-        </Stack>
+        </VStack>
       </Form>
-      <Stack
+      <VStack
         $style={{
           backgroundColor: colors.bgSecondary.toHex(),
           borderRadius: "12px",
-          flexDirection: "column",
           gap: "24px",
           height: "100%",
           padding: "16px",
@@ -188,13 +183,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
         >
           Rating Overview
         </Stack>
-        <Stack
-          $style={{
-            alignItems: "center",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
+        <VStack $style={{ alignItems: "center", gap: "8px" }}>
           <Stack
             as="span"
             $style={{
@@ -205,13 +194,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
           >
             {plugin.rating.rate}
           </Stack>
-          <Stack
-            $style={{
-              alignItems: "center",
-              flexDirection: "column",
-              gap: "4px",
-            }}
-          >
+          <VStack $style={{ alignItems: "center", gap: "4px" }}>
             <ConfigProvider theme={{ components: { Rate: { starSize: 16 } } }}>
               <Rate count={5} value={plugin.rating.rate} allowHalf disabled />
             </ConfigProvider>
@@ -225,13 +208,16 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
             >
               {`${plugin.rating.count} Reviews`}
             </Stack>
-          </Stack>
-        </Stack>
-        <Stack $style={{ flexDirection: "column", gap: "12px" }}>
+          </VStack>
+        </VStack>
+        <VStack $style={{ gap: "12px" }}>
           {plugin.ratings
             .sort((a, b) => b.rating - a.rating)
             .map(({ count, rating }) => (
-              <Stack key={rating} $style={{ alignItems: "center", gap: "8px" }}>
+              <HStack
+                key={rating}
+                $style={{ alignItems: "center", gap: "8px" }}
+              >
                 <Stack
                   as="span"
                   $style={{ fontSize: "14px", lineHeight: "16px" }}
@@ -254,28 +240,27 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
                     position: "relative",
                     width: "100%",
                   }}
-                ></Stack>
-              </Stack>
+                />
+              </HStack>
             ))}
-        </Stack>
-      </Stack>
+        </VStack>
+      </VStack>
       {loading ? (
         <Spin />
       ) : reviews.length ? (
         <>
           {reviews.map(({ address, comment, createdAt, id, rating }) => (
-            <Stack
+            <VStack
               key={id}
               $style={{
                 backgroundColor: colors.bgSecondary.toHex(),
                 borderRadius: "12px",
-                flexDirection: "column",
                 gap: "12px",
                 height: "100%",
                 padding: "16px",
               }}
             >
-              <Stack
+              <HStack
                 $style={{
                   alignItems: "center",
                   fontSize: "16px",
@@ -284,14 +269,17 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
                   lineHeight: "24px",
                 }}
               >
-                <Stack $style={{ gap: "12px" }}>
+                <HStack $style={{ gap: "12px" }}>
                   <MiddleTruncate text={address} width="110px" />
-                  <Stack $style={{ color: colors.textTertiary.toHex() }}>
+                  <Stack
+                    as="span"
+                    $style={{ color: colors.textTertiary.toHex() }}
+                  >
                     {dayjs(createdAt).format("MM/DD/YYYY")}
                   </Stack>
-                </Stack>
+                </HStack>
                 <Rate count={5} value={rating} disabled />
-              </Stack>
+              </HStack>
               <Stack
                 $style={{
                   color: colors.textSecondary.toHex(),
@@ -301,12 +289,12 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
               >
                 {comment}
               </Stack>
-            </Stack>
+            </VStack>
           ))}
         </>
       ) : (
         <Empty />
       )}
-    </Stack>
+    </VStack>
   );
 };
