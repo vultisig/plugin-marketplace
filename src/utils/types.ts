@@ -1,5 +1,8 @@
 import type * as CSS from "csstype";
 
+import { Policy } from "@/proto/policy_pb";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
+
 export type AuthTokenForm = {
   chainCodeHex: string;
   message: string;
@@ -22,6 +25,12 @@ export type Configuration = {
   properties: Record<string, Property>;
   required: string[];
   type: "object";
+};
+
+export type CustomPluginPolicy = PluginPolicy & { parsedRecipe: Policy };
+
+export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
+  configuration?: Configuration;
 };
 
 export type ListFilters = {

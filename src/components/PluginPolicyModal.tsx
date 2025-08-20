@@ -4,6 +4,7 @@ import { Divider, Drawer, Form, FormProps, message, SelectProps } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { FC, Fragment, ReactNode, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
 import { Button } from "@/components/Button";
@@ -13,7 +14,9 @@ import { InputNumber } from "@/components/InputNumber";
 import { Select } from "@/components/Select";
 import { Spin } from "@/components/Spin";
 import { HStack, Stack, VStack } from "@/components/Stack";
+import { Tag } from "@/components/Tag";
 import { useGoBack } from "@/hooks/useGoBack";
+import { TrashIcon } from "@/icons/TrashIcon";
 import { ConstraintSchema, MagicConstant } from "@/proto/constraint_pb";
 import { ParameterConstraintSchema } from "@/proto/parameter_constraint_pb";
 import {
@@ -22,17 +25,13 @@ import {
   FeeType,
   PolicySchema,
 } from "@/proto/policy_pb";
-import { RecipeSchema } from "@/proto/recipe_specification_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { modalHash } from "@/utils/constants/core";
 import { toCapitalizeFirst, toTimestamp } from "@/utils/functions";
 import { signPluginPolicy } from "@/utils/services/extension";
 import { addPluginPolicy } from "@/utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "@/utils/types";
-import { Tag } from "@/components/Tag";
-import { TrashIcon } from "@/icons/TrashIcon";
-import { useTheme } from "styled-components";
+import { CustomRecipeSchema, Plugin, PluginPolicy } from "@/utils/types";
 
 type RuleFieldType = {
   supportedResource: number;
@@ -49,9 +48,7 @@ type FormFieldType = {
 type PluginPolicyModalProps = {
   onFinish: () => void;
   plugin: Plugin;
-  schema: Omit<RecipeSchema, "configuration"> & {
-    configuration?: Configuration;
-  };
+  schema: CustomRecipeSchema;
 };
 
 type InitialState = {
@@ -310,7 +307,7 @@ export const PluginPolicyModal: FC<PluginPolicyModalProps> = ({
                 <Form.List name="rules">
                   {(fields, { add, remove }) => (
                     <VStack $style={{ gap: "24px" }}>
-                      {fields.map(({ key, name, ...restField }) => (
+                      {fields.map(({ name, ...restField }) => (
                         <Fragment key={name}>
                           <VStack>
                             <Stack
