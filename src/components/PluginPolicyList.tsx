@@ -9,41 +9,40 @@ import { PluginPolicyModal } from "@/components/PluginPolicyModal";
 import { Stack } from "@/components/Stack";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy, PolicySchema } from "@/proto/policy_pb";
-import { RecipeSchema } from "@/proto/recipe_specification_pb";
 import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
 import {
   delPluginPolicy,
   getPluginPolicies,
-  getRecipeSpecification,
 } from "@/utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "@/utils/types";
+import { CustomPluginPolicy, CustomRecipeSchema, Plugin } from "@/utils/types";
 
-interface ParsedPluginPolicy extends PluginPolicy {
-  parsedRecipe: Policy;
+interface PluginPolicyListProps {
+  plugin: Plugin;
+  schema?: CustomRecipeSchema;
 }
 
 interface InitialState {
   loading: boolean;
-  policies: ParsedPluginPolicy[];
-  schema?: Omit<RecipeSchema, "configuration"> & {
-    configuration?: Configuration;
-  };
+  policies: CustomPluginPolicy[];
   totalCount: number;
 }
 
-export const PluginPolicyList: FC<Plugin> = (plugin) => {
+export const PluginPolicyList: FC<PluginPolicyListProps> = ({
+  plugin,
+  schema,
+}) => {
   const initialState: InitialState = {
     loading: true,
     policies: [],
     totalCount: 0,
   };
   const [state, setState] = useState(initialState);
-  const { loading, policies, schema } = state;
+  const { loading, policies } = state;
   const [messageApi, messageHolder] = message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
   const { id } = plugin;
 
-  const columns: TableProps<ParsedPluginPolicy>["columns"] = [
+  const columns: TableProps<CustomPluginPolicy>["columns"] = [
     {
       title: "Row",
       key: "row",
@@ -106,7 +105,7 @@ export const PluginPolicyList: FC<Plugin> = (plugin) => {
     fetchPolicies(0);
   };
 
-  const handleDelete = ({ id, signature }: ParsedPluginPolicy) => {
+  const handleDelete = ({ id, signature }: CustomPluginPolicy) => {
     if (signature) {
       modalAPI.confirm({
         title: "Are you sure delete this policy?",
@@ -134,14 +133,6 @@ export const PluginPolicyList: FC<Plugin> = (plugin) => {
   };
 
   useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
-
-  useEffect(() => {
-    getRecipeSpecification(id)
-      .then((schema) => {
-        setState((prevState) => ({ ...prevState, schema }));
-      })
-      .catch(() => {});
-  }, [id]);
 
   return (
     <>

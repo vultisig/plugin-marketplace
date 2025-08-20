@@ -33,14 +33,13 @@ import {
   FeeType,
   PolicySchema,
 } from "@/proto/policy_pb";
-import { RecipeSchema } from "@/proto/recipe_specification_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { modalHash } from "@/utils/constants/core";
 import { toCapitalizeFirst, toTimestamp } from "@/utils/functions";
 import { signPluginPolicy } from "@/utils/services/extension";
 import { addPluginPolicy } from "@/utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "@/utils/types";
+import { CustomRecipeSchema, Plugin, PluginPolicy } from "@/utils/types";
 
 type FieldType = {
   maxTxsPerWindow: number;
@@ -54,9 +53,7 @@ type FieldType = {
 interface PluginPolicyModalProps {
   onFinish: () => void;
   plugin: Plugin;
-  schema: Omit<RecipeSchema, "configuration"> & {
-    configuration?: Configuration;
-  };
+  schema: CustomRecipeSchema;
 }
 
 interface InitialState {
