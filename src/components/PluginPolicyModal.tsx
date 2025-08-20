@@ -29,7 +29,6 @@ import {
   FeeType,
   PolicySchema,
 } from "proto/policy_pb";
-import { RecipeSchema } from "proto/recipe_specification_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "proto/rule_pb";
 import { FC, ReactNode, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -38,7 +37,7 @@ import { modalHash } from "utils/constants/core";
 import { toCapitalizeFirst, toTimestamp } from "utils/functions";
 import { signPluginPolicy } from "utils/services/extension";
 import { addPluginPolicy } from "utils/services/marketplace";
-import { Configuration, Plugin, PluginPolicy } from "utils/types";
+import { CustomRecipeSchema, Plugin, PluginPolicy } from "utils/types";
 import { v4 as uuidv4 } from "uuid";
 
 type FieldType = {
@@ -53,9 +52,7 @@ type FieldType = {
 interface PluginPolicyModalProps {
   onFinish: () => void;
   plugin: Plugin;
-  schema: Omit<RecipeSchema, "configuration"> & {
-    configuration?: Configuration;
-  };
+  schema: CustomRecipeSchema;
 }
 
 interface InitialState {
