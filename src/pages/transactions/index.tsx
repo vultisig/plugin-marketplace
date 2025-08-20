@@ -96,42 +96,44 @@ export const TransactionsPage = () => {
   );
 
   return (
-    <VStack
-      $style={{
-        gap: "48px",
-        maxWidth: "1200px",
-        padding: "48px 16px",
-        width: "100%",
-      }}
-    >
-      <VStack $style={{ flexGrow: "1", gap: "24px" }}>
-        <Stack
-          as="span"
-          $style={{ fontSize: "22px", fontWeight: "500", lineHeight: "24px" }}
-        >
-          Transaction History
-        </Stack>
-        <HStack $style={{ gap: "12px" }}>
-          <InputSearch
-            value={filters.term}
-            onChange={({ target }) =>
-              setFilters({ ...filters, term: target.value })
-            }
-          />
-        </HStack>
-        {loading ? (
-          <Spin />
-        ) : transactions.length ? (
-          <Table
-            columns={columns}
-            dataSource={transactions}
-            loading={loading}
-            rowKey="id"
-            size="small"
-          />
-        ) : (
-          <Empty />
-        )}
+    <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+      <VStack
+        $style={{
+          gap: "48px",
+          maxWidth: "1200px",
+          padding: "48px 16px",
+          width: "100%",
+        }}
+      >
+        <VStack $style={{ flexGrow: "1", gap: "24px" }}>
+          <Stack
+            as="span"
+            $style={{ fontSize: "22px", fontWeight: "500", lineHeight: "24px" }}
+          >
+            Transaction History
+          </Stack>
+          <HStack $style={{ gap: "12px" }}>
+            <InputSearch
+              value={filters.term}
+              onChange={({ target }) =>
+                setFilters({ ...filters, term: target.value })
+              }
+            />
+          </HStack>
+          {loading ? (
+            <Spin />
+          ) : transactions.length ? (
+            <Table
+              columns={columns}
+              dataSource={transactions}
+              loading={loading}
+              rowKey="id"
+              size="small"
+            />
+          ) : (
+            <Empty />
+          )}
+        </VStack>
       </VStack>
     </VStack>
   );

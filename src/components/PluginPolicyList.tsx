@@ -5,7 +5,6 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/Button";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { PluginPolicyModal } from "@/components/PluginPolicyModal";
 import { Stack } from "@/components/Stack";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy, PolicySchema } from "@/proto/policy_pb";
@@ -14,11 +13,10 @@ import {
   delPluginPolicy,
   getPluginPolicies,
 } from "@/utils/services/marketplace";
-import { CustomPluginPolicy, CustomRecipeSchema, Plugin } from "@/utils/types";
+import { CustomPluginPolicy, Plugin } from "@/utils/types";
 
 interface PluginPolicyListProps {
   plugin: Plugin;
-  schema?: CustomRecipeSchema;
 }
 
 interface InitialState {
@@ -27,10 +25,7 @@ interface InitialState {
   totalCount: number;
 }
 
-export const PluginPolicyList: FC<PluginPolicyListProps> = ({
-  plugin,
-  schema,
-}) => {
+export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
   const initialState: InitialState = {
     loading: true,
     policies: [],
@@ -98,12 +93,6 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
     },
     [id]
   );
-
-  const handleCreate = () => {
-    messageApi.success("Policy created successfully.");
-
-    fetchPolicies(0);
-  };
 
   const handleDelete = ({ id, signature }: CustomPluginPolicy) => {
     if (signature) {
@@ -213,14 +202,6 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
         rowKey="id"
         size="small"
       />
-
-      {!!schema && (
-        <PluginPolicyModal
-          onFinish={handleCreate}
-          plugin={plugin}
-          schema={schema}
-        />
-      )}
 
       {messageHolder}
       {modalHolder}

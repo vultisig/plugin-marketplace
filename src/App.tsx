@@ -9,10 +9,10 @@ import { Spin } from "@/components/Spin";
 import { AppContext } from "@/context/AppContext";
 import { i18nInstance } from "@/i18n/config";
 import { DefaultLayout } from "@/layouts/default";
+import { AppDetailsPage } from "@/pages/app_details";
+import { AppsPage } from "@/pages/apps";
 import { FaqPage } from "@/pages/faq";
 import { NotFoundPage } from "@/pages/not_found";
-import { PluginDetailsPage } from "@/pages/plugin_details";
-import { PluginsPage } from "@/pages/plugins";
 import { TransactionsPage } from "@/pages/transactions";
 import { AntdProvider } from "@/providers/antd";
 import { StyledProvider } from "@/providers/styled";
@@ -42,6 +42,8 @@ import {
   signCustomMessage,
 } from "@/utils/services/extension";
 import { getAuthToken } from "@/utils/services/marketplace";
+
+import { AppPolicyPage } from "./pages/app_policy";
 
 interface InitialState {
   address?: string;
@@ -250,16 +252,17 @@ export const App = () => {
                 <Routes>
                   <Route path={routeTree.root.path} element={<DefaultLayout />}>
                     <Route
-                      element={<Navigate to={routeTree.plugins.path} replace />}
+                      element={<Navigate to={routeTree.apps.path} replace />}
                       index
                     />
+                    <Route element={<AppsPage />} path={routeTree.apps.path} />
                     <Route
-                      element={<PluginsPage />}
-                      path={routeTree.plugins.path}
+                      element={<AppDetailsPage />}
+                      path={routeTree.appDetails.path}
                     />
                     <Route
-                      element={<PluginDetailsPage />}
-                      path={routeTree.pluginDetails.path}
+                      element={<AppPolicyPage />}
+                      path={routeTree.appPolicy.path}
                     />
                     <Route element={<FaqPage />} path={routeTree.faq.path} />
                     <Route

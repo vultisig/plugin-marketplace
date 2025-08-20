@@ -1,22 +1,30 @@
 type RouteKey =
+  | "apps"
+  | "appDetails"
+  | "appPolicy"
   | "faq"
   | "notFound"
-  | "plugins"
-  | "pluginDetails"
   | "root"
   | "transactions";
+
+type Id = string | number;
 
 export const routeTree = {
   faq: { path: "/faq" },
   notFound: { path: "*" },
-  plugins: { path: "/plugins" },
-  pluginDetails: {
-    link: (id: string | number) => `/plugins/${id}`,
-    path: "/plugins/:id",
+  apps: { path: "/apps" },
+  appDetails: {
+    link: (id: Id) => `/apps/${id}`,
+    path: "/apps/:id",
+  },
+  appPolicy: {
+    link: (appId: Id, policyId?: Id) =>
+      `/apps/${appId}/policy${policyId ? `/${policyId}` : ""}`,
+    path: "/apps/:appId/policy/:policyId?",
   },
   root: { path: "/" },
   transactions: { path: "/transactions" },
 } satisfies Record<
   RouteKey,
-  { path: string; link?: (...args: (string | number)[]) => string }
+  { path: string; link?: (...args: Id[]) => string }
 >;

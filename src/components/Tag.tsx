@@ -1,6 +1,7 @@
-import { Stack } from "@/components/Stack";
 import { FC, ReactNode } from "react";
 import { useTheme } from "styled-components";
+
+import { Stack } from "@/components/Stack";
 import { ThemeColorKeys } from "@/utils/constants/styled";
 
 export const Tag: FC<{
