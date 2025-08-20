@@ -274,12 +274,7 @@ export const AppPolicyPage = () => {
             .then((plugin) => {
               getRecipeSpecification(appId)
                 .then((schema) => {
-                  setState((prevState) => ({
-                    ...prevState,
-                    loaded: true,
-                    plugin,
-                    schema,
-                  }));
+                  setState((prevState) => ({ ...prevState, plugin, schema }));
                 })
                 .catch(() => {
                   goBack(routeTree.appDetails.link(appId));
@@ -436,9 +431,8 @@ export const AppPolicyPage = () => {
                               >
                                 <Form.Item<FormFieldType>
                                   shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.rules[name]
-                                      ?.supportedResource !==
-                                    currentValues.rules[name]?.supportedResource
+                                    prevValues.rules[name]?.resource !==
+                                    currentValues.rules[name]?.resource
                                   }
                                   noStyle
                                 >

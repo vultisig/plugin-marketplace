@@ -104,24 +104,6 @@ export type ReviewForm = {
   rating: number;
 };
 
-export type Transaction = {
-  broadcastedAt: string;
-  chainId: number;
-  createdAt: string;
-  fromPublicKey: string;
-  id: string;
-  lost: boolean;
-  pluginId: string;
-  policyId: string;
-  proposedTxHex: string;
-  status: "PROPOSED" | "SIGNED" | "VERIFIED";
-  statusOnchain: "FAIL" | "PENDING" | "SUCCESS";
-  txHash: string;
-  tokenId: string;
-  toPublicKey: string;
-  updatedAt: string;
-};
-
 export type Vault = {
   hexChainCode: string;
   name: string;
@@ -133,10 +115,6 @@ export type Vault = {
 export type PluginFilters = {
   categoryId: string;
   sort: string;
-  term: string;
-};
-
-export type TransactionFilters = {
   term: string;
 };
 

@@ -13,7 +13,6 @@ import { AppDetailsPage } from "@/pages/app_details";
 import { AppsPage } from "@/pages/apps";
 import { FaqPage } from "@/pages/faq";
 import { NotFoundPage } from "@/pages/not_found";
-import { TransactionsPage } from "@/pages/transactions";
 import { AntdProvider } from "@/providers/antd";
 import { StyledProvider } from "@/providers/styled";
 import { getChain, setChain as setChainStorage } from "@/storage/chain";
@@ -265,10 +264,6 @@ export const App = () => {
                       path={routeTree.appPolicy.path}
                     />
                     <Route element={<FaqPage />} path={routeTree.faq.path} />
-                    <Route
-                      element={<TransactionsPage />}
-                      path={routeTree.transactions.path}
-                    />
                   </Route>
                   <Route
                     path={routeTree.notFound.path}

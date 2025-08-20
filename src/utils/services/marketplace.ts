@@ -14,8 +14,6 @@ import {
   ReshareForm,
   Review,
   ReviewForm,
-  Transaction,
-  TransactionFilters,
 } from "@/utils/types";
 
 const baseUrl = import.meta.env.VITE_MARKETPLACE_URL;
@@ -98,18 +96,6 @@ export const getPluginReviews = async (
 export const getRecipeSpecification = async (pluginId: string) =>
   get<Omit<RecipeSchema, "configuration"> & { configuration?: Configuration }>(
     `${baseUrl}/plugins/${pluginId}/recipe-specification`
-  );
-
-export const getTransactions = (
-  id: string,
-  { skip, take = 12, term }: ListFilters & TransactionFilters
-) =>
-  get<{ history: Transaction[]; totalCount: number }>(
-    `${baseUrl}/plugin/policies/${id}/history`,
-    {
-      //headers: toSnakeCase({ publicKey: getVaultId() }),
-      params: toSnakeCase({ skip, take, term }),
-    }
   );
 
 export const isPluginInstalled = async (id: string) =>

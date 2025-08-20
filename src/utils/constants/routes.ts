@@ -7,18 +7,16 @@ type RouteKey =
   | "root"
   | "transactions";
 
-type Id = string | number;
-
 export const routeTree = {
   faq: { path: "/faq" },
   notFound: { path: "*" },
   apps: { path: "/apps" },
   appDetails: {
-    link: (id: Id) => `/apps/${id}`,
+    link: (id: string) => `/apps/${id}`,
     path: "/apps/:id",
   },
   appPolicy: {
-    link: (appId: Id, policyId?: Id) =>
+    link: (appId: string, policyId?: string) =>
       `/apps/${appId}/policy${policyId ? `/${policyId}` : ""}`,
     path: "/apps/:appId/policy/:policyId?",
   },
@@ -26,5 +24,5 @@ export const routeTree = {
   transactions: { path: "/transactions" },
 } satisfies Record<
   RouteKey,
-  { path: string; link?: (...args: Id[]) => string }
+  { path: string; link?: (...args: string[]) => string }
 >;
