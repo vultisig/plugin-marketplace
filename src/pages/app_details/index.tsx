@@ -388,7 +388,7 @@ export const AppDetailsPage = () => {
                         as={ShieldCheckIcon}
                         $style={{
                           color: colors.warning.toHex(),
-                          flex: "no",
+                          flex: "none",
                           fontSize: "16px",
                         }}
                       />
@@ -433,7 +433,7 @@ export const AppDetailsPage = () => {
                           as={BadgeCheckIcon}
                           $style={{
                             color: colors.success.toHex(),
-                            flex: "no",
+                            flex: "none",
                             fontSize: "16px",
                           }}
                         />
