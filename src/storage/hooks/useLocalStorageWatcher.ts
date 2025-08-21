@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { StorageKey } from "storage/constants";
+
+import { StorageKey } from "@/storage/constants";
 
 export const useLocalStorageWatcher = (
   key: StorageKey,

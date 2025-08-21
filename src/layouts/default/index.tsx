@@ -1,25 +1,27 @@
 import { Avatar, Dropdown, MenuProps, message } from "antd";
-import { Button } from "components/Button";
-import { CurrencyModal } from "components/CurrencyModal";
-import { LanguageModal } from "components/LanguageModal";
-import { MiddleTruncate } from "components/MiddleTruncate";
-import { Stack } from "components/Stack";
-import { useApp } from "hooks/useApp";
-import { BoxIcon } from "icons/BoxIcon";
-import { CircleDollarSignIcon } from "icons/CircleDollarSignIcon";
-import { LanguagesIcon } from "icons/LanguagesIcon";
-import { LogOutIcon } from "icons/LogOutIcon";
-import { MoonIcon } from "icons/MoonIcon";
-import { SunIcon } from "icons/SunIcon";
-import { VultisigLogoIcon } from "icons/VultisigLogoIcon";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
-import { modalHash } from "utils/constants/core";
-import { languageNames } from "utils/constants/language";
-import { routeTree } from "utils/constants/routes";
-import { getAccount } from "utils/services/extension";
+
+import { Button } from "@/components/Button";
+import { CurrencyModal } from "@/components/CurrencyModal";
+import { LanguageModal } from "@/components/LanguageModal";
+import { MiddleTruncate } from "@/components/MiddleTruncate";
+import { HStack, Stack, VStack } from "@/components/Stack";
+import { useApp } from "@/hooks/useApp";
+import { BoxIcon } from "@/icons/BoxIcon";
+import { CircleDollarSignIcon } from "@/icons/CircleDollarSignIcon";
+import { HistoryIcon } from "@/icons/HistoryIcon";
+import { LanguagesIcon } from "@/icons/LanguagesIcon";
+import { LogOutIcon } from "@/icons/LogOutIcon";
+import { MoonIcon } from "@/icons/MoonIcon";
+import { SunIcon } from "@/icons/SunIcon";
+import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
+import { modalHash } from "@/utils/constants/core";
+import { languageNames } from "@/utils/constants/language";
+import { routeTree } from "@/utils/constants/routes";
+import { getAccount } from "@/utils/services/extension";
 
 export const DefaultLayout = () => {
   const { t } = useTranslation();
@@ -41,12 +43,12 @@ export const DefaultLayout = () => {
     {
       key: "1",
       label: (
-        <Stack
+        <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
         >
           <span>{t("language")}</span>
           <span>{languageNames[language]}</span>
-        </Stack>
+        </HStack>
       ),
       icon: <LanguagesIcon />,
       onClick: () => {
@@ -56,12 +58,12 @@ export const DefaultLayout = () => {
     {
       key: "2",
       label: (
-        <Stack
+        <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
         >
           <span>{t("currency")}</span>
           <span>{currency.toUpperCase()}</span>
-        </Stack>
+        </HStack>
       ),
       icon: <CircleDollarSignIcon />,
       onClick: () => {
@@ -77,8 +79,16 @@ export const DefaultLayout = () => {
       },
     },
     {
-      danger: true,
       key: "4",
+      label: "Transaction history",
+      icon: <HistoryIcon />,
+      onClick: () => {
+        navigate(routeTree.transactions.path, { state: true });
+      },
+    },
+    {
+      danger: true,
+      key: "5",
       label: "Disconnect",
       icon: <LogOutIcon />,
       onClick: disconnect,
@@ -104,8 +114,8 @@ export const DefaultLayout = () => {
   }, [connect]);
 
   return (
-    <Stack $style={{ flexDirection: "column", minHeight: "100%" }}>
-      <Stack
+    <VStack $style={{ minHeight: "100%" }}>
+      <HStack
         $style={{
           alignItems: "center",
           backgroundColor: colors.bgPrimary.toHex(),
@@ -119,7 +129,7 @@ export const DefaultLayout = () => {
           zIndex: "2",
         }}
       >
-        <Stack
+        <HStack
           $style={{
             alignItems: "center",
             justifyContent: "space-between",
@@ -128,7 +138,7 @@ export const DefaultLayout = () => {
             width: "100%",
           }}
         >
-          <Stack
+          <HStack
             as={Link}
             state={true}
             to={routeTree.root.path}
@@ -139,7 +149,7 @@ export const DefaultLayout = () => {
             }}
             $hover={{ color: colors.textSecondary.toHex() }}
           >
-            <Stack $style={{ position: "relative" }}>
+            <HStack $style={{ position: "relative" }}>
               <BoxIcon color={colors.accentThree.toHex()} fontSize={40} />
               <Stack
                 as={VultisigLogoIcon}
@@ -152,7 +162,7 @@ export const DefaultLayout = () => {
                   transform: "translate(-50%, -50%)",
                 }}
               />
-            </Stack>
+            </HStack>
             <Stack
               $style={{
                 fontSize: "22px",
@@ -162,18 +172,13 @@ export const DefaultLayout = () => {
             >
               App Store
             </Stack>
-          </Stack>
-          <Stack
-            $style={{
-              flexDirection: "row",
-              fontWeight: "500",
-              gap: "48px",
-              lineHeight: "20px",
-            }}
+          </HStack>
+          <HStack
+            $style={{ fontWeight: "500", gap: "48px", lineHeight: "20px" }}
           >
             <Stack
               as={Link}
-              to={routeTree.plugins.path}
+              to={routeTree.apps.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
               Marketplace
@@ -181,7 +186,7 @@ export const DefaultLayout = () => {
             {isConnected && (
               <Stack
                 as={Link}
-                to={routeTree.plugins.path}
+                to={routeTree.apps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
                 My Apps
@@ -194,9 +199,9 @@ export const DefaultLayout = () => {
             >
               FAQ
             </Stack>
-          </Stack>
+          </HStack>
           {isConnected && address ? (
-            <Stack $style={{ alignItems: "center", gap: "20px" }}>
+            <HStack $style={{ alignItems: "center", gap: "20px" }}>
               <Button kind="primary" onClick={copyAddress}>
                 <MiddleTruncate text={address} width="118px" />
               </Button>
@@ -206,17 +211,15 @@ export const DefaultLayout = () => {
               >
                 <Avatar src="/avatars/01.png" size={44} />
               </Dropdown>
-            </Stack>
+            </HStack>
           ) : (
             <Button kind="primary" onClick={connect}>
               Connect Wallet
             </Button>
           )}
-        </Stack>
-      </Stack>
-      <Stack $style={{ flexGrow: "1", justifyContent: "center" }}>
-        <Outlet />
-      </Stack>
+        </HStack>
+      </HStack>
+      <Outlet />
 
       {isConnected && (
         <>
@@ -225,6 +228,6 @@ export const DefaultLayout = () => {
         </>
       )}
       {messageHolder}
-    </Stack>
+    </VStack>
   );
 };

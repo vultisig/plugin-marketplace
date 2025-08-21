@@ -1,8 +1,9 @@
-import { Spin } from "components/Spin";
 import { ButtonHTMLAttributes, FC, HTMLAttributes, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
-import { match } from "utils/functions";
+
+import { Spin } from "@/components/Spin";
+import { match } from "@/utils/functions";
 
 type Kind = "default" | "primary" | "link";
 type Status = "default" | "danger" | "success" | "warning";

@@ -1,7 +1,8 @@
-import { Stack } from "components/Stack";
 import { FC } from "react";
 import { useTheme } from "styled-components";
-import { Plugin, PluginPricing } from "utils/types";
+
+import { Stack, VStack } from "@/components/Stack";
+import { Plugin, PluginPricing } from "@/utils/types";
 
 type PricingProps = Pick<Plugin, "pricing"> & {
   center?: boolean;
@@ -24,12 +25,11 @@ export const Pricing: FC<PricingProps> = ({ center, pricing }) => {
   };
 
   return (
-    <Stack
+    <VStack
       as="span"
       $style={{
         alignItems: center ? "center" : "normal",
         color: colors.textSecondary.toHex(),
-        flexDirection: "column",
         flexGrow: "1",
         fontWeight: "500",
       }}
@@ -43,6 +43,6 @@ export const Pricing: FC<PricingProps> = ({ center, pricing }) => {
       ) : (
         <Stack as="span">This plugin is free</Stack>
       )}
-    </Stack>
+    </VStack>
   );
 };

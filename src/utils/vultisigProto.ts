@@ -1,7 +1,8 @@
 import { fromBinary } from "@bufbuild/protobuf";
 import SevenZip from "7z-wasm";
 import pMemoize from "p-memoize";
-import { ReshareMessageSchema } from "proto/reshare_message_pb";
+
+import { ReshareMessageSchema } from "@/proto/reshare_message_pb";
 
 const normalizeBase64 = (str: string) => {
   let out = str.replace(/ /g, "+"); // URLSearchParams converts '+' to space
@@ -10,7 +11,7 @@ const normalizeBase64 = (str: string) => {
   return out;
 };
 
-export const getSevenZip = pMemoize(() =>
+const getSevenZip = pMemoize(() =>
   SevenZip({
     locateFile: () => `/7zz.wasm`,
   }).catch(() => SevenZip())

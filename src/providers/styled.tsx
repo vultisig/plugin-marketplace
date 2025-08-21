@@ -1,7 +1,8 @@
 import { FC, ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
-import { themes } from "utils/constants/styled";
-import { Theme } from "utils/constants/theme";
+
+import { themes } from "@/utils/constants/styled";
+import { Theme } from "@/utils/constants/theme";
 
 type StyledProviderProps = {
   children?: ReactNode;

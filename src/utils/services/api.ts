@@ -1,8 +1,9 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
-import { delToken, getToken, setToken } from "storage/token";
-import { getVaultId } from "storage/vaultId";
-import { toCamelCase, toSnakeCase } from "utils/functions";
+
+import { delToken, getToken, setToken } from "@/storage/token";
+import { getVaultId } from "@/storage/vaultId";
+import { toCamelCase, toSnakeCase } from "@/utils/functions";
 
 type JwtPayload = {
   exp: number;
@@ -110,9 +111,9 @@ export const post = async <T>(
     .post<T>(url, toSnakeCase(data), config)
     .then(({ data }) => toCamelCase(data));
 
-export const put = async <T>(
-  url: string,
-  data?: any,
-  config?: AxiosRequestConfig
-): Promise<T> =>
-  api.put<T>(url, data, config).then(({ data }) => toCamelCase(data));
+// export const put = async <T>(
+//   url: string,
+//   data?: any,
+//   config?: AxiosRequestConfig
+// ): Promise<T> =>
+//   api.put<T>(url, data, config).then(({ data }) => toCamelCase(data));

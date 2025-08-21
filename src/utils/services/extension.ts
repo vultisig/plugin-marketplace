@@ -1,9 +1,9 @@
-import { policyToHexMessage } from "utils/functions";
-import { reshareVault } from "utils/services/marketplace";
-import { PluginPolicy, ReshareForm, Vault } from "utils/types";
-import { decodeTssPayload, decompressQrPayload } from "utils/vultisigProto";
+import { policyToHexMessage } from "@/utils/functions";
+import { reshareVault } from "@/utils/services/marketplace";
+import { PluginPolicy, ReshareForm, Vault } from "@/utils/types";
+import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
-export const isAvailable = async () => {
+const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
 
   return;

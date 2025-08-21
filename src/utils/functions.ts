@@ -1,5 +1,6 @@
 import { Dayjs } from "dayjs";
-import { CSSProperties, PluginPolicy } from "utils/types";
+
+import { CSSProperties, PluginPolicy } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -25,16 +26,9 @@ const toSnake = (value: string): string => {
 
 export const cssPropertiesToString = (styles: CSSProperties): string => {
   return Object.entries(styles)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([key, value]) => `${toKebab(key)}: ${value};`)
     .join("\n");
-};
-
-export const getErrorMessage = (error: any, message: string) => {
-  return isObject(error) ? error.message : message;
-};
-
-export const isUndefined = (val: any): val is undefined => {
-  return typeof val === "undefined";
 };
 
 export const match = <T extends string | number | symbol, V>(
@@ -89,22 +83,22 @@ export const toCapitalizeFirst = (value: string) => {
   return value.length ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 };
 
-export const toKebabCase = <T>(obj: T): T => {
-  if (isObject(obj)) {
-    const result: Record<string, unknown> = {};
+// export const toKebabCase = <T>(obj: T): T => {
+//   if (isObject(obj)) {
+//     const result: Record<string, unknown> = {};
 
-    Object.keys(obj).forEach((key) => {
-      const kebabKey = toKebab(key);
-      result[kebabKey] = toKebabCase((obj as Record<string, unknown>)[key]);
-    });
+//     Object.keys(obj).forEach((key) => {
+//       const kebabKey = toKebab(key);
+//       result[kebabKey] = toKebabCase((obj as Record<string, unknown>)[key]);
+//     });
 
-    return result as T;
-  } else if (isArray(obj)) {
-    return obj.map((item) => toKebabCase(item)) as T;
-  }
+//     return result as T;
+//   } else if (isArray(obj)) {
+//     return obj.map((item) => toKebabCase(item)) as T;
+//   }
 
-  return obj;
-};
+//   return obj;
+// };
 
 export const toNumeralFormat = (value: number) => {
   const formattedValue = value.toLocaleString("en-US", {

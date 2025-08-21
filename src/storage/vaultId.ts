@@ -1,7 +1,7 @@
-import { storageKeys } from "storage/constants";
-import { delState } from "storage/state/del";
-import { getState } from "storage/state/get";
-import { setState } from "storage/state/set";
+import { storageKeys } from "@/storage/constants";
+import { delState } from "@/storage/state/del";
+import { getState } from "@/storage/state/get";
+import { setState } from "@/storage/state/set";
 
 const initialVaultId: string = "";
 

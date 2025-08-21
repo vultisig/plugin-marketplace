@@ -1,5 +1,6 @@
 import { DefaultTheme } from "styled-components";
-import { Theme } from "utils/constants/theme";
+
+import { Theme } from "@/utils/constants/theme";
 
 export class ColorToken {
   constructor(
@@ -100,7 +101,7 @@ export type SharedColors = {
   warning: ColorToken;
 };
 
-export const sharedColors: SharedColors = {
+const sharedColors: SharedColors = {
   accentOne: new ColorToken(224, 95, 31), //hsla(224, 95%, 31%, 1)
   accentTwo: new ColorToken(224, 96, 40), //hsla(224, 96%, 40%, 1)
   accentThree: new ColorToken(224, 75, 50), //hsla(224, 75%, 50%, 1)

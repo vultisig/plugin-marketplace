@@ -1,45 +1,48 @@
 import { message, Modal } from "antd";
-import { GlobalStyle } from "components/GlobalStyle";
-import { Spin } from "components/Spin";
-import { AppContext } from "context/AppContext";
 import { hexlify, randomBytes } from "ethers";
-import { i18nInstance } from "i18n/config";
-import { DefaultLayout } from "layouts/default";
-import { FaqPage } from "pages/faq";
-import { NotFoundPage } from "pages/not_found";
-import { PluginDetailsPage } from "pages/plugin_details";
-import { PluginsPage } from "pages/plugins";
-import { AntdProvider } from "providers/antd";
-import { StyledProvider } from "providers/styled";
 import { useCallback, useMemo, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { getChain, setChain as setChainStorage } from "storage/chain";
-import { storageKeys } from "storage/constants";
+
+import { GlobalStyle } from "@/components/GlobalStyle";
+import { Spin } from "@/components/Spin";
+import { AppContext } from "@/context/AppContext";
+import { i18nInstance } from "@/i18n/config";
+import { DefaultLayout } from "@/layouts/default";
+import { AppDetailsPage } from "@/pages/app_details";
+import { AppsPage } from "@/pages/apps";
+import { FaqPage } from "@/pages/faq";
+import { NotFoundPage } from "@/pages/not_found";
+import { AntdProvider } from "@/providers/antd";
+import { StyledProvider } from "@/providers/styled";
+import { getChain, setChain as setChainStorage } from "@/storage/chain";
+import { storageKeys } from "@/storage/constants";
 import {
   getCurrency,
   setCurrency as setCurrencyStorage,
-} from "storage/currency";
-import { useLocalStorageWatcher } from "storage/hooks/useLocalStorageWatcher";
+} from "@/storage/currency";
+import { useLocalStorageWatcher } from "@/storage/hooks/useLocalStorageWatcher";
 import {
   getLanguage,
   setLanguage as setLanguageStorage,
-} from "storage/language";
-import { getTheme, setTheme as setThemeStorage } from "storage/theme";
-import { delToken, getToken, setToken } from "storage/token";
-import { delVaultId, getVaultId, setVaultId } from "storage/vaultId";
-import { Chain } from "utils/constants/chain";
-import { Currency } from "utils/constants/currency";
-import { Language } from "utils/constants/language";
-import { routeTree } from "utils/constants/routes";
-import { Theme } from "utils/constants/theme";
+} from "@/storage/language";
+import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
+import { delToken, getToken, setToken } from "@/storage/token";
+import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
+import { Chain } from "@/utils/constants/chain";
+import { Currency } from "@/utils/constants/currency";
+import { Language } from "@/utils/constants/language";
+import { routeTree } from "@/utils/constants/routes";
+import { Theme } from "@/utils/constants/theme";
 import {
   connect as connectToExtension,
   disconnect as disconnectFromExtension,
   getVault,
   signCustomMessage,
-} from "utils/services/extension";
-import { getAuthToken } from "utils/services/marketplace";
+} from "@/utils/services/extension";
+import { getAuthToken } from "@/utils/services/marketplace";
+
+import { AppPolicyPage } from "./pages/app_policy";
 
 interface InitialState {
   address?: string;
@@ -248,16 +251,17 @@ export const App = () => {
                 <Routes>
                   <Route path={routeTree.root.path} element={<DefaultLayout />}>
                     <Route
-                      element={<Navigate to={routeTree.plugins.path} replace />}
+                      element={<Navigate to={routeTree.apps.path} replace />}
                       index
                     />
+                    <Route element={<AppsPage />} path={routeTree.apps.path} />
                     <Route
-                      element={<PluginsPage />}
-                      path={routeTree.plugins.path}
+                      element={<AppDetailsPage />}
+                      path={routeTree.appDetails.path}
                     />
                     <Route
-                      element={<PluginDetailsPage />}
-                      path={routeTree.pluginDetails.path}
+                      element={<AppPolicyPage />}
+                      path={routeTree.appPolicy.path}
                     />
                     <Route element={<FaqPage />} path={routeTree.faq.path} />
                   </Route>

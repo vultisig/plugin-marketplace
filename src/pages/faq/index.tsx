@@ -1,8 +1,9 @@
 import { Collapse } from "antd";
-import { Divider } from "components/Divider";
-import { Stack } from "components/Stack";
 import { Fragment } from "react";
 import styled from "styled-components";
+
+import { Divider } from "@/components/Divider";
+import { Stack, VStack } from "@/components/Stack";
 
 const StyledCollapse = styled(Collapse)`
   &.ant-collapse {
@@ -78,53 +79,54 @@ export const FaqPage = () => {
   ];
 
   return (
-    <Stack
-      $style={{
-        flexDirection: "column",
-        gap: "32px",
-        maxWidth: "768px",
-        padding: "48px 16px",
-        width: "100%",
-      }}
-    >
-      <Stack
-        as="span"
+    <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+      <VStack
         $style={{
-          fontSize: "40px",
-          fontWeight: "500",
-          justifyContent: "center",
-          lineHeight: "42px",
+          gap: "32px",
+          maxWidth: "768px",
+          padding: "48px 16px",
+          width: "100%",
         }}
       >
-        FAQ
-      </Stack>
-      <Stack $style={{ flexDirection: "column", gap: "72px" }}>
-        {data.map(({ heading, items }, index) => (
-          <Stack key={index} $style={{ flexDirection: "column", gap: "24px" }}>
-            <Stack
-              as="span"
-              $style={{
-                fontSize: "22px",
-                fontWeight: "500",
-                lineHeight: "24px",
-              }}
-            >
-              {heading}
-            </Stack>
-            {items.map(({ answer, question }, index) => (
-              <Fragment key={index}>
-                {index > 0 && <Divider />}
-                <StyledCollapse
-                  bordered={false}
-                  items={[{ key: "1", label: question, children: answer }]}
-                  expandIconPosition="right"
-                  ghost
-                />
-              </Fragment>
-            ))}
-          </Stack>
-        ))}
-      </Stack>
-    </Stack>
+        <Stack
+          as="span"
+          $style={{
+            fontSize: "40px",
+            fontWeight: "500",
+            justifyContent: "center",
+            lineHeight: "42px",
+          }}
+        >
+          FAQ
+        </Stack>
+        <VStack $style={{ gap: "72px" }}>
+          {data.map(({ heading, items }, index) => (
+            <VStack key={index} $style={{ gap: "24px" }}>
+              <Stack
+                as="span"
+                $style={{
+                  fontSize: "22px",
+                  fontWeight: "500",
+                  lineHeight: "24px",
+                }}
+              >
+                {heading}
+              </Stack>
+              {items.map(({ answer, question }, index) => (
+                <Fragment key={index}>
+                  {index > 0 && <Divider />}
+                  <StyledCollapse
+                    bordered={false}
+                    items={[{ key: "1", label: question, children: answer }]}
+                    expandIconPosition="right"
+                    ghost
+                  />
+                </Fragment>
+              ))}
+            </VStack>
+          ))}
+        </VStack>
+      </VStack>
+    </VStack>
   );
 };

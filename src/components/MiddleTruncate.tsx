@@ -1,6 +1,7 @@
-import { Stack } from "components/Stack";
 import { FC, useEffect, useRef, useState } from "react";
-import { CSSProperties } from "utils/types";
+
+import { Stack } from "@/components/Stack";
+import { CSSProperties } from "@/utils/types";
 
 type MiddleTruncateProps = {
   onClick?: () => void;

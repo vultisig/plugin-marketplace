@@ -1,12 +1,13 @@
 import { List, Modal } from "antd";
-import { Stack } from "components/Stack";
-import { useApp } from "hooks/useApp";
-import { useGoBack } from "hooks/useGoBack";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
-import { modalHash } from "utils/constants/core";
-import { Language, languageNames, languages } from "utils/constants/language";
+
+import { Stack } from "@/components/Stack";
+import { useApp } from "@/hooks/useApp";
+import { useGoBack } from "@/hooks/useGoBack";
+import { modalHash } from "@/utils/constants/core";
+import { Language, languageNames, languages } from "@/utils/constants/language";
 
 export const LanguageModal = () => {
   const [visible, setVisible] = useState(false);

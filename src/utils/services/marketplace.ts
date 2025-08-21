@@ -1,21 +1,20 @@
-import { RecipeSchema } from "proto/recipe_specification_pb";
-import { getVaultId } from "storage/vaultId";
-import { PAGE_SIZE } from "utils/constants/core";
-import { toSnakeCase } from "utils/functions";
-import { del, get, post } from "utils/services/api";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { getVaultId } from "@/storage/vaultId";
+import { PAGE_SIZE } from "@/utils/constants/core";
+import { toSnakeCase } from "@/utils/functions";
+import { del, get, post } from "@/utils/services/api";
 import {
   AuthTokenForm,
   Category,
   Configuration,
+  ListFilters,
   Plugin,
   PluginFilters,
   PluginPolicy,
-  PluginPricing,
-  PolicyTransactionHistory,
   ReshareForm,
   Review,
   ReviewForm,
-} from "utils/types";
+} from "@/utils/types";
 
 const baseUrl = import.meta.env.VITE_MARKETPLACE_URL;
 
@@ -32,8 +31,6 @@ export const getAuthToken = async (data: AuthTokenForm): Promise<string> =>
   post<{ token: string }>(`${baseUrl}/auth`, toSnakeCase(data)).then(
     ({ token }) => token
   );
-
-export const getFAQ = () => get<{ data: string[] }>(`${baseUrl}/faq`);
 
 export const getPlugin = async (id: string) =>
   get<Plugin>(`${baseUrl}/plugins/${id}`).then((plugin) => {
@@ -56,15 +53,16 @@ export const getPlugin = async (id: string) =>
     };
   });
 
-export const getPlugins = (
-  skip: number,
-  { category, sort = "-created_at", term }: PluginFilters
-) =>
-  get<{ plugins: Plugin[]; totalCount: number }>(
-    `${baseUrl}/plugins?skip=${skip}&take=12${term ? `&term=${term}` : ""}${
-      category ? `&category_id=${category}` : ""
-    }&sort=${sort}`
-  ).then(({ plugins, totalCount }) => ({
+export const getPlugins = ({
+  categoryId,
+  skip,
+  sort = "-created_at",
+  take = 12,
+  term,
+}: ListFilters & PluginFilters) =>
+  get<{ plugins: Plugin[]; totalCount: number }>(`${baseUrl}/plugins`, {
+    params: toSnakeCase({ categoryId, skip, sort, take, term }),
+  }).then(({ plugins, totalCount }) => ({
     plugins:
       plugins.map((plugin) => ({ ...plugin, pricing: plugin.pricing || [] })) ||
       [],
@@ -85,21 +83,6 @@ export const getPluginPolicies = async (
     policies: policies || [],
     totalCount,
   }));
-
-export const getPluginPricing = (id: string) =>
-  get<PluginPricing>(`${baseUrl}/pricing/${id}`);
-
-export const getPolicyTransactionHistory = async (
-  policyId: string,
-  skip: number,
-  take: number
-) =>
-  get<{ history: PolicyTransactionHistory[]; totalCount: number }>(
-    `${baseUrl}/plugins/policies/${policyId}/history?skip=${skip}&take=${take}`,
-    {
-      headers: toSnakeCase({ publicKey: getVaultId() }),
-    }
-  ).then(({ history, totalCount }) => ({ history: history || [], totalCount }));
 
 export const getPluginReviews = async (
   pluginId: string,

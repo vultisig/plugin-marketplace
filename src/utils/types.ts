@@ -1,6 +1,7 @@
 import type * as CSS from "csstype";
-import { Policy } from "proto/policy_pb";
-import { RecipeSchema } from "proto/recipe_specification_pb";
+
+import { Policy } from "@/proto/policy_pb";
+import { RecipeSchema } from "@/proto/recipe_specification_pb";
 
 export type AuthTokenForm = {
   chainCodeHex: string;
@@ -14,7 +15,7 @@ export type Category = {
   name: string;
 };
 
-export type Property = {
+type Property = {
   enum: string[];
   format: string;
   type: string;
@@ -30,6 +31,11 @@ export type CustomPluginPolicy = PluginPolicy & { parsedRecipe: Policy };
 
 export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
   configuration?: Configuration;
+};
+
+export type ListFilters = {
+  skip: number;
+  take?: number;
 };
 
 export type Plugin = {
@@ -66,13 +72,7 @@ export type PluginPricing = {
   updatedAt: string;
 };
 
-export type PolicyTransactionHistory = {
-  id: string;
-  status: string;
-  updatedAt: string;
-};
-
-export type Rating = {
+type Rating = {
   count: number;
   rating: number;
 };
@@ -104,12 +104,6 @@ export type ReviewForm = {
   rating: number;
 };
 
-export type Tag = {
-  color: string;
-  id: string;
-  name: string;
-};
-
 export type Vault = {
   hexChainCode: string;
   name: string;
@@ -119,7 +113,7 @@ export type Vault = {
 };
 
 export type PluginFilters = {
-  category: string;
+  categoryId: string;
   sort: string;
   term: string;
 };
