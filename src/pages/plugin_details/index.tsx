@@ -386,7 +386,7 @@ export const PluginDetailsPage = () => {
                       as={ShieldCheckIcon}
                       $style={{
                         color: colors.warning.toHex(),
-                        flex: "no",
+                        flex: "none",
                         fontSize: "16px",
                       }}
                     />
@@ -430,7 +430,7 @@ export const PluginDetailsPage = () => {
                       as={BadgeCheckIcon}
                       $style={{
                         color: colors.success.toHex(),
-                        flex: "no",
+                        flex: "none",
                         fontSize: "16px",
                       }}
                     />
