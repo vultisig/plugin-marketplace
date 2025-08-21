@@ -102,7 +102,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
       >
         <VStack
           $style={{
-            backgroundColor: colors.bgSecondary.toHex(),
+            border: `solid 1px ${colors.borderLight.toHex()}`,
             borderRadius: "12px",
             gap: "24px",
             height: "100%",
@@ -170,7 +170,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
       </Form>
       <VStack
         $style={{
-          backgroundColor: colors.bgSecondary.toHex(),
+          border: `solid 1px ${colors.borderLight.toHex()}`,
           borderRadius: "12px",
           gap: "24px",
           height: "100%",
@@ -253,7 +253,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
             <VStack
               key={id}
               $style={{
-                backgroundColor: colors.bgSecondary.toHex(),
+                border: `solid 1px ${colors.borderLight.toHex()}`,
                 borderRadius: "12px",
                 gap: "12px",
                 height: "100%",

@@ -41,6 +41,7 @@ export const DefaultLayout = () => {
 
   const dropdownMenu: MenuProps["items"] = [
     {
+      icon: <LanguagesIcon />,
       key: "1",
       label: (
         <HStack
@@ -50,12 +51,12 @@ export const DefaultLayout = () => {
           <span>{languageNames[language]}</span>
         </HStack>
       ),
-      icon: <LanguagesIcon />,
       onClick: () => {
         navigate(modalHash.language, { state: true });
       },
     },
     {
+      icon: <CircleDollarSignIcon />,
       key: "2",
       label: (
         <HStack
@@ -65,32 +66,32 @@ export const DefaultLayout = () => {
           <span>{currency.toUpperCase()}</span>
         </HStack>
       ),
-      icon: <CircleDollarSignIcon />,
       onClick: () => {
         navigate(modalHash.currency, { state: true });
       },
     },
     {
+      icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
       key: "3",
       label: `Theme: ${theme === "light" ? "Dark" : "Light"}`,
-      icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
       onClick: () => {
         setTheme(theme === "light" ? "dark" : "light");
       },
     },
     {
+      disabled: true,
+      icon: <HistoryIcon />,
       key: "4",
       label: "Transaction history",
-      icon: <HistoryIcon />,
       onClick: () => {
         navigate(routeTree.transactions.path, { state: true });
       },
     },
     {
       danger: true,
+      icon: <LogOutIcon />,
       key: "5",
       label: "Disconnect",
-      icon: <LogOutIcon />,
       onClick: disconnect,
     },
   ];

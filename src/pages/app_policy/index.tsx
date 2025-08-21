@@ -1,6 +1,14 @@
 import { create, toBinary } from "@bufbuild/protobuf";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { Divider, Form, FormProps, message, SelectProps } from "antd";
+import {
+  Divider,
+  Form,
+  FormProps,
+  message,
+  SelectProps,
+  StepsProps,
+  Steps,
+} from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { Fragment, ReactNode, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -38,6 +46,8 @@ import {
   isPluginInstalled,
 } from "@/utils/services/marketplace";
 import { CustomRecipeSchema, Plugin, PluginPolicy } from "@/utils/types";
+import { RequirementsModal } from "@/components/RequirementsModal";
+import { modalHash } from "@/utils/constants/core";
 
 type RuleFieldType = {
   resource: number;
@@ -57,13 +67,14 @@ type FormFieldType = {
 type InitialState = {
   plugin?: Plugin;
   schema?: CustomRecipeSchema;
+  step: number;
   submitting?: boolean;
 };
 
 export const AppPolicyPage = () => {
-  const initialState: InitialState = {};
+  const initialState: InitialState = { step: 0 };
   const [state, setState] = useState(initialState);
-  const { plugin, schema, submitting } = state;
+  const { plugin, schema, step, submitting } = state;
   const { appId = "" } = useParams<{ appId: string; policyId: string }>();
   const { isConnected } = useApp();
   const [form] = Form.useForm<FormFieldType>();
@@ -92,6 +103,14 @@ export const AppPolicyPage = () => {
       value: index,
     }));
   }, [schema]);
+
+  const handleBack = () => {
+    goBack(routeTree.appDetails.link(appId));
+  };
+
+  const onChangeStep: StepsProps["onChange"] = (step) => {
+    setState((prevState) => ({ ...prevState, step }));
+  };
 
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = (values) => {
     if (plugin && schema) {
@@ -250,7 +269,7 @@ export const AppPolicyPage = () => {
 
               form.resetFields();
 
-              goBack(routeTree.appDetails.link(appId));
+              handleBack();
             })
             .catch((error: Error) => {
               messageApi.error(error.message);
@@ -277,14 +296,14 @@ export const AppPolicyPage = () => {
                   setState((prevState) => ({ ...prevState, plugin, schema }));
                 })
                 .catch(() => {
-                  goBack(routeTree.appDetails.link(appId));
+                  handleBack();
                 });
             })
             .catch(() => {
-              goBack(routeTree.appDetails.link(appId));
+              handleBack();
             });
         } else {
-          goBack(routeTree.appDetails.link(appId));
+          handleBack();
         }
       });
     }
@@ -303,7 +322,13 @@ export const AppPolicyPage = () => {
                 width: "100%",
               }}
             >
-              <HStack $style={{ gap: "8px" }}>
+              <HStack
+                $style={{
+                  alignItems: "center",
+                  gap: "8px",
+                  justifyContent: "space-between",
+                }}
+              >
                 <Stack
                   as="span"
                   $style={{
@@ -319,15 +344,33 @@ export const AppPolicyPage = () => {
                   $style={{
                     backgroundColor: colors.bgSecondary.toHex(),
                     borderRadius: "8px",
-                    fontSize: "16px",
+                    fontSize: "14px",
                     fontWeight: "500",
                     lineHeight: "24px",
-                    padding: "0 8px",
+                    padding: "0 12px",
                   }}
                 >
-                  {`v${schema?.pluginVersion}`}
+                  {`Version ${schema?.pluginVersion}`}
                 </Stack>
               </HStack>
+              <Steps
+                current={step}
+                items={[
+                  {
+                    title: "Configuration",
+                  },
+                  {
+                    disabled: step < 1,
+                    title: "Rules",
+                  },
+                  {
+                    disabled: step < 2,
+                    title: "Scheduling",
+                  },
+                ]}
+                onChange={onChangeStep}
+                size="small"
+              />
               <Form
                 autoComplete="off"
                 form={form}
@@ -335,192 +378,7 @@ export const AppPolicyPage = () => {
                 layout="vertical"
                 onFinish={onFinishSuccess}
               >
-                <Stack>
-                  <Divider orientation="start" orientationMargin={0}>
-                    Rules
-                  </Divider>
-                  <Form.List
-                    name="rules"
-                    rules={[
-                      {
-                        validator: async (_, rules) => {
-                          if (!rules || rules.length < 1) {
-                            return Promise.reject(
-                              new Error("Please enter at least one rule")
-                            );
-                          }
-                        },
-                      },
-                    ]}
-                  >
-                    {(fields, { add, remove }, { errors }) => (
-                      <VStack $style={{ gap: "24px" }}>
-                        {fields.map(({ key, name, ...restField }) => (
-                          <Fragment key={`${name}-${key}`}>
-                            <VStack>
-                              <Stack
-                                $style={{
-                                  columnGap: "16px",
-                                  display: "grid",
-                                  gridTemplateColumns: "repeat(2, 1fr)",
-                                }}
-                                $media={{
-                                  lg: {
-                                    $style: {
-                                      gridTemplateColumns: "repeat(3, 1fr)",
-                                    },
-                                  },
-                                }}
-                              >
-                                <Form.Item
-                                  name={[name, "resource"]}
-                                  label="Supported Resource"
-                                  rules={[{ required: true }]}
-                                  {...restField}
-                                >
-                                  <Select
-                                    disabled={isFeesPlugin}
-                                    options={resourceOptions}
-                                  />
-                                </Form.Item>
-                                <Form.Item<FormFieldType>
-                                  shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.rules[name]?.resource !==
-                                    currentValues.rules[name]?.resource
-                                  }
-                                  noStyle
-                                >
-                                  {({ getFieldsValue }) => {
-                                    const { rules } = getFieldsValue();
-                                    const { resource } = rules[name];
-                                    const { parameterCapabilities, target } =
-                                      schema.supportedResources[resource];
-
-                                    return (
-                                      <>
-                                        {parameterCapabilities.map(
-                                          ({ parameterName, required }) => (
-                                            <Form.Item
-                                              key={parameterName}
-                                              label={toCapitalizeFirst(
-                                                parameterName
-                                              )}
-                                              name={[name, parameterName]}
-                                              rules={[{ required }]}
-                                            >
-                                              <Input disabled={isFeesPlugin} />
-                                            </Form.Item>
-                                          )
-                                        )}
-                                        {target === TargetType.ADDRESS && (
-                                          <Form.Item
-                                            label="Target"
-                                            name={[name, "target"]}
-                                            rules={[{ required: true }]}
-                                          >
-                                            <Input />
-                                          </Form.Item>
-                                        )}
-                                      </>
-                                    );
-                                  }}
-                                </Form.Item>
-                              </Stack>
-                              <HStack
-                                $style={{ justifyContent: "space-between" }}
-                              >
-                                <Form.Item<FormFieldType>
-                                  shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.rules[name]?.resource !==
-                                    currentValues.rules[name]?.resource
-                                  }
-                                  noStyle
-                                >
-                                  {({ getFieldsValue }) => {
-                                    const { rules } = getFieldsValue();
-                                    const { resource } = rules[name];
-                                    const { resourcePath } =
-                                      schema.supportedResources[resource];
-
-                                    return (
-                                      <HStack $style={{ gap: "16px" }}>
-                                        <Tag>{`Chain: ${resourcePath?.chainId}`}</Tag>
-                                        <Tag>{`Protocol: ${resourcePath?.protocolId}`}</Tag>
-                                        <Tag>{`Function: ${resourcePath?.functionId}`}</Tag>
-                                      </HStack>
-                                    );
-                                  }}
-                                </Form.Item>
-                                {fields.length > 1 && (
-                                  <Stack
-                                    as={TrashIcon}
-                                    onClick={() => remove(name)}
-                                    $style={{
-                                      borderRadius: "50%",
-                                      color: colors.error.toHex(),
-                                      cursor: "pointer",
-                                      fontSize: "24px",
-                                      padding: "4px",
-                                    }}
-                                    $hover={{
-                                      backgroundColor: colors.bgPrimary.toHex(),
-                                    }}
-                                  />
-                                )}
-                              </HStack>
-                            </VStack>
-                            <Stack
-                              as={Divider}
-                              $style={{ margin: "0" }}
-                              dashed
-                            />
-                          </Fragment>
-                        ))}
-                        <VStack>
-                          {errors.length > 0 && (
-                            <Stack as={Form.Item} $style={{ margin: "0" }}>
-                              <Form.ErrorList errors={errors} />
-                            </Stack>
-                          )}
-                          <Button onClick={() => add(ruleInitValues)}>
-                            Add rule
-                          </Button>
-                        </VStack>
-                      </VStack>
-                    )}
-                  </Form.List>
-                </Stack>
-                <Stack>
-                  <Divider orientation="start" orientationMargin={0}>
-                    Scheduling
-                  </Divider>
-                  <Stack
-                    $style={{
-                      columnGap: "16px",
-                      display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
-                    }}
-                    $media={{
-                      lg: {
-                        $style: { gridTemplateColumns: "repeat(3, 1fr)" },
-                      },
-                    }}
-                  >
-                    <Form.Item<FormFieldType>
-                      name="maxTxsPerWindow"
-                      label="Max Txs Per Window"
-                    >
-                      <InputNumber min={1} />
-                    </Form.Item>
-                    <Form.Item<FormFieldType>
-                      name="rateLimitWindow"
-                      label="Rate Limit Window (seconds)"
-                    >
-                      <InputNumber min={1} />
-                    </Form.Item>
-                  </Stack>
-                </Stack>
-                {schema.configuration?.properties ? (
+                {step === 0 && schema.configuration?.properties ? (
                   <Stack>
                     <Divider orientation="start" orientationMargin={0}>
                       Configuration
@@ -611,17 +469,204 @@ export const AppPolicyPage = () => {
                 ) : (
                   <></>
                 )}
-                <Stack>
-                  <Divider orientation="start" orientationMargin={0}>
-                    Requirements
-                  </Divider>
-                  <HStack $style={{ gap: "16px" }}>
-                    <Tag>{`Min Vultisig Version: ${schema.requirements?.minVultisigVersion}`}</Tag>
-                    <Tag>{`Supported Chains: ${schema.requirements?.supportedChains.join(
-                      ", "
-                    )}`}</Tag>
-                  </HStack>
-                </Stack>
+                {step === 1 && (
+                  <Stack>
+                    <Divider orientation="start" orientationMargin={0}>
+                      Rules
+                    </Divider>
+                    <Form.List
+                      name="rules"
+                      rules={[
+                        {
+                          validator: async (_, rules) => {
+                            if (!rules || rules.length < 1) {
+                              return Promise.reject(
+                                new Error("Please enter at least one rule")
+                              );
+                            }
+                          },
+                        },
+                      ]}
+                    >
+                      {(fields, { add, remove }, { errors }) => (
+                        <VStack $style={{ gap: "24px" }}>
+                          {fields.map(({ key, name, ...restField }) => (
+                            <Fragment key={`${name}-${key}`}>
+                              <VStack>
+                                <Stack
+                                  $style={{
+                                    columnGap: "16px",
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(2, 1fr)",
+                                  }}
+                                  $media={{
+                                    lg: {
+                                      $style: {
+                                        gridTemplateColumns: "repeat(3, 1fr)",
+                                      },
+                                    },
+                                  }}
+                                >
+                                  <Form.Item
+                                    name={[name, "resource"]}
+                                    label="Supported Resource"
+                                    rules={[{ required: true }]}
+                                    {...restField}
+                                  >
+                                    <Select
+                                      disabled={isFeesPlugin}
+                                      options={resourceOptions}
+                                    />
+                                  </Form.Item>
+                                  <Form.Item<FormFieldType>
+                                    shouldUpdate={(prevValues, currentValues) =>
+                                      prevValues.rules[name]?.resource !==
+                                      currentValues.rules[name]?.resource
+                                    }
+                                    noStyle
+                                  >
+                                    {({ getFieldsValue }) => {
+                                      const { rules = [] } = getFieldsValue();
+                                      const { resource } = rules[name] || {};
+
+                                      if (isNaN(resource)) return null;
+
+                                      const { parameterCapabilities, target } =
+                                        schema.supportedResources[resource];
+
+                                      return (
+                                        <>
+                                          {parameterCapabilities.map(
+                                            ({ parameterName, required }) => (
+                                              <Form.Item
+                                                key={parameterName}
+                                                label={toCapitalizeFirst(
+                                                  parameterName
+                                                )}
+                                                name={[name, parameterName]}
+                                                rules={[{ required }]}
+                                              >
+                                                <Input
+                                                  disabled={isFeesPlugin}
+                                                />
+                                              </Form.Item>
+                                            )
+                                          )}
+                                          {target === TargetType.ADDRESS && (
+                                            <Form.Item
+                                              label="Target"
+                                              name={[name, "target"]}
+                                              rules={[{ required: true }]}
+                                            >
+                                              <Input />
+                                            </Form.Item>
+                                          )}
+                                        </>
+                                      );
+                                    }}
+                                  </Form.Item>
+                                </Stack>
+                                <HStack
+                                  $style={{ justifyContent: "space-between" }}
+                                >
+                                  <Form.Item<FormFieldType>
+                                    shouldUpdate={(prevValues, currentValues) =>
+                                      prevValues.rules[name]?.resource !==
+                                      currentValues.rules[name]?.resource
+                                    }
+                                    noStyle
+                                  >
+                                    {({ getFieldsValue }) => {
+                                      const { rules = [] } = getFieldsValue();
+                                      const { resource } = rules[name] || {};
+
+                                      if (isNaN(resource)) return null;
+
+                                      const { resourcePath } =
+                                        schema.supportedResources[resource];
+
+                                      return (
+                                        <HStack $style={{ gap: "16px" }}>
+                                          <Tag>{`Chain: ${resourcePath?.chainId}`}</Tag>
+                                          <Tag>{`Protocol: ${resourcePath?.protocolId}`}</Tag>
+                                          <Tag>{`Function: ${resourcePath?.functionId}`}</Tag>
+                                        </HStack>
+                                      );
+                                    }}
+                                  </Form.Item>
+                                  {fields.length > 1 && (
+                                    <Stack
+                                      as={TrashIcon}
+                                      onClick={() => remove(name)}
+                                      $style={{
+                                        borderRadius: "50%",
+                                        color: colors.error.toHex(),
+                                        cursor: "pointer",
+                                        fontSize: "24px",
+                                        padding: "4px",
+                                      }}
+                                      $hover={{
+                                        backgroundColor:
+                                          colors.bgPrimary.toHex(),
+                                      }}
+                                    />
+                                  )}
+                                </HStack>
+                              </VStack>
+                              <Stack
+                                as={Divider}
+                                $style={{ margin: "0" }}
+                                dashed
+                              />
+                            </Fragment>
+                          ))}
+                          <VStack>
+                            {errors.length > 0 && (
+                              <Stack as={Form.Item} $style={{ margin: "0" }}>
+                                <Form.ErrorList errors={errors} />
+                              </Stack>
+                            )}
+                            <Button onClick={() => add(ruleInitValues)}>
+                              Add rule
+                            </Button>
+                          </VStack>
+                        </VStack>
+                      )}
+                    </Form.List>
+                  </Stack>
+                )}
+                {step === 2 && (
+                  <Stack>
+                    <Divider orientation="start" orientationMargin={0}>
+                      Scheduling
+                    </Divider>
+                    <Stack
+                      $style={{
+                        columnGap: "16px",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                      }}
+                      $media={{
+                        lg: {
+                          $style: { gridTemplateColumns: "repeat(3, 1fr)" },
+                        },
+                      }}
+                    >
+                      <Form.Item<FormFieldType>
+                        name="maxTxsPerWindow"
+                        label="Max Txs Per Window"
+                      >
+                        <InputNumber min={1} />
+                      </Form.Item>
+                      <Form.Item<FormFieldType>
+                        name="rateLimitWindow"
+                        label="Rate Limit Window (seconds)"
+                      >
+                        <InputNumber min={1} />
+                      </Form.Item>
+                    </Stack>
+                  </Stack>
+                )}
               </Form>
             </VStack>
           </VStack>
@@ -639,25 +684,43 @@ export const AppPolicyPage = () => {
           >
             <HStack
               $style={{
+                alignItems: "center",
                 gap: "8px",
-                justifyContent: "end",
+                justifyContent: "space-between",
                 maxWidth: "992px",
                 padding: "12px 16px",
                 width: "100%",
               }}
             >
-              <Button disabled={submitting} onClick={() => goBack()}>
-                Cancel
+              <Button href={modalHash.requirements} status="warning">
+                Requirements
               </Button>
-              <Button
-                kind="primary"
-                loading={submitting}
-                onClick={() => form.submit()}
-              >
-                Submit
-              </Button>
+              <HStack $style={{ gap: "8px" }}>
+                <Button
+                  disabled={submitting}
+                  onClick={() =>
+                    step > 0 ? onChangeStep(step - 1) : handleBack()
+                  }
+                >
+                  {step > 0 ? "Back" : "Cancel"}
+                </Button>
+                <Button
+                  kind="primary"
+                  loading={submitting}
+                  onClick={() =>
+                    step < 2 ? onChangeStep(step + 1) : form.submit()
+                  }
+                >
+                  {step < 2 ? "Continue" : "Submit"}
+                </Button>
+              </HStack>
             </HStack>
           </VStack>
+          {schema.requirements ? (
+            <RequirementsModal {...schema.requirements} />
+          ) : (
+            <></>
+          )}
         </>
       ) : (
         <Spin />
