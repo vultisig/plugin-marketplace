@@ -145,3 +145,5 @@ export const themes: Record<Theme, DefaultTheme> = {
     textTertiary: new ColorToken(215, 16, 52), //hsla(215, 16%, 52%, 1)
   },
 } as const;
+
+export type ThemeColorKeys = keyof DefaultTheme;

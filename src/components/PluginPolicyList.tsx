@@ -1,12 +1,12 @@
 import { fromBinary } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
-import { List, message, Modal, Table, TableProps } from "antd";
-import { FC, useCallback, useEffect, useState } from "react";
+import { message, Modal, Table, TableProps } from "antd";
+import { FC, Fragment, useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/Button";
+import { Divider } from "@/components/Divider";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { PluginPolicyModal } from "@/components/PluginPolicyModal";
-import { Stack } from "@/components/Stack";
+import { HStack, Stack, VStack } from "@/components/Stack";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy, PolicySchema } from "@/proto/policy_pb";
 import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
@@ -14,11 +14,10 @@ import {
   delPluginPolicy,
   getPluginPolicies,
 } from "@/utils/services/marketplace";
-import { CustomPluginPolicy, CustomRecipeSchema, Plugin } from "@/utils/types";
+import { CustomPluginPolicy, Plugin } from "@/utils/types";
 
 interface PluginPolicyListProps {
   plugin: Plugin;
-  schema?: CustomRecipeSchema;
 }
 
 interface InitialState {
@@ -27,10 +26,7 @@ interface InitialState {
   totalCount: number;
 }
 
-export const PluginPolicyList: FC<PluginPolicyListProps> = ({
-  plugin,
-  schema,
-}) => {
+export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
   const initialState: InitialState = {
     loading: true,
     policies: [],
@@ -44,21 +40,37 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
 
   const columns: TableProps<CustomPluginPolicy>["columns"] = [
     {
-      title: "Row",
+      align: "center",
       key: "row",
       render: (_, __, index) => index + 1,
-      align: "center",
+      title: "Row",
       width: 20,
     },
     Table.EXPAND_COLUMN,
     {
-      title: "Resource",
       dataIndex: "parsedRecipe",
-      key: "resource",
-      render: ({ rules: [{ resource }] }: Policy) => resource,
+      key: "name",
+      render: ({ name }: Policy) => name,
+      title: "Name",
     },
     {
-      title: "Action",
+      align: "center",
+      dataIndex: "parsedRecipe",
+      key: "maxTxsPerWindow",
+      render: ({ maxTxsPerWindow }: Policy) =>
+        maxTxsPerWindow ? toNumeralFormat(maxTxsPerWindow) : "-",
+      title: "Max Txs",
+    },
+    {
+      align: "center",
+      dataIndex: "parsedRecipe",
+      key: "rateLimitWindow",
+      render: ({ rateLimitWindow }: Policy) =>
+        rateLimitWindow ? toNumeralFormat(rateLimitWindow) : "-",
+      title: "Rate Limit",
+    },
+    {
+      align: "center",
       key: "action",
       render: (_, record) => (
         <Button
@@ -68,7 +80,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
           status="danger"
         />
       ),
-      align: "center",
+      title: "Action",
       width: 80,
     },
   ];
@@ -99,12 +111,6 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
     [id]
   );
 
-  const handleCreate = () => {
-    messageApi.success("Policy created successfully.");
-
-    fetchPolicies(0);
-  };
-
   const handleDelete = ({ id, signature }: CustomPluginPolicy) => {
     if (signature) {
       modalAPI.confirm({
@@ -134,93 +140,143 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({
 
   useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
 
+  console.log("policies", policies);
+
   return (
     <>
       <Table
         columns={columns}
         dataSource={policies}
         expandable={{
-          expandedRowRender: ({
-            parsedRecipe: {
-              maxTxsPerWindow,
-              rateLimitWindow,
-              rules: [{ parameterConstraints }],
-            },
-          }) => (
-            <List
-              dataSource={[
-                ...parameterConstraints.map(
-                  ({ constraint, parameterName }) => ({
-                    case: constraint?.value.case,
-                    name: parameterName,
-                    value: constraint?.value.value,
-                  })
-                ),
-                {
-                  case: undefined,
-                  name: "Max Txs Per Window",
-                  value: maxTxsPerWindow
-                    ? toNumeralFormat(maxTxsPerWindow)
-                    : "-",
-                },
-                {
-                  case: "seconds",
-                  name: "Rate Limit Window",
-                  value: rateLimitWindow
-                    ? toNumeralFormat(rateLimitWindow)
-                    : "-",
-                },
-              ]}
-              grid={{
-                gutter: [16, 16],
-                xs: 1,
-                sm: 1,
-                md: 2,
-                lg: 2,
-                xl: 4,
-                xxl: 4,
-              }}
-              renderItem={(record) => {
-                const value = String(record.value);
-                const description = value.startsWith("0x") ? (
-                  <MiddleTruncate text={value} />
-                ) : (
-                  value
-                );
+          expandedRowRender: ({ parsedRecipe: { rules } }) => {
+            return (
+              <VStack $style={{ gap: "8px" }}>
+                {rules.map(({ id, parameterConstraints, target }, index) => (
+                  <Fragment key={id}>
+                    {index > 0 && <Divider />}
+                    <Stack
+                      key={id}
+                      $style={{
+                        display: "grid",
+                        gap: "8px",
+                        gridTemplateColumns: "repeat(2, 1fr)",
+                      }}
+                      $media={{
+                        lg: {
+                          $style: { gridTemplateColumns: "repeat(3, 1fr)" },
+                        },
+                        xl: {
+                          $style: { gridTemplateColumns: "repeat(2, 1fr)" },
+                        },
+                      }}
+                    >
+                      {parameterConstraints.map(
+                        ({ constraint, parameterName }) => {
+                          const value = String(constraint?.value.value || "");
 
-                return (
-                  <List.Item key={record.name} style={{ margin: 0 }}>
-                    <List.Item.Meta
-                      title={
-                        record.case ? (
-                          <Stack $style={{ alignItems: "center", gap: "4px" }}>
-                            <span>{toCapitalizeFirst(record.name)}</span>
-                            <small>{`(${record.case})`}</small>
+                          return (
+                            <VStack key={parameterName}>
+                              {constraint?.value.case ? (
+                                <HStack
+                                  $style={{ alignItems: "center", gap: "4px" }}
+                                >
+                                  <Stack
+                                    as="span"
+                                    $style={{
+                                      fontSize: "12px",
+                                      fontWeight: "500",
+                                      lineHeight: "18px",
+                                    }}
+                                  >
+                                    {toCapitalizeFirst(parameterName)}
+                                  </Stack>
+                                  <Stack
+                                    as="span"
+                                    $style={{
+                                      fontSize: "10px",
+                                      fontWeight: "500",
+                                      lineHeight: "18px",
+                                    }}
+                                  >{`(${constraint.value.case})`}</Stack>
+                                </HStack>
+                              ) : (
+                                <Stack
+                                  as="span"
+                                  $style={{
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    lineHeight: "18px",
+                                  }}
+                                >
+                                  {toCapitalizeFirst(parameterName)}
+                                </Stack>
+                              )}
+                              {value.startsWith("0x") ? (
+                                <MiddleTruncate text={value} />
+                              ) : (
+                                <Stack
+                                  as="span"
+                                  $style={{
+                                    fontSize: "12px",
+                                    fontWeight: "500",
+                                    lineHeight: "18px",
+                                  }}
+                                >
+                                  {value}
+                                </Stack>
+                              )}
+                            </VStack>
+                          );
+                        }
+                      )}
+
+                      {target ? (
+                        <VStack>
+                          <HStack $style={{ gap: "4px" }}>
+                            <Stack
+                              as="span"
+                              $style={{
+                                fontSize: "12px",
+                                fontWeight: "500",
+                                lineHeight: "18px",
+                              }}
+                            >
+                              Target
+                            </Stack>
+                            <Stack
+                              as="span"
+                              $style={{
+                                fontSize: "10px",
+                                fontWeight: "500",
+                                lineHeight: "18px",
+                              }}
+                            >{`(${target.target.case})`}</Stack>
+                          </HStack>
+                          <Stack
+                            as="span"
+                            $style={{
+                              fontSize: "12px",
+                              fontWeight: "500",
+                              lineHeight: "18px",
+                            }}
+                          >
+                            {target.target.value || "-"}
                           </Stack>
-                        ) : (
-                          toCapitalizeFirst(record.name)
-                        )
-                      }
-                      description={description}
-                    />
-                  </List.Item>
-                );
-              }}
-            />
-          ),
+                        </VStack>
+                      ) : (
+                        <></>
+                      )}
+                    </Stack>
+                  </Fragment>
+                ))}
+              </VStack>
+            );
+          },
         }}
         loading={loading}
         rowKey="id"
         size="small"
       />
-
-      {!!schema && (
-        <PluginPolicyModal
-          onFinish={handleCreate}
-          plugin={plugin}
-          schema={schema}
-        />
-      )}
 
       {messageHolder}
       {modalHolder}

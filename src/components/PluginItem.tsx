@@ -127,7 +127,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
           {description}
         </VStack>
         <VStack $style={{ gap: "12px" }}>
-          <Button href={routeTree.pluginDetails.link(id)} kind="primary">
+          <Button href={routeTree.appDetails.link(id)} kind="primary">
             See Details
           </Button>
           <Pricing pricing={pricing} center={!horizontal} />

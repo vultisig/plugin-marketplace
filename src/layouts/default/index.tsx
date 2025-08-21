@@ -178,7 +178,7 @@ export const DefaultLayout = () => {
           >
             <Stack
               as={Link}
-              to={routeTree.plugins.path}
+              to={routeTree.apps.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
               Marketplace
@@ -186,7 +186,7 @@ export const DefaultLayout = () => {
             {isConnected && (
               <Stack
                 as={Link}
-                to={routeTree.plugins.path}
+                to={routeTree.apps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
                 My Apps
@@ -219,9 +219,7 @@ export const DefaultLayout = () => {
           )}
         </HStack>
       </HStack>
-      <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
-        <Outlet />
-      </VStack>
+      <Outlet />
 
       {isConnected && (
         <>
