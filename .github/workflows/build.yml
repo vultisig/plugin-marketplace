@@ -2,7 +2,6 @@ name: Marketplace build
 
 on:
   push:
-    branches: ['main']
   pull_request:
     branches: ['main']
 
@@ -71,3 +70,28 @@ jobs:
         run: npm ci
       - name: Build extension
         run: npm run build
+  deploy:
+    needs: [build]
+    environment: preview
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Deploy
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SERVER_USERNAME: ${{ secrets.SSH_USER }}
+          SERVER_HOST: ${{ secrets.SSH_SERVER }}
+          DEPLOY_DIR: ${{ secrets.SSH_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USERNAME@$SERVER_HOST "
+          cd $DEPLOY_DIR &&
+          git remote set-url origin git@github.com:vultisig/plugin-marketplace.git &&
+          git pull origin main &&
+          npm install &&
+          npm run build &&
+          systemctl restart frontend
+          "
