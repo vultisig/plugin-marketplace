@@ -2,7 +2,6 @@ name: Marketplace build
 
 on:
   push:
-    branches: ['main']
   pull_request:
     branches: ['main']
 
@@ -88,6 +87,5 @@ jobs:
 
           # Sync built files to server
           rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" \
             ./dist/ \
             $SERVER_USERNAME@$SERVER_HOST:$DEPLOY_DIR/
