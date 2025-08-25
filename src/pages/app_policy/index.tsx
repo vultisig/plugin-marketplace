@@ -345,7 +345,12 @@ export const AppPolicyPage = () => {
             .then((plugin) => {
               getRecipeSpecification(appId)
                 .then((schema) => {
-                  setState((prevState) => ({ ...prevState, plugin, schema }));
+                  setState((prevState) => ({
+                    ...prevState,
+                    plugin,
+                    schema,
+                    step: schema.configuration?.properties ? 0 : 1,
+                  }));
                 })
                 .catch(() => {
                   handleBack();
@@ -449,7 +454,7 @@ export const AppPolicyPage = () => {
                       {Object.entries(schema.configuration.properties).map(
                         ([key, field]) => {
                           const required =
-                            schema.configuration?.required.includes(key);
+                            !!schema.configuration?.required.includes(key);
 
                           let element: ReactNode;
 
