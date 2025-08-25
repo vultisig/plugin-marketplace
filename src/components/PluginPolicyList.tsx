@@ -1,5 +1,3 @@
-import { fromBinary } from "@bufbuild/protobuf";
-import { base64Decode } from "@bufbuild/protobuf/wire";
 import { message, Modal, Table, TableProps } from "antd";
 import { FC, Fragment, useCallback, useEffect, useState } from "react";
 
@@ -8,21 +6,18 @@ import { Divider } from "@/components/Divider";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { HStack, Stack, VStack } from "@/components/Stack";
 import { TrashIcon } from "@/icons/TrashIcon";
-import { Policy, PolicySchema } from "@/proto/policy_pb";
+import { Policy } from "@/proto/policy_pb";
 import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
-import {
-  delPluginPolicy,
-  getPluginPolicies,
-} from "@/utils/services/marketplace";
-import { CustomPluginPolicy, Plugin } from "@/utils/types";
+import { delPolicy, getPolicies } from "@/utils/services/marketplace";
+import { App, CustomAppPolicy } from "@/utils/types";
 
 interface PluginPolicyListProps {
-  plugin: Plugin;
+  plugin: App;
 }
 
 interface InitialState {
   loading: boolean;
-  policies: CustomPluginPolicy[];
+  policies: CustomAppPolicy[];
   totalCount: number;
 }
 
@@ -38,7 +33,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
   const [modalAPI, modalHolder] = Modal.useModal();
   const { id } = plugin;
 
-  const columns: TableProps<CustomPluginPolicy>["columns"] = [
+  const columns: TableProps<CustomAppPolicy>["columns"] = [
     {
       align: "center",
       key: "row",
@@ -89,18 +84,12 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getPluginPolicies(id, skip)
+      getPolicies(id, { skip })
         .then(({ policies, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
             loading: false,
-            policies:
-              policies?.map((policy) => {
-                const decoded = base64Decode(policy.recipe);
-                const parsedRecipe = fromBinary(PolicySchema, decoded);
-
-                return { ...policy, parsedRecipe };
-              }) || [],
+            policies,
             totalCount,
           }));
         })
@@ -111,7 +100,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
     [id]
   );
 
-  const handleDelete = ({ id, signature }: CustomPluginPolicy) => {
+  const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
       modalAPI.confirm({
         title: "Are you sure delete this policy?",
@@ -121,7 +110,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
         onOk() {
           setState((prevState) => ({ ...prevState, loading: true }));
 
-          delPluginPolicy(id, signature)
+          delPolicy(id, signature)
             .then(() => {
               messageApi.success("Policy deleted successfully.");
 
@@ -139,8 +128,6 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
   };
 
   useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
-
-  console.log("policies", policies);
 
   return (
     <>

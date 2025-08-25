@@ -23,7 +23,7 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
       token: {
         borderRadius: 10,
         colorBgBase: colors.bgPrimary.toHex(),
-        colorBgContainer: colors.bgSecondary.toHex(),
+        colorBgContainer: colors.bgPrimary.toHex(),
         colorBgElevated: colors.bgSecondary.toHex(),
         colorBorder: colors.borderLight.toHex(),
         colorSplit: colors.borderNormal.toHex(),

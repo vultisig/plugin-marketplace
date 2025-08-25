@@ -1,6 +1,6 @@
 import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
-import { PluginPolicy, ReshareForm, Vault } from "@/utils/types";
+import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
 const isAvailable = async () => {
@@ -133,7 +133,7 @@ export const signPluginPolicy = async ({
   publicKey,
   recipe,
 }: Pick<
-  PluginPolicy,
+  AppPolicy,
   "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
 >) => {
   await isAvailable();

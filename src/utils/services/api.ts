@@ -90,25 +90,38 @@ api.interceptors.response.use(
   }
 );
 
+const handleConfig = (config?: AxiosRequestConfig) =>
+  config?.params ? { ...config, params: toSnakeCase(config.params) } : config;
+
 export const del = async <T>(
   url: string,
   config?: AxiosRequestConfig
 ): Promise<T> =>
-  api.delete<T>(url, config).then(({ data }) => toCamelCase(data));
+  api
+    .delete<T>(url, handleConfig(config))
+    .then(({ data }) => toCamelCase(data));
 
 export const get = async <T>(
   url: string,
   config?: AxiosRequestConfig
 ): Promise<T> =>
-  await api.get<T>(url, config).then(({ data }) => toCamelCase(data));
+  await api
+    .get<T>(url, handleConfig(config))
+    .then(({ data }) => toCamelCase(data));
 
 export const post = async <T>(
   url: string,
-  data?: any,
+  data?: Record<string, unknown>,
   config?: AxiosRequestConfig
 ): Promise<T> =>
   api
-    .post<T>(url, toSnakeCase(data), config)
+    .post<T>(
+      url,
+      url.startsWith("https://dca.vultisigplugin.app")
+        ? data
+        : toSnakeCase(data),
+      handleConfig(config)
+    )
     .then(({ data }) => toCamelCase(data));
 
 // export const put = async <T>(
@@ -116,4 +129,6 @@ export const post = async <T>(
 //   data?: any,
 //   config?: AxiosRequestConfig
 // ): Promise<T> =>
-//   api.put<T>(url, data, config).then(({ data }) => toCamelCase(data));
+//   api
+//     .put<T>(url, data, handleConfig(config))
+//     .then(({ data }) => toCamelCase(data));

@@ -3,5 +3,7 @@ inputs:
   - directory: proto
 plugins:
   - local: protoc-gen-es
-    opt: target=ts
     out: src/proto
+    opt:
+      - target=ts
+      - json_types=true

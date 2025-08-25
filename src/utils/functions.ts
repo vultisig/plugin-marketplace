@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 
-import { CSSProperties, PluginPolicy } from "@/utils/types";
+import { AppPolicy,CSSProperties } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -46,7 +46,7 @@ export const policyToHexMessage = ({
   publicKey,
   recipe,
 }: Pick<
-  PluginPolicy,
+  AppPolicy,
   "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
 >): string => {
   const delimiter = "*#*";

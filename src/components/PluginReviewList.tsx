@@ -9,16 +9,13 @@ import { Spin } from "@/components/Spin";
 import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { StarIcon } from "@/icons/StarIcon";
-import {
-  addPluginReview,
-  getPluginReviews,
-} from "@/utils/services/marketplace";
-import { Plugin, Review, ReviewForm } from "@/utils/types";
+import { addReview, getReviews } from "@/utils/services/marketplace";
+import { App, Review, ReviewForm } from "@/utils/types";
 
 type PluginReviewListProps = {
   isInstalled?: boolean;
   onInstall: () => void;
-  plugin: Plugin;
+  plugin: App;
 };
 
 type InitialState = {
@@ -49,7 +46,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getPluginReviews(id, skip)
+      getReviews(id, { skip })
         .then(({ reviews, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -69,7 +66,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
     if (address) {
       setState((prevState) => ({ ...prevState, submitting: true }));
 
-      addPluginReview(id, { ...values, address })
+      addReview(id, { ...values, address })
         .then(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));
 
@@ -102,7 +99,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
       >
         <VStack
           $style={{
-            backgroundColor: colors.bgSecondary.toHex(),
+            border: `solid 1px ${colors.borderLight.toHex()}`,
             borderRadius: "12px",
             gap: "24px",
             height: "100%",
@@ -170,7 +167,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
       </Form>
       <VStack
         $style={{
-          backgroundColor: colors.bgSecondary.toHex(),
+          border: `solid 1px ${colors.borderLight.toHex()}`,
           borderRadius: "12px",
           gap: "24px",
           height: "100%",
@@ -253,7 +250,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
             <VStack
               key={id}
               $style={{
-                backgroundColor: colors.bgSecondary.toHex(),
+                border: `solid 1px ${colors.borderLight.toHex()}`,
                 borderRadius: "12px",
                 gap: "12px",
                 height: "100%",

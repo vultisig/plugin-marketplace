@@ -9,13 +9,13 @@ import { Select } from "@/components/Select";
 import { Spin } from "@/components/Spin";
 import { HStack, Stack, VStack } from "@/components/Stack";
 import { useFilterParams } from "@/hooks/useFilterParams";
-import { getPluginCategories, getPlugins } from "@/utils/services/marketplace";
-import { Category, Plugin, PluginFilters } from "@/utils/types";
+import { getApps, getCategories } from "@/utils/services/marketplace";
+import { App, AppFilters,Category } from "@/utils/types";
 
 type InitialState = {
   categories: Category[];
   loading: boolean;
-  plugins: Plugin[];
+  plugins: App[];
 };
 
 export const AppsPage = () => {
@@ -26,14 +26,14 @@ export const AppsPage = () => {
   };
   const [state, setState] = useState(initialState);
   const { categories, loading, plugins } = state;
-  const { filters, setFilters } = useFilterParams<PluginFilters>();
+  const { filters, setFilters } = useFilterParams<AppFilters>();
   const colors = useTheme();
   const [newPlugin] = plugins;
 
-  const fetchPlugins = useCallback((skip: number, filters: PluginFilters) => {
+  const fetchPlugins = useCallback((skip: number, filters: AppFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    getPlugins({ ...filters, skip })
+    getApps({ ...filters, skip })
       .then(({ plugins }) => {
         setState((prevState) => ({ ...prevState, loading: false, plugins }));
       })
@@ -53,7 +53,7 @@ export const AppsPage = () => {
   );
 
   useEffect(() => {
-    getPluginCategories()
+    getCategories()
       .then((categories) => {
         setState((prevState) => ({ ...prevState, categories }));
       })

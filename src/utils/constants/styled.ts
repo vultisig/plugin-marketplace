@@ -146,4 +146,4 @@ export const themes: Record<Theme, DefaultTheme> = {
   },
 } as const;
 
-export type ThemeColorKeys = keyof DefaultTheme;
+//export type ThemeColorKeys = keyof DefaultTheme;

@@ -1,4 +1,4 @@
-import { Menu, message, Modal, Tooltip } from "antd";
+import { message, Modal, Tooltip } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -21,17 +21,17 @@ import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
 import {
-  getPlugin,
+  getApp,
   getRecipeSpecification,
-  isPluginInstalled,
-  uninstallPlugin,
+  isAppInstalled,
+  uninstallApp,
 } from "@/utils/services/marketplace";
-import { CustomRecipeSchema, Plugin } from "@/utils/types";
+import { App,CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
   isInstalled?: boolean;
   loading?: boolean;
-  plugin?: Plugin;
+  plugin?: App;
   schema?: CustomRecipeSchema;
 }
 
@@ -49,7 +49,7 @@ export const AppDetailsPage = () => {
   const isMountedRef = useRef(true);
 
   const checkStatus = useCallback(() => {
-    isPluginInstalled(id).then((isInstalled) => {
+    isAppInstalled(id).then((isInstalled) => {
       if (isInstalled) {
         setState((prevState) => ({ ...prevState, isInstalled }));
       } else if (isMountedRef.current) {
@@ -67,7 +67,7 @@ export const AppDetailsPage = () => {
       onOk() {
         setState((prevState) => ({ ...prevState, loading: true }));
 
-        uninstallPlugin(id)
+        uninstallApp(id)
           .then(() => {
             setState((prevState) => ({
               ...prevState,
@@ -113,7 +113,7 @@ export const AppDetailsPage = () => {
 
   useEffect(() => {
     if (isConnected) {
-      isPluginInstalled(id).then((isInstalled) => {
+      isAppInstalled(id).then((isInstalled) => {
         setState((prevState) => ({ ...prevState, isInstalled }));
       });
     } else {
@@ -122,7 +122,7 @@ export const AppDetailsPage = () => {
   }, [id, isConnected]);
 
   useEffect(() => {
-    getPlugin(id)
+    getApp(id)
       .then((plugin) => {
         setState((prevState) => ({ ...prevState, plugin }));
       })
@@ -145,7 +145,7 @@ export const AppDetailsPage = () => {
         <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
           <VStack
             $style={{
-              gap: "64px",
+              gap: "32px",
               maxWidth: "1200px",
               padding: "0 16px",
               width: "100%",
@@ -282,7 +282,7 @@ export const AppDetailsPage = () => {
                                 })
                               }
                             >
-                              Add recipient
+                              Add policy
                             </Button>
                             <Button
                               loading={loading}
@@ -312,17 +312,43 @@ export const AppDetailsPage = () => {
                 </VStack>
               </VStack>
 
-              <Stack
-                as={Menu}
-                items={[
+              <HStack
+                $style={{
+                  backgroundColor: colors.bgPrimary.toHex(),
+                  borderBottom: `solid 1px ${colors.borderLight.toHex()}`,
+                  position: "sticky",
+                  top: "72px",
+                  zIndex: "2",
+                }}
+              >
+                {[
                   { key: "1", label: "Overview" },
                   { key: "2", label: "Reviews and Ratings" },
-                ]}
-                mode="horizontal"
-                selectedKeys={["1"]}
-                $style={{ position: "sticky", top: "72px", zIndex: "2" }}
-              />
-
+                ].map(({ key, label }) => (
+                  <HStack
+                    as="span"
+                    key={key}
+                    $style={{
+                      alignItems: "center",
+                      borderBottom: `solid 2px ${
+                        key === "1" ? colors.accentFour.toHex() : "transparent"
+                      }`,
+                      color: colors.textPrimary.toHex(),
+                      cursor: "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
+                      height: "52px",
+                      padding: "0 16px",
+                      whiteSpace: "nowrap",
+                    }}
+                    $hover={{
+                      color: colors.accentFour.toHex(),
+                    }}
+                  >
+                    {label}
+                  </HStack>
+                ))}
+              </HStack>
               <Stack as="span">
                 Set and forget payroll for your team. Automate recurring team
                 payments with confidence. This plugin makes it easy to set,
