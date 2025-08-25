@@ -21,17 +21,17 @@ import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
 import {
-  getPlugin,
+  getApp,
   getRecipeSpecification,
-  isPluginInstalled,
-  uninstallPlugin,
+  isAppInstalled,
+  uninstallApp,
 } from "@/utils/services/marketplace";
-import { CustomRecipeSchema, Plugin } from "@/utils/types";
+import { App,CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
   isInstalled?: boolean;
   loading?: boolean;
-  plugin?: Plugin;
+  plugin?: App;
   schema?: CustomRecipeSchema;
 }
 
@@ -49,7 +49,7 @@ export const AppDetailsPage = () => {
   const isMountedRef = useRef(true);
 
   const checkStatus = useCallback(() => {
-    isPluginInstalled(id).then((isInstalled) => {
+    isAppInstalled(id).then((isInstalled) => {
       if (isInstalled) {
         setState((prevState) => ({ ...prevState, isInstalled }));
       } else if (isMountedRef.current) {
@@ -67,7 +67,7 @@ export const AppDetailsPage = () => {
       onOk() {
         setState((prevState) => ({ ...prevState, loading: true }));
 
-        uninstallPlugin(id)
+        uninstallApp(id)
           .then(() => {
             setState((prevState) => ({
               ...prevState,
@@ -113,7 +113,7 @@ export const AppDetailsPage = () => {
 
   useEffect(() => {
     if (isConnected) {
-      isPluginInstalled(id).then((isInstalled) => {
+      isAppInstalled(id).then((isInstalled) => {
         setState((prevState) => ({ ...prevState, isInstalled }));
       });
     } else {
@@ -122,7 +122,7 @@ export const AppDetailsPage = () => {
   }, [id, isConnected]);
 
   useEffect(() => {
-    getPlugin(id)
+    getApp(id)
       .then((plugin) => {
         setState((prevState) => ({ ...prevState, plugin }));
       })

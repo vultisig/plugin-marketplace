@@ -2,11 +2,11 @@ import { Drawer } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import { Stack, VStack } from "@/components/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { PluginRequirements } from "@/proto/recipe_specification_pb";
-import { useGoBack } from "@/hooks/useGoBack";
 import { Divider } from "@/components/Divider";
+import { Stack, VStack } from "@/components/Stack";
+import { useGoBack } from "@/hooks/useGoBack";
+import { PluginRequirements } from "@/proto/recipe_specification_pb";
+import { modalHash } from "@/utils/constants/core";
 
 export const RequirementsModal: FC<PluginRequirements> = ({
   minVultisigVersion,

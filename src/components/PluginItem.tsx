@@ -8,10 +8,10 @@ import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
-import { Plugin } from "@/utils/types";
+import { App } from "@/utils/types";
 
 type PluginItemProps = {
-  plugin: Plugin;
+  plugin: App;
   horizontal?: boolean;
 };
 

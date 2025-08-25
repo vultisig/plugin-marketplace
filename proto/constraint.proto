@@ -11,22 +11,12 @@ enum ConstraintType {
   CONSTRAINT_TYPE_MAX = 2;
   CONSTRAINT_TYPE_MIN = 3;
   CONSTRAINT_TYPE_MAGIC_CONSTANT = 4;
+  CONSTRAINT_TYPE_ANY = 5;
 }
 
 enum MagicConstant {
   UNSPECIFIED = 0;
   VULTISIG_TREASURY = 1;
-}
-
-// RangeValue represents a range constraint with min and max values
-message RangeValue {
-  string min = 1;
-  string max = 2;
-}
-
-// WhitelistValues represents a list of allowed values
-message WhitelistValues {
-  repeated string values = 1;
 }
 
 // Constraint defines restrictions on a parameter
