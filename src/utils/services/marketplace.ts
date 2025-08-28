@@ -8,6 +8,7 @@ import {
 } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { PAGE_SIZE } from "@/utils/constants/core";
+import { toSnakeCase } from "@/utils/functions";
 import { del, get, post } from "@/utils/services/api";
 import {
   App,
@@ -26,16 +27,18 @@ import {
 const baseUrl = import.meta.env.VITE_MARKETPLACE_URL;
 
 export const addPolicy = async (data: AppPolicy) =>
-  post<AppPolicy>(`${baseUrl}/plugin/policy`, data);
+  post<AppPolicy>(`${baseUrl}/plugin/policy`, toSnakeCase(data));
 
 export const addReview = async (appId: string, data: ReviewForm) =>
-  post<Review>(`${baseUrl}/plugins/${appId}/reviews`, data);
+  post<Review>(`${baseUrl}/plugins/${appId}/reviews`, toSnakeCase(data));
 
 export const delPolicy = (id: string, signature: string) =>
   del(`${baseUrl}/plugin/policy/${id}`, { data: { signature } });
 
 export const getAuthToken = async (data: AuthTokenForm) =>
-  post<{ token: string }>(`${baseUrl}/auth`, data).then(({ token }) => token);
+  post<{ token: string }>(`${baseUrl}/auth`, toSnakeCase(data)).then(
+    ({ token }) => token
+  );
 
 export const getApp = async (id: string) =>
   get<App>(`${baseUrl}/plugins/${id}`).then((plugin) => {
@@ -66,12 +69,13 @@ export const getApps = ({
   term,
 }: ListFilters & AppFilters) =>
   get<{ plugins: App[]; totalCount: number }>(`${baseUrl}/plugins`, {
-    params: { categoryId, skip, sort, take, term },
-  }).then(({ plugins = [], totalCount }) => {
-    const modifiedPlugins: App[] = plugins.map((plugin) => ({
-      ...plugin,
-      pricing: plugin.pricing || [],
-    }));
+    params: toSnakeCase({ categoryId, skip, sort, take, term }),
+  }).then(({ plugins, totalCount }) => {
+    const modifiedPlugins: App[] =
+      plugins?.map((plugin) => ({
+        ...plugin,
+        pricing: plugin.pricing || [],
+      })) || [];
 
     return { plugins: modifiedPlugins, totalCount };
   });
@@ -84,14 +88,15 @@ export const getPolicies = (
 ) =>
   get<{ policies: AppPolicy[]; totalCount: number }>(
     `${baseUrl}/plugin/policies/${appId}`,
-    { params: { skip, take } }
-  ).then(({ policies = [], totalCount }) => {
-    const modifiedPolicies: CustomAppPolicy[] = policies?.map((policy) => {
-      const decoded = base64Decode(policy.recipe);
-      const parsedRecipe = fromBinary(PolicySchema, decoded);
+    { params: toSnakeCase({ skip, take }) }
+  ).then(({ policies, totalCount }) => {
+    const modifiedPolicies: CustomAppPolicy[] =
+      policies?.map((policy) => {
+        const decoded = base64Decode(policy.recipe);
+        const parsedRecipe = fromBinary(PolicySchema, decoded);
 
-      return { ...policy, parsedRecipe };
-    });
+        return { ...policy, parsedRecipe };
+      }) || [];
 
     return { policies: modifiedPolicies, totalCount };
   });
@@ -116,8 +121,8 @@ export const getReviews = (
 ) =>
   get<{ reviews: Review[]; totalCount: number }>(
     `${baseUrl}/plugins/${appId}/reviews`,
-    { params: { skip, take } }
-  ).then(({ reviews = [], totalCount }) => ({ reviews, totalCount }));
+    { params: toSnakeCase({ skip, take }) }
+  ).then(({ reviews, totalCount }) => ({ reviews: reviews || [], totalCount }));
 
 export const isAppInstalled = (id: string) =>
   get(`${baseUrl}/vault/exist/${id}/${getVaultId()}`)
@@ -125,7 +130,7 @@ export const isAppInstalled = (id: string) =>
     .catch(() => false);
 
 export const reshareVault = (data: ReshareForm) =>
-  post(`${baseUrl}/vault/reshare`, data);
+  post(`${baseUrl}/vault/reshare`, toSnakeCase(data));
 
 export const uninstallApp = (appId: string) =>
   del(`${baseUrl}/plugin/${appId}`);

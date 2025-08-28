@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 
 import { delToken, getToken, setToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
-import { toCamelCase, toSnakeCase } from "@/utils/functions";
+import { toCamelCase } from "@/utils/functions";
 
 type JwtPayload = {
   exp: number;
@@ -90,33 +90,24 @@ api.interceptors.response.use(
   }
 );
 
-const handleConfig = (config?: AxiosRequestConfig) =>
-  config?.params ? { ...config, params: toSnakeCase(config.params) } : config;
-
 export const del = async <T>(
   url: string,
   config?: AxiosRequestConfig
 ): Promise<T> =>
-  api
-    .delete<T>(url, handleConfig(config))
-    .then(({ data }) => toCamelCase(data));
+  api.delete<T>(url, config).then(({ data }) => toCamelCase(data));
 
 export const get = async <T>(
   url: string,
   config?: AxiosRequestConfig
 ): Promise<T> =>
-  await api
-    .get<T>(url, handleConfig(config))
-    .then(({ data }) => toCamelCase(data));
+  await api.get<T>(url, config).then(({ data }) => toCamelCase(data));
 
 export const post = async <T>(
   url: string,
   data?: Record<string, unknown>,
   config?: AxiosRequestConfig
 ): Promise<T> =>
-  api
-    .post<T>(url, toSnakeCase(data), handleConfig(config))
-    .then(({ data }) => toCamelCase(data));
+  api.post<T>(url, data, config).then(({ data }) => toCamelCase(data));
 
 // export const put = async <T>(
 //   url: string,
@@ -124,5 +115,5 @@ export const post = async <T>(
 //   config?: AxiosRequestConfig
 // ): Promise<T> =>
 //   api
-//     .put<T>(url, data, handleConfig(config))
+//     .put<T>(url, data, config)
 //     .then(({ data }) => toCamelCase(data));
