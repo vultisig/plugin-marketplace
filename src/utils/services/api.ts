@@ -115,13 +115,7 @@ export const post = async <T>(
   config?: AxiosRequestConfig
 ): Promise<T> =>
   api
-    .post<T>(
-      url,
-      url.startsWith("https://dca.vultisigplugin.app")
-        ? data
-        : toSnakeCase(data),
-      handleConfig(config)
-    )
+    .post<T>(url, toSnakeCase(data), handleConfig(config))
     .then(({ data }) => toCamelCase(data));
 
 // export const put = async <T>(

@@ -100,11 +100,11 @@ export const getRecipeSpecification = (appId: string) =>
   get<CustomRecipeSchema>(`${baseUrl}/plugins/${appId}/recipe-specification`);
 
 export const getRecipeSuggestion = (
-  _appId: string,
+  appId: string,
   configuration: Record<string, string>
 ) =>
   post<PolicySuggestJson>(
-    "https://dca.vultisigplugin.app/plugin/recipe-specification/suggest", // `${baseUrl}/plugins/${appId}/recipe-specification/suggest`,
+    `${baseUrl}/plugins/${appId}/recipe-specification/suggest`,
     { configuration }
   )
     .then((suggest) => fromJson(PolicySuggestSchema, suggest))
