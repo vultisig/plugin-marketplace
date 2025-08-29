@@ -25,7 +25,11 @@ import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { TrashIcon } from "@/icons/TrashIcon";
-import { ConstraintSchema, MagicConstant } from "@/proto/constraint_pb";
+import {
+  ConstraintSchema,
+  ConstraintType,
+  MagicConstant,
+} from "@/proto/constraint_pb";
 import { ParameterConstraintSchema } from "@/proto/parameter_constraint_pb";
 import {
   BillingFrequency,
@@ -100,8 +104,6 @@ export const AppPolicyPage = () => {
   };
 
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = (values) => {
-    console.log("values", values);
-
     switch (step) {
       case 0: {
         getRecipeSuggestion(appId, values as Record<string, string>).then(
@@ -596,25 +598,33 @@ export const AppPolicyPage = () => {
 
                                     return (
                                       <>
-                                        {supportedResource.parameterCapabilities.map(
-                                          ({ parameterName, required }) => (
-                                            <Form.Item
-                                              key={parameterName}
-                                              label={toCapitalizeFirst(
-                                                parameterName
-                                              )}
-                                              name={[name, parameterName]}
-                                              rules={[
-                                                {
-                                                  required:
-                                                    step > 0 && required,
-                                                },
-                                              ]}
-                                            >
-                                              <Input disabled={isFeesPlugin} />
-                                            </Form.Item>
+                                        {supportedResource.parameterCapabilities
+                                          .filter(
+                                            ({ supportedTypes }) =>
+                                              supportedTypes !==
+                                              ConstraintType.ANY
                                           )
-                                        )}
+                                          .map(
+                                            ({ parameterName, required }) => (
+                                              <Form.Item
+                                                key={parameterName}
+                                                label={toCapitalizeFirst(
+                                                  parameterName
+                                                )}
+                                                name={[name, parameterName]}
+                                                rules={[
+                                                  {
+                                                    required:
+                                                      step > 0 && required,
+                                                  },
+                                                ]}
+                                              >
+                                                <Input
+                                                  disabled={isFeesPlugin}
+                                                />
+                                              </Form.Item>
+                                            )
+                                          )}
                                         {supportedResource.target ===
                                           TargetType.ADDRESS && (
                                           <Form.Item
