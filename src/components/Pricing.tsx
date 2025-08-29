@@ -2,16 +2,16 @@ import { FC } from "react";
 import { useTheme } from "styled-components";
 
 import { Stack, VStack } from "@/components/Stack";
-import { Plugin, PluginPricing } from "@/utils/types";
+import { App, AppPricing } from "@/utils/types";
 
-type PricingProps = Pick<Plugin, "pricing"> & {
+type PricingProps = Pick<App, "pricing"> & {
   center?: boolean;
 };
 
 export const Pricing: FC<PricingProps> = ({ center, pricing }) => {
   const colors = useTheme();
 
-  const pricingText = ({ amount, frequency, type }: PluginPricing) => {
+  const pricingText = ({ amount, frequency, type }: AppPricing) => {
     switch (type) {
       case "once":
         return `$${amount / 1e6} one time installation fee`;

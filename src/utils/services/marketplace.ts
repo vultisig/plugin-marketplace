@@ -1,16 +1,24 @@
-import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { fromBinary, fromJson } from "@bufbuild/protobuf";
+import { base64Decode } from "@bufbuild/protobuf/wire";
+
+import {
+  PolicySchema,
+  PolicySuggestJson,
+  PolicySuggestSchema,
+} from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { PAGE_SIZE } from "@/utils/constants/core";
 import { toSnakeCase } from "@/utils/functions";
 import { del, get, post } from "@/utils/services/api";
 import {
+  App,
+  AppFilters,
+  AppPolicy,
   AuthTokenForm,
   Category,
-  Configuration,
+  CustomAppPolicy,
+  CustomRecipeSchema,
   ListFilters,
-  Plugin,
-  PluginFilters,
-  PluginPolicy,
   ReshareForm,
   Review,
   ReviewForm,
@@ -18,22 +26,22 @@ import {
 
 const baseUrl = import.meta.env.VITE_MARKETPLACE_URL;
 
-export const addPluginPolicy = async (data: PluginPolicy) =>
-  post<PluginPolicy>(`${baseUrl}/plugin/policy`, data);
+export const addPolicy = async (data: AppPolicy) =>
+  post<AppPolicy>(`${baseUrl}/plugin/policy`, toSnakeCase(data));
 
-export const addPluginReview = async (pluginId: string, review: ReviewForm) =>
-  post<Review>(`${baseUrl}/plugins/${pluginId}/reviews`, review);
+export const addReview = async (appId: string, data: ReviewForm) =>
+  post<Review>(`${baseUrl}/plugins/${appId}/reviews`, toSnakeCase(data));
 
-export const delPluginPolicy = (id: string, signature: string) =>
+export const delPolicy = (id: string, signature: string) =>
   del(`${baseUrl}/plugin/policy/${id}`, { data: { signature } });
 
-export const getAuthToken = async (data: AuthTokenForm): Promise<string> =>
+export const getAuthToken = async (data: AuthTokenForm) =>
   post<{ token: string }>(`${baseUrl}/auth`, toSnakeCase(data)).then(
     ({ token }) => token
   );
 
-export const getPlugin = async (id: string) =>
-  get<Plugin>(`${baseUrl}/plugins/${id}`).then((plugin) => {
+export const getApp = async (id: string) =>
+  get<App>(`${baseUrl}/plugins/${id}`).then((plugin) => {
     const count =
       plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
     const average = count
@@ -53,58 +61,76 @@ export const getPlugin = async (id: string) =>
     };
   });
 
-export const getPlugins = ({
+export const getApps = ({
   categoryId,
   skip,
   sort = "-created_at",
-  take = 12,
+  take = PAGE_SIZE,
   term,
-}: ListFilters & PluginFilters) =>
-  get<{ plugins: Plugin[]; totalCount: number }>(`${baseUrl}/plugins`, {
+}: ListFilters & AppFilters) =>
+  get<{ plugins: App[]; totalCount: number }>(`${baseUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
-  }).then(({ plugins, totalCount }) => ({
-    plugins:
-      plugins.map((plugin) => ({ ...plugin, pricing: plugin.pricing || [] })) ||
-      [],
-    totalCount,
-  }));
+  }).then(({ plugins, totalCount }) => {
+    const modifiedPlugins: App[] =
+      plugins?.map((plugin) => ({
+        ...plugin,
+        pricing: plugin.pricing || [],
+      })) || [];
 
-export const getPluginCategories = () =>
-  get<Category[]>(`${baseUrl}/categories`);
+    return { plugins: modifiedPlugins, totalCount };
+  });
 
-export const getPluginPolicies = async (
-  pluginId: string,
-  skip = 0,
-  take = PAGE_SIZE
+export const getCategories = () => get<Category[]>(`${baseUrl}/categories`);
+
+export const getPolicies = (
+  appId: string,
+  { skip, take = PAGE_SIZE }: ListFilters
 ) =>
-  get<{ policies: PluginPolicy[]; totalCount: number }>(
-    `${baseUrl}/plugin/policies/${pluginId}?skip=${skip}&take=${take}`
-  ).then(({ policies, totalCount }) => ({
-    policies: policies || [],
-    totalCount,
-  }));
+  get<{ policies: AppPolicy[]; totalCount: number }>(
+    `${baseUrl}/plugin/policies/${appId}`,
+    { params: toSnakeCase({ skip, take }) }
+  ).then(({ policies, totalCount }) => {
+    const modifiedPolicies: CustomAppPolicy[] =
+      policies?.map((policy) => {
+        const decoded = base64Decode(policy.recipe);
+        const parsedRecipe = fromBinary(PolicySchema, decoded);
 
-export const getPluginReviews = async (
-  pluginId: string,
-  skip = 0,
-  take = PAGE_SIZE
+        return { ...policy, parsedRecipe };
+      }) || [];
+
+    return { policies: modifiedPolicies, totalCount };
+  });
+
+export const getRecipeSpecification = (appId: string) =>
+  get<CustomRecipeSchema>(`${baseUrl}/plugins/${appId}/recipe-specification`);
+
+export const getRecipeSuggestion = (
+  appId: string,
+  configuration: Record<string, string>
+) =>
+  post<PolicySuggestJson>(
+    `${baseUrl}/plugins/${appId}/recipe-specification/suggest`,
+    { configuration }
+  )
+    .then((suggest) => fromJson(PolicySuggestSchema, suggest))
+    .catch(() => fromJson(PolicySuggestSchema, {}));
+
+export const getReviews = (
+  appId: string,
+  { skip, take = PAGE_SIZE }: ListFilters
 ) =>
   get<{ reviews: Review[]; totalCount: number }>(
-    `${baseUrl}/plugins/${pluginId}/reviews?skip=${skip}&take=${take}&sort=-created_at`
+    `${baseUrl}/plugins/${appId}/reviews`,
+    { params: toSnakeCase({ skip, take }) }
   ).then(({ reviews, totalCount }) => ({ reviews: reviews || [], totalCount }));
 
-export const getRecipeSpecification = async (pluginId: string) =>
-  get<Omit<RecipeSchema, "configuration"> & { configuration?: Configuration }>(
-    `${baseUrl}/plugins/${pluginId}/recipe-specification`
-  );
-
-export const isPluginInstalled = async (id: string) =>
+export const isAppInstalled = (id: string) =>
   get(`${baseUrl}/vault/exist/${id}/${getVaultId()}`)
     .then(() => true)
     .catch(() => false);
 
-export const reshareVault = async (data: ReshareForm) =>
+export const reshareVault = (data: ReshareForm) =>
   post(`${baseUrl}/vault/reshare`, toSnakeCase(data));
 
-export const uninstallPlugin = (pluginId: string) =>
-  del(`${baseUrl}/plugin/${pluginId}`);
+export const uninstallApp = (appId: string) =>
+  del(`${baseUrl}/plugin/${appId}`);

@@ -21,16 +21,14 @@ type Property = {
   type: string;
 };
 
-export type Configuration = {
-  properties: Record<string, Property>;
-  required: string[];
-  type: "object";
-};
-
-export type CustomPluginPolicy = PluginPolicy & { parsedRecipe: Policy };
+export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
-  configuration?: Configuration;
+  configuration?: {
+    properties: Record<string, Property>;
+    required: string[];
+    type: "object";
+  };
 };
 
 export type ListFilters = {
@@ -38,12 +36,12 @@ export type ListFilters = {
   take?: number;
 };
 
-export type Plugin = {
+export type App = {
   categoryId: string;
   createdAt: string;
   description: string;
   id: string;
-  pricing: PluginPricing[];
+  pricing: AppPricing[];
   rating: { count: number; rate: number };
   ratings: Rating[];
   serverEndpoint: string;
@@ -51,7 +49,7 @@ export type Plugin = {
   updatedAt: string;
 };
 
-export type PluginPolicy = {
+export type AppPolicy = {
   active: boolean;
   id: string;
   pluginVersion: string;
@@ -62,7 +60,7 @@ export type PluginPolicy = {
   signature?: string;
 };
 
-export type PluginPricing = {
+export type AppPricing = {
   amount: number;
   createdAt: string;
   frequency: string;
@@ -112,7 +110,7 @@ export type Vault = {
   uid: string;
 };
 
-export type PluginFilters = {
+export type AppFilters = {
   categoryId: string;
   sort: string;
   term: string;
