@@ -243,7 +243,7 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
         </VStack>
       </VStack>
       {loading ? (
-        <Spin />
+        <Spin centered />
       ) : reviews.length ? (
         <>
           {reviews.map(({ address, comment, createdAt, id, rating }) => (

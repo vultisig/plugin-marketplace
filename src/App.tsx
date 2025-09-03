@@ -272,7 +272,7 @@ export const App = () => {
                 </Routes>
               </BrowserRouter>
             ) : (
-              <Spin />
+              <Spin centered />
             )}
           </AppContext.Provider>
 

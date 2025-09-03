@@ -832,7 +832,7 @@ export const AppPolicyPage = () => {
           )}
         </>
       ) : (
-        <Spin />
+        <Spin centered />
       )}
 
       {messageHolder}
