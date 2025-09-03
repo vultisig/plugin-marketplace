@@ -10,7 +10,7 @@ import { Spin } from "@/components/Spin";
 import { HStack, Stack, VStack } from "@/components/Stack";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { getApps, getCategories } from "@/utils/services/marketplace";
-import { App, AppFilters,Category } from "@/utils/types";
+import { App, AppFilters, Category } from "@/utils/types";
 
 type InitialState = {
   categories: Category[];
@@ -154,7 +154,7 @@ export const AppsPage = () => {
           </VStack>
 
           {loading ? (
-            <Spin />
+            <Spin centered />
           ) : plugins.length ? (
             <>
               {newPlugin ? (

@@ -24,11 +24,14 @@ import {
   getApp,
   getRecipeSpecification,
   isAppInstalled,
+  isPluginInstalled,
   uninstallApp,
 } from "@/utils/services/marketplace";
-import { App,CustomRecipeSchema } from "@/utils/types";
+import { App, CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
+  isFeePluginInstalled?: boolean;
+  isFree?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
   plugin?: App;
@@ -38,7 +41,8 @@ interface InitialState {
 export const AppDetailsPage = () => {
   const initialState: InitialState = {};
   const [state, setState] = useState(initialState);
-  const { isInstalled, loading, plugin, schema } = state;
+  const { isFeePluginInstalled, isFree, isInstalled, loading, plugin, schema } =
+    state;
   const { id = "" } = useParams<{ id: string }>();
   const { connect, isConnected } = useApp();
   const [messageApi, messageHolder] = message.useMessage();
@@ -47,6 +51,37 @@ export const AppDetailsPage = () => {
   const goBack = useGoBack();
   const colors = useTheme();
   const isMountedRef = useRef(true);
+
+  const aboutFeePlugin = () => {
+    modalAPI.confirm({
+      title: "About Fee Plugin",
+      content: (
+        <VStack $style={{ gap: "8px" }}>
+          <Stack as="span">
+            Some plugins on our marketplace are not free to use.
+          </Stack>
+          <Stack as="span">
+            They may include either a one-time installation fee or a recurring
+            subscription fee. These fees are always shown clearly when you sign
+            up and install a plugin.
+          </Stack>
+          <Stack as="span">
+            The fee plugin runs securely in your wallet and enables us to
+            collect fees directly, making payments seamless and automatic.
+          </Stack>
+        </VStack>
+      ),
+      cancelText: "Cancel",
+      okText: "Install Fee Plugin",
+      icon: <></>,
+      onOk: () => {
+        navigate(
+          routeTree.appDetails.link(import.meta.env.VITE_FEE_PLUGIN_ID),
+          { state: true }
+        );
+      },
+    });
+  };
 
   const checkStatus = useCallback(() => {
     isAppInstalled(id).then((isInstalled) => {
@@ -110,6 +145,30 @@ export const AppDetailsPage = () => {
         .catch(() => {});
     }
   }, [id, isInstalled]);
+
+  useEffect(() => {
+    if (plugin) {
+      const isFree = !plugin.pricing.length;
+
+      if (isFree) {
+        setState((prevState) => ({
+          ...prevState,
+          isFree,
+          isFeePluginInstalled: false,
+        }));
+      } else {
+        isPluginInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+          (isFeePluginInstalled) => {
+            setState((prevState) => ({
+              ...prevState,
+              isFeePluginInstalled,
+              isFree,
+            }));
+          }
+        );
+      }
+    }
+  }, [id, isConnected, plugin]);
 
   useEffect(() => {
     if (isConnected) {
@@ -267,10 +326,47 @@ export const AppDetailsPage = () => {
                     </HStack>
                     <VStack $style={{ gap: "16px" }}>
                       {isConnected ? (
-                        isInstalled === undefined ? (
+                        isInstalled === undefined ||
+                        isFeePluginInstalled === undefined ? (
                           <Button kind="primary" disabled loading>
                             Checking
                           </Button>
+                        ) : !isFree && !isFeePluginInstalled ? (
+                          <Tooltip
+                            title={
+                              <>
+                                <Stack as="span">
+                                  This plugin is not free. Before you can use
+                                  it, you’ll need to install the fee plugin
+                                </Stack>{" "}
+                                <Stack
+                                  as="span"
+                                  onClick={aboutFeePlugin}
+                                  $style={{
+                                    color: colors.info.toHex(),
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  Learn more
+                                </Stack>
+                              </>
+                            }
+                          >
+                            <Button
+                              kind="primary"
+                              loading={loading}
+                              onClick={() =>
+                                navigate(
+                                  routeTree.appDetails.link(
+                                    import.meta.env.VITE_FEE_PLUGIN_ID
+                                  ),
+                                  { state: true }
+                                )
+                              }
+                            >
+                              Install Fee Plugin
+                            </Button>
+                          </Tooltip>
                         ) : isInstalled ? (
                           <>
                             <Button
@@ -482,7 +578,7 @@ export const AppDetailsPage = () => {
           </VStack>
         </VStack>
       ) : (
-        <Spin />
+        <Spin centered />
       )}
 
       {messageHolder}
