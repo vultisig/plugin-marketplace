@@ -22,23 +22,29 @@ import { toNumeralFormat } from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
 import {
   getApp,
+  getPolicies,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
 } from "@/utils/services/marketplace";
-import { App,CustomRecipeSchema } from "@/utils/types";
+import { App, CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
   isInstalled?: boolean;
   loading?: boolean;
   plugin?: App;
   schema?: CustomRecipeSchema;
+  isPaid?: boolean;
+  isFeePluginInstalled?: boolean;
 }
 
 export const AppDetailsPage = () => {
-  const initialState: InitialState = {};
+  const initialState: InitialState = {
+    isPaid: true,
+    isFeePluginInstalled: false,
+  };
   const [state, setState] = useState(initialState);
-  const { isInstalled, loading, plugin, schema } = state;
+  const { isInstalled, loading, plugin, schema, isPaid, isFeePluginInstalled } = state;
   const { id = "" } = useParams<{ id: string }>();
   const { connect, isConnected } = useApp();
   const [messageApi, messageHolder] = message.useMessage();
@@ -138,6 +144,56 @@ export const AppDetailsPage = () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if ((plugin?.pricing || []).length == 0) {
+      setState((prevState) => ({ ...prevState, isPaid: false }));
+    } else {
+      setState((prevState) => ({ ...prevState, isPaid: true }));
+    }
+  }, [id, isConnected, plugin?.pricing]);
+
+  useEffect(() => {
+    if (isPaid) {
+      getPolicies("vultisig-fees-feee", { skip: 0, take: 1 }).then((response) => {
+        if (response.policies.length === 0) {
+          setState((prevState) => ({ ...prevState, isFeePluginInstalled: false }));
+        } else {
+          setState((prevState) => ({ ...prevState, isFeePluginInstalled: true }));
+        }
+      }).catch((e) => {
+        console.error("error getting fee policies", e)
+        setState((prevState) => ({ ...prevState, isFeePluginInstalled: false }));
+      });
+    }
+  }, [id, isConnected, isPaid]);
+
+  const aboutFeePlugin = () => {
+    modalAPI.confirm({
+      content: (<div>
+        <h1>About Fee Plugin</h1>
+        < br />
+        < hr />
+        < br />
+        <p>
+          Some plugins on our marketplace are not free to use.
+        </p>
+        < br />
+        <p>They may include either a one-time installation fee or a recurring subscription fee. These fees are always shown clearly when you sign up and install a plugin.</p>
+        < br />
+        <p>
+          The fee plugin runs securely in your wallet and enables us to collect fees directly, making payments seamless and automatic.
+        </p>
+        < br />
+      </div>),
+      okText: "Install Fee Plugin",
+      cancelText: "Cancel",
+      okButtonProps: {
+        href: "/apps/vultisig-fees-feee",
+      },
+      icon: <></>
+    })
+  };
 
   return (
     <>
@@ -267,7 +323,20 @@ export const AppDetailsPage = () => {
                     </HStack>
                     <VStack $style={{ gap: "16px" }}>
                       {isConnected ? (
-                        isInstalled === undefined ? (
+                        isPaid && !isFeePluginInstalled ? (
+                          <>
+                          <Button
+                            kind="primary"
+                            loading={loading}
+                            href="/apps/vultisig-fees-feee"
+                          >
+                            Install Fee Plugin
+                          </Button>
+                          <small>
+                            ⚠️ This plugin is not free. Before you can use it, you’ll need to install the fee plugin <a href="#" style={{color: "blue"}} onClick={() => aboutFeePlugin()}>Learn more</a>
+                          </small>
+                          </>
+                        ) : isInstalled === undefined ? (
                           <Button kind="primary" disabled loading>
                             Checking
                           </Button>
