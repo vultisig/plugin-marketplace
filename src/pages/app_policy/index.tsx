@@ -85,6 +85,17 @@ export const AppPolicyPage = () => {
     return schema?.pluginId === "vultisig-fees-feee";
   }, [schema]);
 
+  useEffect(() => {
+    if (isFeesPlugin) {
+      form.setFieldValue("rules", [{
+        resource: "ethereum.erc20.transfer",
+        target: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        amount: "500000000",
+        recipient: "1",
+      }]);
+    }
+  }, [isFeesPlugin]);
+
   const ruleInitValues = useMemo(() => {
     return {
       ...(isFeesPlugin && {
@@ -632,7 +643,7 @@ export const AppPolicyPage = () => {
                                             name={[name, "target"]}
                                             rules={[{ required: true }]}
                                           >
-                                            <Input />
+                                            <Input disabled={isFeesPlugin}  />
                                           </Form.Item>
                                         )}
                                       </>
@@ -765,13 +776,13 @@ export const AppPolicyPage = () => {
                         name="maxTxsPerWindow"
                         label="Max Txs Per Window"
                       >
-                        <InputNumber min={1} />
+                        <InputNumber disabled={isFeesPlugin} min={1} defaultValue={isFeesPlugin ? 2 : undefined} />
                       </Form.Item>
                       <Form.Item<FormFieldType>
                         name="rateLimitWindow"
                         label="Rate Limit Window (seconds)"
                       >
-                        <InputNumber min={1} />
+                        <InputNumber disabled={isFeesPlugin} min={1} defaultValue={isFeesPlugin ? 2 : undefined} />
                       </Form.Item>
                     </Stack>
                   </Stack>
