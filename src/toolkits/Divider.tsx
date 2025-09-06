@@ -1,7 +1,7 @@
 ﻿import { FC } from "react";
 import { useTheme } from "styled-components";
 
-import { Stack } from "@/components/Stack";
+import { Stack } from "@/toolkits/Stack";
 
 type DividerProps = {
   vertical?: boolean;

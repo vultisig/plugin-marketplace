@@ -2,15 +2,11 @@
 import { FC } from "react";
 import styled, { css } from "styled-components";
 
-type Props = SpinProps & {
-  centered?: boolean;
-};
-
-const StyledSpin = styled(DefaultSpin)<Props>`
+const StyledSpin = styled(DefaultSpin)<{ $centered: boolean }>`
   color: currentColor;
 
-  ${({ centered }) =>
-    centered &&
+  ${({ $centered }) =>
+    $centered &&
     css`
       align-items: center;
       display: flex;
@@ -23,4 +19,7 @@ const StyledSpin = styled(DefaultSpin)<Props>`
   }
 `;
 
-export const Spin: FC<Props> = (props) => <StyledSpin {...props} />;
+export const Spin: FC<SpinProps & { centered?: boolean }> = ({
+  centered = false,
+  ...rest
+}) => <StyledSpin $centered={centered} {...rest} />;
