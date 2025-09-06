@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { useTheme } from "styled-components";
 
-import { Stack, VStack } from "@/components/Stack";
+import { Stack, VStack } from "@/toolkits/Stack";
 import { App, AppPricing } from "@/utils/types";
 
 type PricingProps = Pick<App, "pricing"> & {

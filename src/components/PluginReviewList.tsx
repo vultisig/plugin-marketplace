@@ -3,12 +3,12 @@ import dayjs from "dayjs";
 import { FC, useCallback, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { Button } from "@/components/Button";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { Spin } from "@/components/Spin";
-import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { StarIcon } from "@/icons/StarIcon";
+import { Button } from "@/toolkits/Button";
+import { Spin } from "@/toolkits/Spin";
+import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addReview, getReviews } from "@/utils/services/marketplace";
 import { App, Review, ReviewForm } from "@/utils/types";
 

@@ -14,14 +14,7 @@ import { useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
-import { Button } from "@/components/Button";
-import { DatePicker } from "@/components/DatePicker";
-import { Input } from "@/components/Input";
-import { InputNumber } from "@/components/InputNumber";
 import { RequirementsModal } from "@/components/RequirementsModal";
-import { Select } from "@/components/Select";
-import { Spin } from "@/components/Spin";
-import { HStack, Stack, VStack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { TrashIcon } from "@/icons/TrashIcon";
@@ -39,6 +32,13 @@ import {
 } from "@/proto/policy_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
+import { Button } from "@/toolkits/Button";
+import { DatePicker } from "@/toolkits/DatePicker";
+import { Input } from "@/toolkits/Input";
+import { InputNumber } from "@/toolkits/InputNumber";
+import { Select } from "@/toolkits/Select";
+import { Spin } from "@/toolkits/Spin";
+import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
 import { toCapitalizeFirst, toTimestamp } from "@/utils/functions";
@@ -82,18 +82,8 @@ export const AppPolicyPage = () => {
   const colors = useTheme();
 
   const isFeesPlugin = useMemo(() => {
-    return schema?.pluginId === "vultisig-fees-feee";
-  }, [schema]);
-
-  const ruleInitValues = useMemo(() => {
-    return {
-      ...(isFeesPlugin && {
-        amount: "500000000", // Fee Max
-        recipient: "1", // Vultisig Treasury
-        token: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
-      }),
-    };
-  }, [isFeesPlugin]);
+    return appId === import.meta.env.VITE_FEE_PLUGIN_ID;
+  }, [appId]);
 
   const handleBack = useCallback(() => {
     goBack(routeTree.appDetails.link(appId));
@@ -106,7 +96,14 @@ export const AppPolicyPage = () => {
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = (values) => {
     switch (step) {
       case 0: {
-        getRecipeSuggestion(appId, values as Record<string, string>).then(
+        const configuration = Object.fromEntries(
+          Object.entries(values).filter(
+            ([key]) =>
+              !["rules", "maxTxsPerWindow", "rateLimitWindow"].includes(key)
+          )
+        ) as Record<string, string>;
+
+        getRecipeSuggestion(appId, configuration).then(
           ({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
@@ -435,6 +432,23 @@ export const AppPolicyPage = () => {
                 form={form}
                 layout="vertical"
                 onFinish={onFinishSuccess}
+                initialValues={
+                  isFeesPlugin
+                    ? {
+                        maxTxsPerWindow: 2,
+                        rateLimitWindow: 2,
+                        rules: [
+                          {
+                            resource: "ethereum.erc20.transfer",
+                            target:
+                              "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                            amount: "500000000",
+                            recipient: "1",
+                          },
+                        ],
+                      }
+                    : {}
+                }
               >
                 {!!schema?.configuration?.properties && (
                   <Stack $style={{ display: step === 0 ? "block" : "none" }}>
@@ -632,7 +646,7 @@ export const AppPolicyPage = () => {
                                             name={[name, "target"]}
                                             rules={[{ required: true }]}
                                           >
-                                            <Input />
+                                            <Input disabled={isFeesPlugin} />
                                           </Form.Item>
                                         )}
                                       </>
@@ -736,7 +750,10 @@ export const AppPolicyPage = () => {
                               <Form.ErrorList errors={errors} />
                             </Stack>
                           )}
-                          <Button onClick={() => add(ruleInitValues)}>
+                          <Button
+                            disabled={isFeesPlugin}
+                            onClick={() => add({})}
+                          >
                             Add rule
                           </Button>
                         </VStack>
@@ -765,13 +782,13 @@ export const AppPolicyPage = () => {
                         name="maxTxsPerWindow"
                         label="Max Txs Per Window"
                       >
-                        <InputNumber min={1} />
+                        <InputNumber disabled={isFeesPlugin} min={1} />
                       </Form.Item>
                       <Form.Item<FormFieldType>
                         name="rateLimitWindow"
                         label="Rate Limit Window (seconds)"
                       >
-                        <InputNumber min={1} />
+                        <InputNumber disabled={isFeesPlugin} min={1} />
                       </Form.Item>
                     </Stack>
                   </Stack>

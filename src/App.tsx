@@ -5,7 +5,6 @@ import { I18nextProvider } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { GlobalStyle } from "@/components/GlobalStyle";
-import { Spin } from "@/components/Spin";
 import { AppContext } from "@/context/AppContext";
 import { i18nInstance } from "@/i18n/config";
 import { DefaultLayout } from "@/layouts/default";
@@ -29,6 +28,7 @@ import {
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
+import { Spin } from "@/toolkits/Spin";
 import { Chain } from "@/utils/constants/chain";
 import { Currency } from "@/utils/constants/currency";
 import { Language } from "@/utils/constants/language";

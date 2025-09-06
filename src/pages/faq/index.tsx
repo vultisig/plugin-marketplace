@@ -2,8 +2,8 @@ import { Collapse } from "antd";
 import { Fragment } from "react";
 import styled from "styled-components";
 
-import { Divider } from "@/components/Divider";
-import { Stack, VStack } from "@/components/Stack";
+import { Divider } from "@/toolkits/Divider";
+import { Stack, VStack } from "@/toolkits/Stack";
 
 const StyledCollapse = styled(Collapse)`
   &.ant-collapse {

@@ -2,10 +2,10 @@ import { Drawer } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-import { Divider } from "@/components/Divider";
-import { Stack, VStack } from "@/components/Stack";
 import { useGoBack } from "@/hooks/useGoBack";
 import { PluginRequirements } from "@/proto/recipe_specification_pb";
+import { Divider } from "@/toolkits/Divider";
+import { Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 
 export const RequirementsModal: FC<PluginRequirements> = ({

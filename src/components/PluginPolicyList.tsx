@@ -1,12 +1,12 @@
 import { message, Modal, Table, TableProps } from "antd";
 import { FC, Fragment, useCallback, useEffect, useState } from "react";
 
-import { Button } from "@/components/Button";
-import { Divider } from "@/components/Divider";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { HStack, Stack, VStack } from "@/components/Stack";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy } from "@/proto/policy_pb";
+import { Button } from "@/toolkits/Button";
+import { Divider } from "@/toolkits/Divider";
+import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
 import { delPolicy, getPolicies } from "@/utils/services/marketplace";
 import { App, CustomAppPolicy } from "@/utils/types";
