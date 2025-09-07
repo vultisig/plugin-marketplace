@@ -54,6 +54,9 @@ export const getVault = async () => {
     if (!vault.hexChainCode || !vault.publicKeyEcdsa)
       throw new Error("Missing required vault data");
 
+    if (!vault.isFastVault)
+      throw new Error("Only Fast Vaults can connect to the App Store");
+
     return vault;
   } else {
     throw new Error("Vault not found");
