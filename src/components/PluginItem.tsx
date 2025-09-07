@@ -1,11 +1,11 @@
 import { FC } from "react";
 import { useTheme } from "styled-components";
 
-import { Button } from "@/components/Button";
 import { Pricing } from "@/components/Pricing";
-import { HStack, Stack, VStack } from "@/components/Stack";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
+import { Button } from "@/toolkits/Button";
+import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { App } from "@/utils/types";

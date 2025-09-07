@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, FC, HTMLAttributes, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 
-import { Spin } from "@/components/Spin";
+import { Spin } from "@/toolkits/Spin";
 import { match } from "@/utils/functions";
 
 type Kind = "default" | "primary" | "link";

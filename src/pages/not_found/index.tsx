@@ -1,9 +1,9 @@
 import { Layout, Result } from "antd";
 import { useTheme } from "styled-components";
 
-import { Button } from "@/components/Button";
-import { HStack, VStack } from "@/components/Stack";
 import { useGoBack } from "@/hooks/useGoBack";
+import { Button } from "@/toolkits/Button";
+import { HStack, VStack } from "@/toolkits/Stack";
 import { routeTree } from "@/utils/constants/routes";
 
 export const NotFoundPage = () => {

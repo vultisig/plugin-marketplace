@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { Stack } from "@/components/Stack";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
+import { Stack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import {
   currencies,

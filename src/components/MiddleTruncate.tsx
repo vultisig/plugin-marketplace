@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 
-import { Stack } from "@/components/Stack";
+import { Stack } from "@/toolkits/Stack";
 import { CSSProperties } from "@/utils/types";
 
 type MiddleTruncateProps = {

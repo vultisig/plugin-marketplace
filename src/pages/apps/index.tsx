@@ -3,12 +3,12 @@ import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { Divider } from "@/components/Divider";
 import { PluginItem } from "@/components/PluginItem";
-import { Select } from "@/components/Select";
-import { Spin } from "@/components/Spin";
-import { HStack, Stack, VStack } from "@/components/Stack";
 import { useFilterParams } from "@/hooks/useFilterParams";
+import { Divider } from "@/toolkits/Divider";
+import { Select } from "@/toolkits/Select";
+import { Spin } from "@/toolkits/Spin";
+import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getApps, getCategories } from "@/utils/services/marketplace";
 import { App, AppFilters, Category } from "@/utils/types";
 
