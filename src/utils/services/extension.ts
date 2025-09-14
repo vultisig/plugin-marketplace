@@ -81,7 +81,7 @@ export const startReshareSession = async (pluginId: string) => {
 
   try {
     const response = await window.vultisig.plugin.request({
-      method: "plugin_request_reshare",
+      method: "reshare_sign",
       params: [{ id: pluginId }],
     });
     console.log("response", response);
@@ -128,26 +128,24 @@ export const startReshareSession = async (pluginId: string) => {
 };
 
 export const signPluginPolicy = async ({
-  pluginVersion,
-  policyVersion,
-  publicKey,
+  address,
   recipe,
-}: Pick<
-  AppPolicy,
-  "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
->) => {
+}: {
+  address: string;
+  recipe: string;
+}) => {
   await isAvailable();
 
   const account = await getAccount();
 
   if (!account) throw new Error("Need to connect to wallet");
 
-  const hexMessage = policyToHexMessage({
-    pluginVersion,
-    policyVersion,
-    publicKey,
-    recipe,
+  const signature = await window.vultisig.plugin.request({
+    method: "policy_sign",
+    params: [`${address}*#*${recipe}`, account],
   });
 
-  return await signCustomMessage(hexMessage, account);
+  if (signature && signature.error) throw signature.error;
+
+  return signature as string;
 };
