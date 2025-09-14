@@ -1,6 +1,5 @@
-import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
-import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
+import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
 const isAvailable = async () => {
