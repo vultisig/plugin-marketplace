@@ -1,5 +1,6 @@
+import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
-import { ReshareForm, Vault } from "@/utils/types";
+import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
 const isAvailable = async () => {
@@ -128,10 +129,10 @@ export const startReshareSession = async (pluginId: string) => {
 
 export const signPluginPolicy = async ({
   address,
-  recipe,
+  policy,
 }: {
   address: string;
-  recipe: string;
+  policy: AppPolicy;
 }) => {
   await isAvailable();
 
@@ -139,9 +140,11 @@ export const signPluginPolicy = async ({
 
   if (!account) throw new Error("Need to connect to wallet");
 
+  const hexMessage = policyToHexMessage(policy);
+
   const signature = await window.vultisig.plugin.request({
     method: "policy_sign",
-    params: [`${address}*#*${recipe}`, account],
+    params: [hexMessage, account, address],
   });
 
   if (signature && signature.error) throw signature.error;

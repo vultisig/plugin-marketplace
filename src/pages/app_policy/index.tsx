@@ -292,7 +292,7 @@ export const AppPolicyPage = () => {
 
           const recipe = Buffer.from(binary).toString("base64");
 
-          const finalData: AppPolicy = {
+          const policy: AppPolicy = {
             active: true,
             id: uuidv4(),
             pluginId: plugin.id,
@@ -302,9 +302,9 @@ export const AppPolicyPage = () => {
             recipe,
           };
 
-          signPluginPolicy({ address, recipe })
+          signPluginPolicy({ address, policy })
             .then((signature) => {
-              addPolicy({ ...finalData, signature })
+              addPolicy({ ...policy, signature })
                 .then(() => {
                   setState((prevState) => ({
                     ...prevState,

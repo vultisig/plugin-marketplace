@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 
-import { CSSProperties } from "@/utils/types";
+import { AppPolicy, CSSProperties } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -38,6 +38,28 @@ export const match = <T extends string | number | symbol, V>(
   const handler = handlers[value];
 
   return handler();
+};
+
+export const policyToHexMessage = ({
+  pluginVersion,
+  policyVersion,
+  publicKey,
+  recipe,
+}: Pick<
+  AppPolicy,
+  "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
+>): string => {
+  const delimiter = "*#*";
+
+  const fields = [recipe, publicKey, String(policyVersion), pluginVersion];
+
+  for (const item of fields) {
+    if (item.includes(delimiter)) {
+      throw new Error("invalid policy signature");
+    }
+  }
+
+  return fields.join(delimiter);
 };
 
 export const toCamelCase = <T>(obj: T): T => {
