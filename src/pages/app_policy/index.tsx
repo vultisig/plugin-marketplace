@@ -474,51 +474,62 @@ export const AppPolicyPage = () => {
 
                           let element: ReactNode;
 
-                          if (field.enum) {
-                            element = (
-                              <Select
-                                disabled={isFeesPlugin}
-                                options={field.enum.map((value) => ({
-                                  label: toCapitalizeFirst(value),
-                                  value,
-                                }))}
-                              />
-                            );
-                          } else {
-                            switch (field.format) {
-                              case "date-time": {
-                                element = (
-                                  <DatePicker
-                                    disabledDate={(current) => {
-                                      return (
-                                        current &&
-                                        current.isBefore(dayjs(), "day")
-                                      );
-                                    }}
-                                    format="YYYY-MM-DD HH:mm"
-                                    showNow={false}
-                                    showTime={{
-                                      disabledHours: () => {
-                                        const nextHour = dayjs()
-                                          .add(1, "hour")
-                                          .startOf("hour")
-                                          .hour();
+                          switch (field.type) {
+                            case "int": {
+                              element = <InputNumber />;
 
-                                        return Array.from(
-                                          { length: nextHour },
-                                          (_, i) => i
-                                        );
-                                      },
-                                      format: "HH",
-                                      showMinute: false,
-                                      showSecond: false,
-                                    }}
+                              break;
+                            }
+                            default: {
+                              if (field.enum) {
+                                element = (
+                                  <Select
+                                    disabled={isFeesPlugin}
+                                    options={field.enum.map((value) => ({
+                                      label: toCapitalizeFirst(value),
+                                      value,
+                                    }))}
                                   />
                                 );
-                                break;
-                              }
-                              default: {
-                                element = <Input />;
+                              } else {
+                                switch (field.format) {
+                                  case "date-time": {
+                                    element = (
+                                      <DatePicker
+                                        disabledDate={(current) => {
+                                          return (
+                                            current &&
+                                            current.isBefore(dayjs(), "day")
+                                          );
+                                        }}
+                                        format="YYYY-MM-DD HH:mm"
+                                        showNow={false}
+                                        showTime={{
+                                          disabledHours: () => {
+                                            const nextHour = dayjs()
+                                              .add(1, "hour")
+                                              .startOf("hour")
+                                              .hour();
+
+                                            return Array.from(
+                                              { length: nextHour },
+                                              (_, i) => i
+                                            );
+                                          },
+                                          format: "HH",
+                                          showMinute: false,
+                                          showSecond: false,
+                                        }}
+                                      />
+                                    );
+
+                                    break;
+                                  }
+                                  default: {
+                                    element = <Input />;
+                                    break;
+                                  }
+                                }
                                 break;
                               }
                             }
