@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 
-import { AppPolicy,CSSProperties } from "@/utils/types";
+import { AppPolicy, CSSProperties } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
