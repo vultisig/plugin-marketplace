@@ -75,7 +75,7 @@ export const AppPolicyPage = () => {
   const [state, setState] = useState(initialState);
   const { plugin, schema, step, submitting } = state;
   const { appId = "" } = useParams<{ appId: string; policyId: string }>();
-  const { isConnected } = useApp();
+  const { address, isConnected } = useApp();
   const [form] = Form.useForm<FormFieldType>();
   const [messageApi, messageHolder] = message.useMessage();
   const goBack = useGoBack();
@@ -141,7 +141,7 @@ export const AppPolicyPage = () => {
         break;
       }
       default: {
-        if (plugin && schema) {
+        if (address && plugin && schema) {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
           const rules = values.rules
@@ -288,23 +288,23 @@ export const AppPolicyPage = () => {
             version: schema.pluginVersion,
           });
 
-          const binaryData = toBinary(PolicySchema, jsonData);
+          const binary = toBinary(PolicySchema, jsonData);
 
-          const base64Data = Buffer.from(binaryData).toString("base64");
+          const recipe = Buffer.from(binary).toString("base64");
 
-          const finalData: AppPolicy = {
+          const policy: AppPolicy = {
             active: true,
             id: uuidv4(),
             pluginId: plugin.id,
             pluginVersion: String(schema.pluginVersion),
             policyVersion: 0,
             publicKey: getVaultId(),
-            recipe: base64Data,
+            recipe,
           };
 
-          signPluginPolicy(finalData)
+          signPluginPolicy({ address, policy })
             .then((signature) => {
-              addPolicy({ ...finalData, signature })
+              addPolicy({ ...policy, signature })
                 .then(() => {
                   setState((prevState) => ({
                     ...prevState,

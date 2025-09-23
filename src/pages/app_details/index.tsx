@@ -50,7 +50,7 @@ export const AppDetailsPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
-  const isMountedRef = useRef(true);
+  const timeoutRef = useRef<number | null>(null);
 
   const aboutFeePlugin = () => {
     modalAPI.confirm({
@@ -87,8 +87,8 @@ export const AppDetailsPage = () => {
     isAppInstalled(id).then((isInstalled) => {
       if (isInstalled) {
         setState((prevState) => ({ ...prevState, isInstalled }));
-      } else if (isMountedRef.current) {
-        setTimeout(checkStatus, 1000);
+      } else {
+        timeoutRef.current = window.setTimeout(checkStatus, 1000);
       }
     });
   }, [id]);
@@ -181,6 +181,11 @@ export const AppDetailsPage = () => {
   }, [id, isConnected]);
 
   useEffect(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     getApp(id)
       .then((plugin) => {
         setState((prevState) => ({ ...prevState, plugin }));
@@ -188,15 +193,14 @@ export const AppDetailsPage = () => {
       .catch(() => {
         goBack(routeTree.apps.path);
       });
-  }, [id, goBack]);
-
-  useEffect(() => {
-    isMountedRef.current = true;
 
     return () => {
-      isMountedRef.current = false;
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     };
-  }, []);
+  }, [id, goBack]);
 
   return (
     <>

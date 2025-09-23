@@ -159,7 +159,7 @@ export const AppsPage = () => {
             <>
               {newPlugin ? (
                 <>
-                  <Stack $style={{ flexDirection: "column", gap: "16px" }}>
+                  <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                     <Stack
                       as="span"
                       $style={{
@@ -171,13 +171,13 @@ export const AppsPage = () => {
                       New
                     </Stack>
                     <PluginItem plugin={newPlugin} horizontal />
-                  </Stack>
+                  </VStack>
                   <Divider />
                 </>
               ) : (
                 <></>
               )}
-              <Stack $style={{ flexDirection: "column", gap: "16px" }}>
+              <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                 <Stack
                   as="span"
                   $style={{
@@ -202,7 +202,7 @@ export const AppsPage = () => {
                     <PluginItem key={plugin.id} plugin={plugin} />
                   ))}
                 </Stack>
-              </Stack>
+              </VStack>
             </>
           ) : (
             <Empty />
