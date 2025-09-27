@@ -2,6 +2,7 @@ import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
 import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
+import { hexlify, randomBytes } from "ethers";
 
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
@@ -60,22 +61,6 @@ export const getVault = async () => {
   }
 };
 
-export const signCustomMessage = async (
-  hexMessage: string,
-  walletAddress: string
-) => {
-  await isAvailable();
-
-  const signature = await window.vultisig.ethereum.request({
-    method: "personal_sign",
-    params: [hexMessage, walletAddress],
-  });
-
-  if (signature && signature.error) throw signature.error;
-
-  return signature as string;
-};
-
 export const startReshareSession = async (pluginId: string) => {
   await isAvailable();
 
@@ -127,24 +112,37 @@ export const startReshareSession = async (pluginId: string) => {
   }
 };
 
-export const signPluginPolicy = async ({
-  address,
-  policy,
-}: {
-  address: string;
-  policy: AppPolicy;
-}) => {
+export const signPluginConnect = async (address: string) => {
   await isAvailable();
 
-  const account = await getAccount();
+  const nonce = hexlify(randomBytes(16));
+  const expiryTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
 
-  if (!account) throw new Error("Need to connect to wallet");
-
-  const hexMessage = policyToHexMessage(policy);
+  const message = JSON.stringify({
+    message: "Sign into Vultisig App Store",
+    nonce: nonce,
+    expiresAt: expiryTime,
+    address,
+  });
 
   const signature = await window.vultisig.plugin.request({
-    method: "policy_sign",
-    params: [hexMessage, account, address],
+    method: "personal_sign",
+    params: [message, address, "connect"],
+  });
+
+  if (signature && signature.error) throw signature.error;
+
+  return signature as string;
+};
+
+export const signPluginPolicy = async (address: string, policy: AppPolicy) => {
+  await isAvailable();
+
+  const message = policyToHexMessage(policy);
+
+  const signature = await window.vultisig.plugin.request({
+    method: "personal_sign",
+    params: [message, address, "policy"],
   });
 
   if (signature && signature.error) throw signature.error;

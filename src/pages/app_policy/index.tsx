@@ -302,7 +302,7 @@ export const AppPolicyPage = () => {
             recipe,
           };
 
-          signPluginPolicy({ address, policy })
+          signPluginPolicy(address, policy)
             .then((signature) => {
               addPolicy({ ...policy, signature })
                 .then(() => {
