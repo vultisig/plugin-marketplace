@@ -1,8 +1,9 @@
+import { hexlify, randomBytes } from "ethers";
+
 import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
 import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
-import { hexlify, randomBytes } from "ethers";
 
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
