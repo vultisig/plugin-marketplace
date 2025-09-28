@@ -41,8 +41,12 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
-import { toCapitalizeFirst, toTimestamp } from "@/utils/functions";
-import { signPluginPolicy } from "@/utils/services/extension";
+import {
+  policyToHexMessage,
+  toCapitalizeFirst,
+  toTimestamp,
+} from "@/utils/functions";
+import { personalSign } from "@/utils/services/extension";
 import {
   addPolicy,
   getApp,
@@ -302,7 +306,9 @@ export const AppPolicyPage = () => {
             recipe,
           };
 
-          signPluginPolicy(address, policy)
+          const message = policyToHexMessage(policy);
+
+          personalSign(address, message, "policy")
             .then((signature) => {
               addPolicy({ ...policy, signature })
                 .then(() => {

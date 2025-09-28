@@ -1,8 +1,5 @@
-import { hexlify, randomBytes } from "ethers";
-
-import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
-import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
+import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
 const isAvailable = async () => {
@@ -113,40 +110,19 @@ export const startReshareSession = async (pluginId: string) => {
   }
 };
 
-export const signPluginConnect = async (address: string) => {
+export const personalSign = async (
+  address: string,
+  message: string,
+  type: "connect" | "policy"
+) => {
   await isAvailable();
-
-  const nonce = hexlify(randomBytes(16));
-  const expiryTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-  const message = JSON.stringify({
-    message: "Sign into Vultisig App Store",
-    nonce: nonce,
-    expiresAt: expiryTime,
-    address,
-  });
 
   const signature = await window.vultisig.plugin.request({
     method: "personal_sign",
-    params: [message, address, "connect"],
+    params: [message, address, type],
   });
 
-  if (signature && signature.error) throw signature.error;
-
-  return signature as string;
-};
-
-export const signPluginPolicy = async (address: string, policy: AppPolicy) => {
-  await isAvailable();
-
-  const message = policyToHexMessage(policy);
-
-  const signature = await window.vultisig.plugin.request({
-    method: "personal_sign",
-    params: [message, address, "policy"],
-  });
-
-  if (signature && signature.error) throw signature.error;
+  if (signature?.error) throw signature.error;
 
   return signature as string;
 };
