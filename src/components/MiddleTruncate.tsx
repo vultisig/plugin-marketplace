@@ -1,7 +1,7 @@
 import { FC, HTMLAttributes, useEffect, useState } from "react";
 
-import { Stack, StackProps } from "@/toolkits/Stack";
 import { useResizeObserver } from "@/hooks/useResizeObserver";
+import { Stack, StackProps } from "@/toolkits/Stack";
 
 type MiddleTruncateProps = StackProps &
   Omit<HTMLAttributes<HTMLElement>, "children"> & { children: string };
@@ -48,7 +48,7 @@ export const MiddleTruncate: FC<MiddleTruncateProps> = ({
         }));
       }
     }
-  }, [ellipsis, counter, text, wrapperWidth]);
+  }, [ellipsis, counter, elmRef, text, wrapperWidth]);
 
   useEffect(() => {
     setState((prevState) => ({
