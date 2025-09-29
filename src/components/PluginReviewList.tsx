@@ -267,7 +267,9 @@ export const PluginReviewList: FC<PluginReviewListProps> = ({
                 }}
               >
                 <HStack $style={{ gap: "12px" }}>
-                  <MiddleTruncate text={address} width="110px" />
+                  <MiddleTruncate $style={{ width: "110px" }}>
+                    {address}
+                  </MiddleTruncate>
                   <Stack
                     as="span"
                     $style={{ color: colors.textTertiary.toHex() }}

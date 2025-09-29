@@ -199,7 +199,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
                                 </Stack>
                               )}
                               {value.startsWith("0x") ? (
-                                <MiddleTruncate text={value} />
+                                <MiddleTruncate>{value}</MiddleTruncate>
                               ) : (
                                 <Stack
                                   as="span"
