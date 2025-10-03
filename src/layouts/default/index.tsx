@@ -204,7 +204,9 @@ export const DefaultLayout = () => {
           {isConnected && address ? (
             <HStack $style={{ alignItems: "center", gap: "20px" }}>
               <Button kind="primary" onClick={copyAddress}>
-                <MiddleTruncate text={address} width="118px" />
+                <MiddleTruncate $style={{ width: "118px" }}>
+                  {address}
+                </MiddleTruncate>
               </Button>
               <Dropdown
                 menu={{ items: dropdownMenu }}

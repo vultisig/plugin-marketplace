@@ -1,45 +1,38 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, HTMLAttributes, useEffect, useState } from "react";
 
-import { Stack } from "@/toolkits/Stack";
-import { CSSProperties } from "@/utils/types";
+import { useResizeObserver } from "@/hooks/useResizeObserver";
+import { Stack, StackProps } from "@/toolkits/Stack";
 
-type MiddleTruncateProps = {
-  onClick?: () => void;
-  text: string;
-  width?: CSSProperties["width"];
-};
-
-type InitialState = {
-  counter: number;
-  ellipsis: string;
-  truncating: boolean;
-};
+type MiddleTruncateProps = StackProps &
+  Omit<HTMLAttributes<HTMLElement>, "children"> & { children: string };
 
 export const MiddleTruncate: FC<MiddleTruncateProps> = ({
-  onClick,
-  text,
-  width,
+  children: text,
+  $style = {},
+  ...rest
 }) => {
-  const initialState: InitialState = {
+  const [state, setState] = useState({
     counter: 0,
     ellipsis: "",
     truncating: true,
-  };
-  const [state, setState] = useState(initialState);
-  const { counter, ellipsis, truncating } = state;
-  const elmRef = useRef<HTMLSpanElement>(null);
-
-  const handleClick = () => {
-    if (onClick) onClick();
-  };
+    wrapperWidth: 0,
+  });
+  const { counter, ellipsis, truncating, wrapperWidth } = state;
+  const elmRef = useResizeObserver(({ width = 0 }) => {
+    setState((prevState) => ({
+      ...prevState,
+      wrapperWidth: width,
+      ellipsis: text,
+      truncating: true,
+    }));
+  }, "width");
 
   useEffect(() => {
     if (elmRef.current) {
       const [child] = elmRef.current.children;
-      const parentWidth = elmRef.current.clientWidth;
-      const childWidth = child?.clientWidth ?? 0;
+      const clientWidth = child?.clientWidth ?? 0;
 
-      if (childWidth > parentWidth) {
+      if (clientWidth > wrapperWidth) {
         const chunkLen = Math.ceil(text.length / 2) - counter;
 
         setState((prevState) => ({
@@ -55,7 +48,7 @@ export const MiddleTruncate: FC<MiddleTruncateProps> = ({
         }));
       }
     }
-  }, [ellipsis, counter, text]);
+  }, [ellipsis, counter, elmRef, text, wrapperWidth]);
 
   useEffect(() => {
     setState((prevState) => ({
@@ -69,18 +62,8 @@ export const MiddleTruncate: FC<MiddleTruncateProps> = ({
     <Stack
       as="span"
       ref={elmRef}
-      $style={{ display: "block", position: "relative", width }}
-      {...() =>
-        onClick
-          ? {
-              onClick: handleClick,
-              onKeyDown: (e: React.KeyboardEvent) => {
-                if (e.key === "Enter" || e.key === " ") handleClick();
-              },
-              role: "button" as const,
-              tabIndex: 0,
-            }
-          : {}}
+      $style={{ ...$style, display: "block", position: "relative" }}
+      {...rest}
     >
       {truncating ? (
         <Stack

@@ -83,13 +83,13 @@ export const VStack = styled.div<StackProps>`
     })}
 `;
 
+export type StackProps = DefaultProps & {
+  $media?: { sm?: DefaultProps; lg?: DefaultProps; xl?: DefaultProps };
+};
+
 type DefaultProps = {
   $after?: CSSProperties;
   $before?: CSSProperties;
   $hover?: CSSProperties;
   $style?: CSSProperties;
-};
-
-type StackProps = DefaultProps & {
-  $media?: { sm?: DefaultProps; lg?: DefaultProps; xl?: DefaultProps };
 };
