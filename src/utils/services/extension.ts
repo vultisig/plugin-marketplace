@@ -1,6 +1,5 @@
-import { policyToHexMessage } from "@/utils/functions";
 import { reshareVault } from "@/utils/services/marketplace";
-import { AppPolicy, ReshareForm, Vault } from "@/utils/types";
+import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
 const isAvailable = async () => {
@@ -60,22 +59,6 @@ export const getVault = async () => {
   }
 };
 
-export const signCustomMessage = async (
-  hexMessage: string,
-  walletAddress: string
-) => {
-  await isAvailable();
-
-  const signature = await window.vultisig.ethereum.request({
-    method: "personal_sign",
-    params: [hexMessage, walletAddress],
-  });
-
-  if (signature && signature.error) throw signature.error;
-
-  return signature as string;
-};
-
 export const startReshareSession = async (pluginId: string) => {
   await isAvailable();
 
@@ -127,27 +110,19 @@ export const startReshareSession = async (pluginId: string) => {
   }
 };
 
-export const signPluginPolicy = async ({
-  address,
-  policy,
-}: {
-  address: string;
-  policy: AppPolicy;
-}) => {
+export const personalSign = async (
+  address: string,
+  message: string,
+  type: "connect" | "policy"
+) => {
   await isAvailable();
 
-  const account = await getAccount();
-
-  if (!account) throw new Error("Need to connect to wallet");
-
-  const hexMessage = policyToHexMessage(policy);
-
   const signature = await window.vultisig.plugin.request({
-    method: "policy_sign",
-    params: [hexMessage, account, address],
+    method: "personal_sign",
+    params: [message, address, type],
   });
 
-  if (signature && signature.error) throw signature.error;
+  if (signature?.error) throw signature.error;
 
   return signature as string;
 };

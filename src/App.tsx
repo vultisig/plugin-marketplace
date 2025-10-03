@@ -38,7 +38,7 @@ import {
   connect as connectToExtension,
   disconnect as disconnectFromExtension,
   getVault,
-  signCustomMessage,
+  personalSign,
 } from "@/utils/services/extension";
 import { getAuthToken } from "@/utils/services/marketplace";
 
@@ -181,7 +181,7 @@ export const App = () => {
         address,
       });
 
-      const signature = await signCustomMessage(message, address);
+      const signature = await personalSign(address, message, "connect");
 
       const newToken = await getAuthToken({
         chainCodeHex: hexChainCode,
