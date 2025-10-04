@@ -282,7 +282,7 @@ export const AppPolicyPage = () => {
           const jsonData = create(PolicySchema, {
             author: "",
             ...configuration(),
-            description: "",
+            description: plugin.description,
             feePolicies,
             id: schema.pluginId,
             maxTxsPerWindow: values.maxTxsPerWindow,
