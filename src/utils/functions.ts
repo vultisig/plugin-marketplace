@@ -27,8 +27,6 @@ const toSnake = (value: string): string => {
 export const camelCaseToTitle = (input: string) => {
   if (!input) return input;
 
-  console.log(input);
-
   return input
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/\b\w/g, (char) => char.toUpperCase());
