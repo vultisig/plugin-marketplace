@@ -212,7 +212,7 @@ export const DefaultLayout = () => {
                 menu={{ items: dropdownMenu }}
                 overlayStyle={{ width: 302 }}
               >
-                <Avatar src="/avatars/01.png" size={44} />
+                <Avatar src="/images/avatar.png" size={44} />
               </Dropdown>
             </HStack>
           ) : (

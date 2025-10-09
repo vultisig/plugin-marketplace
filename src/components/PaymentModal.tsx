@@ -30,11 +30,16 @@ export const PaymentModal = () => {
       width={768}
     >
       <HStack $style={{ alignItems: "center", gap: "24px" }}>
-        <Stack
-          as="img"
-          alt="Payment App Required"
-          src={`/plugins/automate-your-payrolls.jpg`}
-          $style={{ borderRadius: "12px", width: "346px" }}
+        <VStack
+          $style={{
+            aspectRatio: 3 / 2,
+            backgroundImage: "url(/media/payment-app-required.jpg)",
+            backgroundPosition: "center center",
+            backgroundSize: "cover",
+            borderRadius: "12px",
+            flex: "none",
+            width: "346px",
+          }}
         />
         <VStack $style={{ alignItems: "start", gap: "24px" }}>
           <VStack $style={{ gap: "20px" }}>
@@ -42,7 +47,7 @@ export const PaymentModal = () => {
               <Stack
                 as="img"
                 alt="Payment App Required"
-                src={`/plugins/payroll.png`}
+                src="/media/payment.png"
                 $style={{ width: "56px" }}
               />
               <VStack $style={{ gap: "4px", justifyContent: "center" }}>

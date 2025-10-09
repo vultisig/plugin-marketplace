@@ -265,7 +265,7 @@ export const AppDetailsPage = () => {
                         <Stack
                           as="img"
                           alt={plugin.title}
-                          src={`/plugins/payroll.png`}
+                          src="/media/payroll.png"
                           $style={{ height: "72px", width: "72px" }}
                         />
                         <VStack
