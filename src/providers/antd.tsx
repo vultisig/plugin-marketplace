@@ -35,6 +35,10 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
         fontFamily: "inherit",
       },
       components: {
+        Anchor: {
+          linkPaddingBlock: 0,
+          linkPaddingInlineStart: 0,
+        },
         DatePicker: {
           activeBorderColor: colors.borderNormal.toHex(),
           activeShadow: "none",

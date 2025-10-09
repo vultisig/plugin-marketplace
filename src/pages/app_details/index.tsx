@@ -1,6 +1,6 @@
-import { message, Modal, Tooltip } from "antd";
+import { Anchor, message, Modal, Tooltip } from "antd";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { PaymentModal } from "@/components/PaymentModal";
@@ -367,50 +367,38 @@ export const AppDetailsPage = () => {
                     </HStack>
                   </VStack>
                 </VStack>
-
-                <HStack
-                  $style={{
-                    backgroundColor: colors.bgPrimary.toHex(),
-                    borderBottom: `solid 1px ${colors.borderLight.toHex()}`,
-                    position: "sticky",
-                    top: "72px",
-                    zIndex: "2",
-                  }}
-                >
-                  {[
+                <Stack
+                  as={Anchor}
+                  direction="horizontal"
+                  items={[
                     { key: "#overview", label: "Overview" },
                     { key: "#features", label: "Features" },
                     { key: "#faqs", label: "FAQs" },
                     { key: "#informations", label: "Usage Info" },
                     { key: "#reviews", label: "Reviews & Ratings" },
-                  ].map(({ key, label }) => (
-                    <HStack
-                      as={Link}
-                      key={key}
-                      to={key}
-                      $style={{
-                        alignItems: "center",
-                        borderBottom: `solid 2px ${
-                          key === hash
-                            ? colors.accentFour.toHex()
-                            : "transparent"
-                        }`,
-                        color: colors.textPrimary.toHex(),
-                        cursor: "pointer",
-                        fontSize: "14px",
-                        fontWeight: "500",
-                        height: "52px",
-                        padding: "0 16px",
-                        whiteSpace: "nowrap",
-                      }}
-                      $hover={{
-                        color: colors.accentFour.toHex(),
-                      }}
-                    >
-                      {label}
-                    </HStack>
-                  ))}
-                </HStack>
+                  ].map(({ key, label }) => ({
+                    key,
+                    href: key,
+                    title: (
+                      <HStack
+                        as="span"
+                        $style={{
+                          display: "block",
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          lineHeight: "52px",
+                          padding: "0 16px",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {label}
+                      </HStack>
+                    ),
+                  }))}
+                  offsetTop={76}
+                  targetOffset={158}
+                  $style={{ backgroundColor: colors.bgPrimary.toHex() }}
+                />
                 <Overview />
                 <Divider />
                 <Features />
