@@ -163,6 +163,7 @@ export const ReviewList: FC<ReviewListProps> = ({
                 .sort((a, b) => b.rating - a.rating)
                 .map(({ rating }) => (
                   <HStack
+                    key={rating}
                     $style={{
                       color: colors.warning.toHex(),
                       fontSize: "16px",
@@ -179,8 +180,9 @@ export const ReviewList: FC<ReviewListProps> = ({
             <VStack $style={{ flexGrow: "1", gap: "12px" }}>
               {plugin.ratings
                 .sort((a, b) => b.rating - a.rating)
-                .map(({ count }) => (
+                .map(({ count, rating }) => (
                   <Stack
+                    key={rating}
                     $before={{
                       backgroundColor: colors.warning.toHex(),
                       borderRadius: "4px",
@@ -202,9 +204,10 @@ export const ReviewList: FC<ReviewListProps> = ({
             <VStack $style={{ flex: "none", gap: "12px" }}>
               {plugin.ratings
                 .sort((a, b) => b.rating - a.rating)
-                .map(({ count }) => (
+                .map(({ count, rating }) => (
                   <Stack
                     as="span"
+                    key={rating}
                     $style={{ fontSize: "14px", lineHeight: "16px" }}
                   >
                     {count}
