@@ -24,6 +24,14 @@ const toSnake = (value: string): string => {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 
+export const camelCaseToTitle = (input: string) => {
+  if (!input) return input;
+
+  return input
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export const cssPropertiesToString = (styles: CSSProperties): string => {
   return Object.entries(styles)
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -62,6 +70,15 @@ export const policyToHexMessage = ({
   return fields.join(delimiter);
 };
 
+export const snakeCaseToTitle = (input: string) => {
+  if (!input) return input;
+
+  return input
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export const toCamelCase = <T>(obj: T): T => {
   if (isObject(obj)) {
     const result: Record<string, unknown> = {};
@@ -77,10 +94,6 @@ export const toCamelCase = <T>(obj: T): T => {
   }
 
   return obj;
-};
-
-export const toCapitalizeFirst = (value: string) => {
-  return value.length ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 };
 
 // export const toKebabCase = <T>(obj: T): T => {

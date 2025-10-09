@@ -42,8 +42,9 @@ import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
 import {
+  camelCaseToTitle,
   policyToHexMessage,
-  toCapitalizeFirst,
+  snakeCaseToTitle,
   toTimestamp,
 } from "@/utils/functions";
 import { personalSign } from "@/utils/services/extension";
@@ -492,7 +493,7 @@ export const AppPolicyPage = () => {
                                   <Select
                                     disabled={isFeesPlugin}
                                     options={field.enum.map((value) => ({
-                                      label: toCapitalizeFirst(value),
+                                      label: camelCaseToTitle(value),
                                       value,
                                     }))}
                                   />
@@ -545,7 +546,7 @@ export const AppPolicyPage = () => {
                             <Form.Item
                               key={key}
                               name={key}
-                              label={toCapitalizeFirst(key)}
+                              label={camelCaseToTitle(key)}
                               rules={[{ required }]}
                             >
                               {element}
@@ -639,7 +640,7 @@ export const AppPolicyPage = () => {
                                             ({ parameterName, required }) => (
                                               <Form.Item
                                                 key={parameterName}
-                                                label={toCapitalizeFirst(
+                                                label={snakeCaseToTitle(
                                                   parameterName
                                                 )}
                                                 name={[name, parameterName]}
@@ -716,18 +717,23 @@ export const AppPolicyPage = () => {
                                     return supportedResource.resourcePath ? (
                                       <HStack $style={{ gap: "8px" }}>
                                         {[
-                                          `Chain: ${toCapitalizeFirst(
+                                          `Chain: ${camelCaseToTitle(
                                             supportedResource.resourcePath
                                               .chainId
                                           )}`,
-                                          `Protocol: ${toCapitalizeFirst(
+                                          `Protocol: ${camelCaseToTitle(
                                             supportedResource.resourcePath
                                               .protocolId
                                           )}`,
-                                          `Function: ${toCapitalizeFirst(
-                                            supportedResource.resourcePath
-                                              .functionId
-                                          )}`,
+                                          ...(supportedResource.resourcePath
+                                            .functionId
+                                            ? [
+                                                `Function: ${camelCaseToTitle(
+                                                  supportedResource.resourcePath
+                                                    .functionId
+                                                )}`,
+                                              ]
+                                            : []),
                                         ].map((item, index) => (
                                           <Stack
                                             as="span"

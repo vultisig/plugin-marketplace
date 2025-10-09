@@ -7,7 +7,7 @@ import { Policy } from "@/proto/policy_pb";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { toCapitalizeFirst, toNumeralFormat } from "@/utils/functions";
+import { camelCaseToTitle, toNumeralFormat } from "@/utils/functions";
 import { delPolicy, getPolicies } from "@/utils/services/marketplace";
 import { App, CustomAppPolicy } from "@/utils/types";
 
@@ -175,7 +175,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
                                       lineHeight: "18px",
                                     }}
                                   >
-                                    {toCapitalizeFirst(parameterName)}
+                                    {camelCaseToTitle(parameterName)}
                                   </Stack>
                                   <Stack
                                     as="span"
@@ -195,7 +195,7 @@ export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  {toCapitalizeFirst(parameterName)}
+                                  {camelCaseToTitle(parameterName)}
                                 </Stack>
                               )}
                               {value.startsWith("0x") ? (

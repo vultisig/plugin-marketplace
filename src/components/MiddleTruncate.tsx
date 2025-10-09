@@ -1,4 +1,11 @@
-import { FC, HTMLAttributes, useEffect, useState } from "react";
+import {
+  FC,
+  HTMLAttributes,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { useResizeObserver } from "@/hooks/useResizeObserver";
 import { Stack, StackProps } from "@/toolkits/Stack";
@@ -11,70 +18,75 @@ export const MiddleTruncate: FC<MiddleTruncateProps> = ({
   $style = {},
   ...rest
 }) => {
-  const [state, setState] = useState({
-    counter: 0,
-    ellipsis: "",
-    truncating: true,
-    wrapperWidth: 0,
-  });
-  const { counter, ellipsis, truncating, wrapperWidth } = state;
-  const elmRef = useResizeObserver(({ width = 0 }) => {
-    setState((prevState) => ({
-      ...prevState,
-      wrapperWidth: width,
-      ellipsis: text,
-      truncating: true,
-    }));
-  }, "width");
+  const [ellipsis, setEllipsis] = useState(text);
+  const containerRef = useRef<HTMLElement | null>(null);
+  const { width: containerWidth } = useResizeObserver(containerRef);
 
-  useEffect(() => {
-    if (elmRef.current) {
-      const [child] = elmRef.current.children;
-      const clientWidth = child?.clientWidth ?? 0;
+  const divider = "...";
+  const maxVisibleCharsPerSide = useMemo(
+    () => Math.ceil(text.length / 2),
+    [text.length]
+  );
 
-      if (clientWidth > wrapperWidth) {
-        const chunkLen = Math.ceil(text.length / 2) - counter;
+  useLayoutEffect(() => {
+    if (!containerRef.current || !containerWidth) return;
 
-        setState((prevState) => ({
-          ...prevState,
-          counter: counter + 1,
-          ellipsis: `${text.slice(0, chunkLen)}...${text.slice(chunkLen * -1)}`,
-        }));
+    // Create a hidden span for measurement
+    const measureSpan = document.createElement("span");
+    measureSpan.style.position = "absolute";
+    measureSpan.style.visibility = "hidden";
+    measureSpan.style.whiteSpace = "nowrap";
+    containerRef.current.appendChild(measureSpan);
+
+    // Check if full text fits
+    measureSpan.textContent = text;
+
+    if (measureSpan.scrollWidth <= containerWidth) {
+      setEllipsis(text);
+      containerRef.current.removeChild(measureSpan);
+      return;
+    }
+
+    // Binary search truncation
+    let left = 0;
+    let right = maxVisibleCharsPerSide;
+    let bestFit = divider;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const sliceLen = maxVisibleCharsPerSide - mid;
+      const candidate = `${text.slice(0, sliceLen)}${divider}${text.slice(
+        -sliceLen
+      )}`;
+
+      measureSpan.textContent = candidate;
+
+      if (measureSpan.scrollWidth <= containerWidth) {
+        bestFit = candidate;
+        right = mid - 1;
       } else {
-        setState((prevState) => ({
-          ...prevState,
-          counter: 0,
-          truncating: false,
-        }));
+        left = mid + 1;
       }
     }
-  }, [ellipsis, counter, elmRef, text, wrapperWidth]);
 
-  useEffect(() => {
-    setState((prevState) => ({
-      ...prevState,
-      ellipsis: text,
-      truncating: true,
-    }));
-  }, [text]);
+    containerRef.current.removeChild(measureSpan);
+
+    setEllipsis(bestFit);
+  }, [containerWidth, text, maxVisibleCharsPerSide]);
 
   return (
     <Stack
       as="span"
-      ref={elmRef}
-      $style={{ ...$style, display: "block", position: "relative" }}
+      ref={containerRef}
+      $style={{
+        ...$style,
+        display: "block",
+        position: "relative",
+        whiteSpace: "nowrap",
+      }}
       {...rest}
     >
-      {truncating ? (
-        <Stack
-          as="span"
-          $style={{ position: "absolute", visibility: "hidden" }}
-        >
-          {ellipsis}
-        </Stack>
-      ) : (
-        ellipsis
-      )}
+      {ellipsis}
     </Stack>
   );
 };

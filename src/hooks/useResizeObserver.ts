@@ -1,54 +1,28 @@
-import { useEffect, useRef } from "react";
+import { RefObject, useLayoutEffect, useState } from "react";
 
-type Callback = (size: Partial<Size>) => void;
-type Size = { height: number; width: number };
-type Track = "width" | "height" | "both";
+type Size = Pick<DOMRect, "height" | "width">;
 
-export const useResizeObserver = (
-  callback: Callback,
-  track: Track = "both"
-) => {
-  const ref = useRef<HTMLElement>(null);
-  const sizeRef = useRef<Size | null>(null);
+export const useResizeObserver = (ref: RefObject<HTMLElement | null>) => {
+  const [size, setSize] = useState<Size>({ height: 0, width: 0 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const element = ref.current;
-    if (!element) return;
 
-    const observer = new ResizeObserver(([{ contentRect }]) => {
-      const { height, width } = contentRect;
-      const prev = sizeRef.current;
+    if (!element || !window?.ResizeObserver) return;
 
-      let changed = false;
+    const updateSize = () => {
+      const { height, width } = element.getBoundingClientRect();
+      setSize({ height, width });
+    };
 
-      switch (track) {
-        case "width":
-          changed = !prev || prev.width !== width;
-          break;
-        case "height":
-          changed = !prev || prev.height !== height;
-          break;
-        case "both":
-          changed = !prev || prev.width !== width || prev.height !== height;
-          break;
-      }
+    updateSize();
 
-      if (changed) {
-        const result: Partial<Size> = {};
-
-        sizeRef.current = { height, width };
-
-        if (track === "height" || track === "both") result.height = height;
-        if (track === "width" || track === "both") result.width = width;
-
-        callback(result);
-      }
-    });
+    const observer = new ResizeObserver(updateSize);
 
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [callback, track]);
+  }, [ref]);
 
-  return ref;
+  return size;
 };
