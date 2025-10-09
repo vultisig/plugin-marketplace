@@ -59,6 +59,15 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
           headerBg: colors.bgSecondary.toHex(),
           headerPadding: 0,
         },
+        Modal: {
+          contentBg: colors.bgPrimary.toHex(),
+          headerBg: "transparent",
+        },
+        Rate: {
+          starColor: colors.warning.toHex(),
+          starSize: 16,
+          marginXS: 2,
+        },
         Select: {
           activeBorderColor: colors.borderNormal.toHex(),
           activeOutlineColor: "transparent",

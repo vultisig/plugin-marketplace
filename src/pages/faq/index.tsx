@@ -1,33 +1,8 @@
-import { Collapse } from "antd";
 import { Fragment } from "react";
-import styled from "styled-components";
 
+import { Collapse } from "@/toolkits/Collapse";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
-
-const StyledCollapse = styled(Collapse)`
-  &.ant-collapse {
-    .ant-collapse-item {
-      .ant-collapse-header {
-        align-items: center;
-        padding: 0;
-
-        .ant-collapse-header-text {
-          font-size: 16px;
-          font-weight: 500;
-          line-height: 24px;
-        }
-      }
-
-      .ant-collapse-content {
-        .ant-collapse-content-box {
-          color: ${({ theme }) => theme.textSecondary.toHex()};
-          padding: 24px 0 0;
-        }
-      }
-    }
-  }
-`;
 
 const text =
   "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.";
@@ -115,7 +90,7 @@ export const FaqPage = () => {
               {items.map(({ answer, question }, index) => (
                 <Fragment key={index}>
                   {index > 0 && <Divider />}
-                  <StyledCollapse
+                  <Collapse
                     bordered={false}
                     items={[{ key: "1", label: question, children: answer }]}
                     expandIconPosition="right"

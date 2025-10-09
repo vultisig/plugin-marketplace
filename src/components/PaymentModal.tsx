@@ -4,11 +4,11 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { useGoBack } from "@/hooks/useGoBack";
+import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
+import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
-import { Button } from "@/toolkits/Button";
 import { startReshareSession } from "@/utils/services/extension";
-import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 
 export const PaymentModal = () => {
   const [visible, setVisible] = useState(false);
