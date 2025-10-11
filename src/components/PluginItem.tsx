@@ -34,7 +34,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
       <Stack
         as="img"
         alt={title}
-        src={`/plugins/automate-your-payrolls.jpg`}
+        src="/media/automate-your-payrolls.jpg"
         $style={{
           borderRadius: "12px",
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
@@ -51,7 +51,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
           <Stack
             as="img"
             alt={title}
-            src={`/plugins/payroll.png`}
+            src="/media/payroll.png"
             $style={{ width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
