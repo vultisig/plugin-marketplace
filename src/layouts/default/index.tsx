@@ -1,10 +1,12 @@
 import { Avatar, Dropdown, MenuProps, message } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useMediaQuery } from "react-responsive";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
+import { GlobalStyle } from "@/components/GlobalStyle";
 import { LanguageModal } from "@/components/LanguageModal";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useApp } from "@/hooks/useApp";
@@ -22,8 +24,6 @@ import { modalHash } from "@/utils/constants/core";
 import { languageNames } from "@/utils/constants/language";
 import { routeTree } from "@/utils/constants/routes";
 import { getAccount } from "@/utils/services/extension";
-import { useMediaQuery } from "react-responsive";
-import { GlobalStyle } from "@/components/GlobalStyle";
 
 export const DefaultLayout = () => {
   const { t } = useTranslation();

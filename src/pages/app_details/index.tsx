@@ -1,6 +1,6 @@
 import { Anchor, message, Modal, Tooltip } from "antd";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { PaymentModal } from "@/components/PaymentModal";
@@ -52,7 +52,6 @@ export const AppDetailsPage = () => {
   const { connect, isConnected } = useApp();
   const [messageApi, messageHolder] = message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
-  const { hash } = useLocation();
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
