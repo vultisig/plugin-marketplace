@@ -1,10 +1,12 @@
-import { Avatar, Dropdown, MenuProps, message } from "antd";
+import { Avatar, Dropdown, MenuProps } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useMediaQuery } from "react-responsive";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
+import { GlobalStyle } from "@/components/GlobalStyle";
 import { LanguageModal } from "@/components/LanguageModal";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useApp } from "@/hooks/useApp";
@@ -12,6 +14,7 @@ import { BoxIcon } from "@/icons/BoxIcon";
 import { CircleDollarSignIcon } from "@/icons/CircleDollarSignIcon";
 import { HistoryIcon } from "@/icons/HistoryIcon";
 import { LanguagesIcon } from "@/icons/LanguagesIcon";
+import { LaptopIcon } from "@/icons/LaptopIcon";
 import { LogOutIcon } from "@/icons/LogOutIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
 import { SunIcon } from "@/icons/SunIcon";
@@ -22,8 +25,6 @@ import { modalHash } from "@/utils/constants/core";
 import { languageNames } from "@/utils/constants/language";
 import { routeTree } from "@/utils/constants/routes";
 import { getAccount } from "@/utils/services/extension";
-import { useMediaQuery } from "react-responsive";
-import { GlobalStyle } from "@/components/GlobalStyle";
 
 export const DefaultLayout = () => {
   const { t } = useTranslation();
@@ -34,13 +35,13 @@ export const DefaultLayout = () => {
     disconnect,
     isConnected,
     language,
+    messageAPI,
     setTheme,
     theme,
   } = useApp();
-  const [messageApi, messageHolder] = message.useMessage();
   const navigate = useNavigate();
   const colors = useTheme();
-  const isNotSupport = useMediaQuery({ query: "(max-width: 767px)" });
+  const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
 
   const dropdownMenu: MenuProps["items"] = [
     {
@@ -103,9 +104,9 @@ export const DefaultLayout = () => {
     if (address) {
       navigator.clipboard.writeText(address);
 
-      messageApi.success("Address copied to clipboard!");
+      messageAPI.success("Address copied to clipboard!");
     } else {
-      messageApi.error("No address to copy.");
+      messageAPI.error("No address to copy.");
     }
   };
 
@@ -120,18 +121,47 @@ export const DefaultLayout = () => {
   }, [connect, isNotSupport]);
 
   return isNotSupport ? (
-    <Stack
+    <VStack
       $style={{
+        alignItems: "center",
         backgroundImage: "url(/images/not-support.jpg)",
         backgroundPosition: "center center",
         backgroundSize: "cover",
         bottom: "0",
+        color: colors.white.toHex(),
+        gap: "16px",
+        justifyContent: "center",
         left: "0",
         position: "fixed",
         right: "0",
         top: "0",
       }}
-    />
+    >
+      <LaptopIcon fontSize={32} />
+      <Stack
+        as="span"
+        $style={{
+          fontSize: "22px",
+          lineHeight: "24px",
+          opacity: "0.9",
+          textAlign: "center",
+          width: "264px",
+        }}
+      >
+        The Vultisig App Store is currently only available on desktop.
+      </Stack>
+      <Stack
+        as="span"
+        $style={{
+          fontSize: "15px",
+          lineHeight: "18px",
+          opacity: "0.8",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Make sure to extension is installed
+      </Stack>
+    </VStack>
   ) : (
     <>
       <GlobalStyle />
@@ -185,19 +215,11 @@ export const DefaultLayout = () => {
                   }}
                 />
               </HStack>
-              <Stack
-                $style={{
-                  fontSize: "22px",
-                  fontWeight: "500",
-                  lineHeight: "40px",
-                }}
-              >
+              <Stack $style={{ fontSize: "22px", lineHeight: "40px" }}>
                 App Store
               </Stack>
             </HStack>
-            <HStack
-              $style={{ fontWeight: "500", gap: "48px", lineHeight: "20px" }}
-            >
+            <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
               <Stack
                 as={Link}
                 to={routeTree.apps.path}
@@ -251,7 +273,6 @@ export const DefaultLayout = () => {
             <LanguageModal />
           </>
         )}
-        {messageHolder}
       </VStack>
     </>
   );

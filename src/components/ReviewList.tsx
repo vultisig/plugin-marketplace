@@ -107,10 +107,7 @@ export const ReviewList: FC<ReviewListProps> = ({
     <>
       <VStack id="reviews" $style={{ gap: "32px" }}>
         <VStack $style={{ gap: "12px" }}>
-          <Stack
-            as="span"
-            $style={{ fontSize: "18px", fontWeight: "500", lineHeight: "28px" }}
-          >
+          <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
             Reviews
           </Stack>
           <HStack
@@ -119,11 +116,7 @@ export const ReviewList: FC<ReviewListProps> = ({
             <HStack $style={{ alignItems: "center", gap: "12px" }}>
               <Stack
                 as="span"
-                $style={{
-                  fontSize: "60px",
-                  fontWeight: "500",
-                  lineHeight: "72px",
-                }}
+                $style={{ fontSize: "60px", lineHeight: "72px" }}
               >
                 {plugin.rating.rate}
               </Stack>
@@ -131,11 +124,7 @@ export const ReviewList: FC<ReviewListProps> = ({
                 <Rate count={5} value={plugin.rating.rate} allowHalf disabled />
                 <Stack
                   as="span"
-                  $style={{
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    lineHeight: "24px",
-                  }}
+                  $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
                   {`${plugin.rating.count} Reviews`}
                 </Stack>
@@ -241,7 +230,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                           width: "110px",
                         }}
@@ -253,7 +241,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                         }}
                       >
@@ -264,7 +251,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                         }}
                       >
@@ -277,7 +263,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                     $style={{
                       color: colors.textSecondary.toHex(),
                       fontSize: "14px",
-                      fontWeight: "500",
                       lineHeight: "20px",
                     }}
                   >
@@ -325,7 +310,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{
                   fontSize: "12px",
-                  fontWeight: "500",
                   lineHeight: "16px",
                 }}
               >
@@ -352,7 +336,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{
                   fontSize: "12px",
-                  fontWeight: "500",
                   lineHeight: "16px",
                 }}
               >

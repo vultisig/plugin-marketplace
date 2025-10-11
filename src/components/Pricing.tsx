@@ -4,9 +4,7 @@ import { useTheme } from "styled-components";
 import { Stack, VStack } from "@/toolkits/Stack";
 import { App, AppPricing } from "@/utils/types";
 
-type PricingProps = Pick<App, "pricing"> & {
-  center?: boolean;
-};
+type PricingProps = Pick<App, "pricing"> & { center?: boolean };
 
 export const Pricing: FC<PricingProps> = ({ center, pricing }) => {
   const colors = useTheme();
@@ -31,7 +29,6 @@ export const Pricing: FC<PricingProps> = ({ center, pricing }) => {
         alignItems: center ? "center" : "normal",
         color: colors.textSecondary.toHex(),
         flexGrow: "1",
-        fontWeight: "500",
       }}
     >
       {pricing.length ? (

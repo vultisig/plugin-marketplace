@@ -1,7 +1,8 @@
-import { message, Modal, Table, TableProps } from "antd";
+import { Table, TableProps } from "antd";
 import { FC, Fragment, useCallback, useEffect, useState } from "react";
 
 import { MiddleTruncate } from "@/components/MiddleTruncate";
+import { useApp } from "@/hooks/useApp";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy } from "@/proto/policy_pb";
 import { Button } from "@/toolkits/Button";
@@ -11,15 +12,13 @@ import { camelCaseToTitle, toNumeralFormat } from "@/utils/functions";
 import { delPolicy, getPolicies } from "@/utils/services/marketplace";
 import { App, CustomAppPolicy } from "@/utils/types";
 
-interface PolicyListProps {
-  plugin: App;
-}
+type PolicyListProps = { plugin: App };
 
-interface InitialState {
+type InitialState = {
   loading: boolean;
   policies: CustomAppPolicy[];
   totalCount: number;
-}
+};
 
 export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
   const [state, setState] = useState<InitialState>({
@@ -28,9 +27,7 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
     totalCount: 0,
   });
   const { loading, policies } = state;
-  const [messageApi, messageHolder] = message.useMessage();
-  const [modalAPI, modalHolder] = Modal.useModal();
-  const { id } = plugin;
+  const { messageAPI, modalAPI } = useApp();
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
     {
@@ -83,7 +80,7 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getPolicies(id, { skip })
+      getPolicies(plugin.id, { skip })
         .then(({ policies, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -96,7 +93,7 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    [id]
+    [plugin]
   );
 
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
@@ -111,7 +108,7 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
 
           delPolicy(id, signature)
             .then(() => {
-              messageApi.success("Policy deleted successfully.");
+              messageAPI.success("Policy deleted successfully.");
 
               fetchPolicies(0);
             })
@@ -122,150 +119,135 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
         onCancel() {},
       });
     } else {
-      messageApi.error("Unable to delete policy: signature is missing.");
+      messageAPI.error("Unable to delete policy: signature is missing.");
     }
   };
 
-  useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
+  useEffect(() => fetchPolicies(0), [plugin, fetchPolicies]);
 
   return (
-    <>
-      <Table
-        columns={columns}
-        dataSource={policies}
-        expandable={{
-          expandedRowRender: ({ parsedRecipe: { rules } }) => {
-            return (
-              <VStack $style={{ gap: "8px" }}>
-                {rules.map(({ id, parameterConstraints, target }, index) => (
-                  <Fragment key={id}>
-                    {index > 0 && <Divider />}
-                    <Stack
-                      key={id}
-                      $style={{
-                        display: "grid",
-                        gap: "8px",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                      }}
-                      $media={{
-                        lg: {
-                          $style: { gridTemplateColumns: "repeat(3, 1fr)" },
-                        },
-                        xl: {
-                          $style: { gridTemplateColumns: "repeat(2, 1fr)" },
-                        },
-                      }}
-                    >
-                      {parameterConstraints.map(
-                        ({ constraint, parameterName }) => {
-                          const value = String(constraint?.value.value || "");
+    <Table
+      columns={columns}
+      dataSource={policies}
+      expandable={{
+        expandedRowRender: ({ parsedRecipe: { rules } }) => {
+          return (
+            <VStack $style={{ gap: "8px" }}>
+              {rules.map(({ id, parameterConstraints, target }, index) => (
+                <Fragment key={id}>
+                  {index > 0 && <Divider />}
+                  <Stack
+                    key={id}
+                    $style={{
+                      display: "grid",
+                      gap: "8px",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                    }}
+                    $media={{
+                      xl: {
+                        $style: { gridTemplateColumns: "repeat(2, 1fr)" },
+                      },
+                    }}
+                  >
+                    {parameterConstraints.map(
+                      ({ constraint, parameterName }) => {
+                        const value = String(constraint?.value.value || "");
 
-                          return (
-                            <VStack key={parameterName}>
-                              {constraint?.value.case ? (
-                                <HStack
-                                  $style={{ alignItems: "center", gap: "4px" }}
-                                >
-                                  <Stack
-                                    as="span"
-                                    $style={{
-                                      fontSize: "12px",
-                                      fontWeight: "500",
-                                      lineHeight: "18px",
-                                    }}
-                                  >
-                                    {camelCaseToTitle(parameterName)}
-                                  </Stack>
-                                  <Stack
-                                    as="span"
-                                    $style={{
-                                      fontSize: "10px",
-                                      fontWeight: "500",
-                                      lineHeight: "18px",
-                                    }}
-                                  >{`(${constraint.value.case})`}</Stack>
-                                </HStack>
-                              ) : (
+                        return (
+                          <VStack key={parameterName}>
+                            {constraint?.value.case ? (
+                              <HStack
+                                $style={{ alignItems: "center", gap: "4px" }}
+                              >
                                 <Stack
                                   as="span"
                                   $style={{
                                     fontSize: "12px",
-                                    fontWeight: "500",
                                     lineHeight: "18px",
                                   }}
                                 >
                                   {camelCaseToTitle(parameterName)}
                                 </Stack>
-                              )}
-                              {value.startsWith("0x") ? (
-                                <MiddleTruncate>{value}</MiddleTruncate>
-                              ) : (
                                 <Stack
                                   as="span"
                                   $style={{
-                                    fontSize: "12px",
-                                    fontWeight: "500",
+                                    fontSize: "10px",
                                     lineHeight: "18px",
                                   }}
-                                >
-                                  {value}
-                                </Stack>
-                              )}
-                            </VStack>
-                          );
-                        }
-                      )}
+                                >{`(${constraint.value.case})`}</Stack>
+                              </HStack>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {camelCaseToTitle(parameterName)}
+                              </Stack>
+                            )}
+                            {value.startsWith("0x") ? (
+                              <MiddleTruncate>{value}</MiddleTruncate>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {value}
+                              </Stack>
+                            )}
+                          </VStack>
+                        );
+                      }
+                    )}
 
-                      {target ? (
-                        <VStack>
-                          <HStack $style={{ gap: "4px" }}>
-                            <Stack
-                              as="span"
-                              $style={{
-                                fontSize: "12px",
-                                fontWeight: "500",
-                                lineHeight: "18px",
-                              }}
-                            >
-                              Target
-                            </Stack>
-                            <Stack
-                              as="span"
-                              $style={{
-                                fontSize: "10px",
-                                fontWeight: "500",
-                                lineHeight: "18px",
-                              }}
-                            >{`(${target.target.case})`}</Stack>
-                          </HStack>
+                    {target ? (
+                      <VStack>
+                        <HStack $style={{ gap: "4px" }}>
                           <Stack
                             as="span"
                             $style={{
                               fontSize: "12px",
-                              fontWeight: "500",
                               lineHeight: "18px",
                             }}
                           >
-                            {target.target.value || "-"}
+                            Target
                           </Stack>
-                        </VStack>
-                      ) : (
-                        <></>
-                      )}
-                    </Stack>
-                  </Fragment>
-                ))}
-              </VStack>
-            );
-          },
-        }}
-        loading={loading}
-        rowKey="id"
-        size="small"
-      />
-
-      {messageHolder}
-      {modalHolder}
-    </>
+                          <Stack
+                            as="span"
+                            $style={{
+                              fontSize: "10px",
+                              lineHeight: "18px",
+                            }}
+                          >{`(${target.target.case})`}</Stack>
+                        </HStack>
+                        <Stack
+                          as="span"
+                          $style={{
+                            fontSize: "12px",
+                            lineHeight: "18px",
+                          }}
+                        >
+                          {target.target.value || "-"}
+                        </Stack>
+                      </VStack>
+                    ) : (
+                      <></>
+                    )}
+                  </Stack>
+                </Fragment>
+              ))}
+            </VStack>
+          );
+        },
+      }}
+      loading={loading}
+      rowKey="id"
+      size="small"
+    />
   );
 };

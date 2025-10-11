@@ -99,6 +99,7 @@ export type SharedColors = {
   info: ColorToken;
   success: ColorToken;
   warning: ColorToken;
+  white: ColorToken;
 };
 
 const sharedColors: SharedColors = {
@@ -115,6 +116,7 @@ const sharedColors: SharedColors = {
   info: new ColorToken(212, 100, 68), //hsla(212, 100%, 68%, 1)
   success: new ColorToken(166, 83, 43), //hsla(166, 83%, 43%, 1)
   warning: new ColorToken(38, 100, 68), //hsla(38, 100%, 68%, 1)
+  white: new ColorToken(0, 0, 100), //hsla(0, 0%, 100%, 1.00)
 };
 
 export const themes: Record<Theme, DefaultTheme> = {

@@ -1,3 +1,5 @@
+import { MessageInstance } from "antd/es/message/interface";
+import { HookAPI } from "antd/es/modal/useModal";
 import { createContext } from "react";
 
 import { setChain } from "@/storage/chain";
@@ -16,6 +18,8 @@ interface AppContextType {
   disconnect: () => void;
   isConnected: boolean;
   language: Language;
+  messageAPI: MessageInstance;
+  modalAPI: HookAPI;
   setChain: typeof setChain;
   setCurrency: typeof setCurrency;
   setLanguage: typeof setLanguage;

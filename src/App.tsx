@@ -1,6 +1,6 @@
-import { message, Modal } from "antd";
+import { message as Message, Modal } from "antd";
 import { hexlify, randomBytes } from "ethers";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
@@ -27,7 +27,6 @@ import {
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
-import { Spin } from "@/toolkits/Spin";
 import { Chain } from "@/utils/constants/chain";
 import { Currency } from "@/utils/constants/currency";
 import { Language } from "@/utils/constants/language";
@@ -41,43 +40,28 @@ import {
 } from "@/utils/services/extension";
 import { getAuthToken } from "@/utils/services/marketplace";
 
-import { AppPolicyPage } from "./pages/app_policy";
-
-interface InitialState {
+type InitialState = {
   address?: string;
   chain: Chain;
   currency: Currency;
   isConnected: boolean;
   language: Language;
-  loaded: boolean;
   theme: Theme;
   token?: string;
   vaultId?: string;
-}
+};
 
 export const App = () => {
-  const initialState: InitialState = useMemo(() => {
-    return {
-      chain: getChain(),
-      currency: getCurrency(),
-      isConnected: false,
-      language: getLanguage(),
-      loaded: true,
-      theme: getTheme(),
-    };
-  }, []);
-  const [state, setState] = useState(initialState);
-  const {
-    address,
-    chain,
-    currency,
-    isConnected,
-    language,
-    loaded,
-    theme,
-    vaultId,
-  } = state;
-  const [messageApi, messageHolder] = message.useMessage();
+  const [state, setState] = useState<InitialState>({
+    chain: getChain(),
+    currency: getCurrency(),
+    isConnected: false,
+    language: getLanguage(),
+    theme: getTheme(),
+  });
+  const { address, chain, currency, isConnected, language, theme, vaultId } =
+    state;
+  const [messageAPI, messageHolder] = Message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
 
   const clear = useCallback(() => {
@@ -85,12 +69,18 @@ export const App = () => {
       .then(() => {
         delToken(getVaultId());
         delVaultId();
-        setState(initialState);
+        setState({
+          chain: getChain(),
+          currency: getCurrency(),
+          isConnected: false,
+          language: getLanguage(),
+          theme: getTheme(),
+        });
       })
       .catch(() => {
-        messageApi.error("Disconnection failed");
+        messageAPI.error("Disconnection failed");
       });
-  }, [initialState, messageApi]);
+  }, [messageAPI]);
 
   const connect = useCallback(() => {
     connectToExtension()
@@ -98,21 +88,21 @@ export const App = () => {
         if (address) {
           signMessage(address).then((done) => {
             if (done) {
-              messageApi.success("Successfully authenticated!");
+              messageAPI.success("Successfully authenticated!");
             } else {
-              messageApi.error("Authentication failed");
+              messageAPI.error("Authentication failed");
               clear();
             }
           });
         } else {
-          messageApi.error("Connection failed");
+          messageAPI.error("Connection failed");
           clear();
         }
       })
       .catch((error: Error) => {
-        messageApi.error(error.message);
+        messageAPI.error(error.message);
       });
-  }, [clear, messageApi]);
+  }, [clear, messageAPI]);
 
   const disconnect = () => {
     modalAPI.confirm({
@@ -166,7 +156,9 @@ export const App = () => {
           token,
           vaultId: publicKeyEcdsa,
         }));
+
         setVaultId(publicKeyEcdsa);
+
         return true;
       }
 
@@ -235,6 +227,8 @@ export const App = () => {
               disconnect,
               isConnected,
               language,
+              messageAPI,
+              modalAPI,
               setChain,
               setCurrency,
               setLanguage,
@@ -243,34 +237,26 @@ export const App = () => {
               vaultId,
             }}
           >
-            {loaded ? (
-              <BrowserRouter>
-                <Routes>
-                  <Route path={routeTree.root.path} element={<DefaultLayout />}>
-                    <Route
-                      element={<Navigate to={routeTree.apps.path} replace />}
-                      index
-                    />
-                    <Route element={<AppsPage />} path={routeTree.apps.path} />
-                    <Route
-                      element={<AppDetailsPage />}
-                      path={routeTree.appDetails.path}
-                    />
-                    <Route
-                      element={<AppPolicyPage />}
-                      path={routeTree.appPolicy.path}
-                    />
-                    <Route element={<FaqPage />} path={routeTree.faq.path} />
-                  </Route>
+            <BrowserRouter>
+              <Routes>
+                <Route path={routeTree.root.path} element={<DefaultLayout />}>
                   <Route
-                    path={routeTree.notFound.path}
-                    element={<NotFoundPage />}
+                    element={<Navigate to={routeTree.apps.path} replace />}
+                    index
                   />
-                </Routes>
-              </BrowserRouter>
-            ) : (
-              <Spin centered />
-            )}
+                  <Route element={<AppsPage />} path={routeTree.apps.path} />
+                  <Route
+                    element={<AppDetailsPage />}
+                    path={routeTree.appDetails.path}
+                  />
+                  <Route element={<FaqPage />} path={routeTree.faq.path} />
+                </Route>
+                <Route
+                  path={routeTree.notFound.path}
+                  element={<NotFoundPage />}
+                />
+              </Routes>
+            </BrowserRouter>
           </AppContext.Provider>
 
           {messageHolder}

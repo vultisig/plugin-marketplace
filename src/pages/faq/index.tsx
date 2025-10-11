@@ -67,7 +67,6 @@ export const FaqPage = () => {
           as="span"
           $style={{
             fontSize: "40px",
-            fontWeight: "500",
             justifyContent: "center",
             lineHeight: "42px",
           }}
@@ -79,11 +78,7 @@ export const FaqPage = () => {
             <VStack key={index} $style={{ gap: "24px" }}>
               <Stack
                 as="span"
-                $style={{
-                  fontSize: "22px",
-                  fontWeight: "500",
-                  lineHeight: "24px",
-                }}
+                $style={{ fontSize: "22px", lineHeight: "24px" }}
               >
                 {heading}
               </Stack>
