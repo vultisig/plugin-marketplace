@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { GlobalStyle } from "@/components/GlobalStyle";
 import { AppContext } from "@/context/AppContext";
 import { i18nInstance } from "@/i18n/config";
 import { DefaultLayout } from "@/layouts/default";
@@ -227,8 +226,6 @@ export const App = () => {
     <I18nextProvider i18n={i18nInstance}>
       <StyledProvider theme={theme}>
         <AntdProvider theme={theme}>
-          <GlobalStyle />
-
           <AppContext.Provider
             value={{
               address,

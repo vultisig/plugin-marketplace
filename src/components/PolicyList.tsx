@@ -11,7 +11,7 @@ import { camelCaseToTitle, toNumeralFormat } from "@/utils/functions";
 import { delPolicy, getPolicies } from "@/utils/services/marketplace";
 import { App, CustomAppPolicy } from "@/utils/types";
 
-interface PluginPolicyListProps {
+interface PolicyListProps {
   plugin: App;
 }
 
@@ -21,13 +21,12 @@ interface InitialState {
   totalCount: number;
 }
 
-export const PluginPolicyList: FC<PluginPolicyListProps> = ({ plugin }) => {
-  const initialState: InitialState = {
+export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
+  const [state, setState] = useState<InitialState>({
     loading: true,
     policies: [],
     totalCount: 0,
-  };
-  const [state, setState] = useState(initialState);
+  });
   const { loading, policies } = state;
   const [messageApi, messageHolder] = message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
