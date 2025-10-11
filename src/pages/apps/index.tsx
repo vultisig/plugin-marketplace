@@ -82,14 +82,7 @@ export const AppsPage = () => {
 
         <VStack $style={{ flexGrow: "1", gap: "32px" }}>
           <VStack $style={{ gap: "24px" }}>
-            <Stack
-              as="span"
-              $style={{
-                fontSize: "40px",
-                fontWeight: "500",
-                lineHeight: "42px",
-              }}
-            >
+            <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
               Discover Apps
             </Stack>
             <Divider />
@@ -118,7 +111,6 @@ export const AppsPage = () => {
                           : colors.textPrimary.toHex(),
                       cursor: "pointer",
                       fontSize: "12px",
-                      fontWeight: "500",
                       gap: "8px",
                       justifyContent: "center",
                       height: "40px",
@@ -162,11 +154,7 @@ export const AppsPage = () => {
                   <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                     <Stack
                       as="span"
-                      $style={{
-                        fontSize: "17px",
-                        fontWeight: "500",
-                        lineHeight: "20px",
-                      }}
+                      $style={{ fontSize: "17px", lineHeight: "20px" }}
                     >
                       New
                     </Stack>
@@ -180,11 +168,7 @@ export const AppsPage = () => {
               <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                 <Stack
                   as="span"
-                  $style={{
-                    fontSize: "17px",
-                    fontWeight: "500",
-                    lineHeight: "20px",
-                  }}
+                  $style={{ fontSize: "17px", lineHeight: "20px" }}
                 >
                   All Apps
                 </Stack>

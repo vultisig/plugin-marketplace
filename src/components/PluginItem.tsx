@@ -10,10 +10,7 @@ import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { App } from "@/utils/types";
 
-type PluginItemProps = {
-  plugin: App;
-  horizontal?: boolean;
-};
+type PluginItemProps = { plugin: App; horizontal?: boolean };
 
 export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
   const { description, id, pricing, title } = plugin;
@@ -34,7 +31,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
       <Stack
         as="img"
         alt={title}
-        src={`/plugins/automate-your-payrolls.jpg`}
+        src="/media/automate-your-payrolls.jpg"
         $style={{
           borderRadius: "12px",
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
@@ -51,7 +48,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
           <Stack
             as="img"
             alt={title}
-            src={`/plugins/payroll.png`}
+            src="/media/payroll.png"
             $style={{ width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
@@ -59,7 +56,6 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
               as="span"
               $style={{
                 fontSize: "17px",
-                fontWeight: "500",
                 lineHeight: "20px",
               }}
             >
@@ -84,7 +80,6 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
                   $style={{
                     color: colors.textTertiary.toHex(),
                     fontSize: "12px",
-                    fontWeight: "500",
                     lineHeight: "16px",
                   }}
                 >
@@ -112,7 +107,6 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
                   $style={{
                     color: colors.textTertiary.toHex(),
                     fontSize: "12px",
-                    fontWeight: "500",
                     lineHeight: "16px",
                   }}
                 >{`${4.5}/5 (${128})`}</Stack>
@@ -120,10 +114,7 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
             </HStack>
           </VStack>
         </HStack>
-        <VStack
-          as="span"
-          $style={{ flexGrow: 1, fontWeight: "500", lineHeight: "20px" }}
-        >
+        <VStack as="span" $style={{ flexGrow: 1, lineHeight: "20px" }}>
           {description}
         </VStack>
         <VStack $style={{ gap: "12px" }}>
