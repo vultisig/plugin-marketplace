@@ -54,13 +54,14 @@ export const AppDetailsPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkStatus = useCallback(() => {
     isAppInstalled(id).then((isInstalled) => {
       if (isInstalled) {
         setState((prevState) => ({ ...prevState, isInstalled }));
       } else {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(checkStatus, 1000);
       }
     });

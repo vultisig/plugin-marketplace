@@ -111,13 +111,15 @@ export const DefaultLayout = () => {
   };
 
   useEffect(() => {
-    if (!isNotSupport) {
-      setTimeout(() => {
-        getAccount().then((account) => {
-          if (account) connect();
-        });
-      }, 200);
-    }
+    if (isNotSupport) return;
+
+    const timeoutId = setTimeout(() => {
+      getAccount().then((account) => {
+        if (account) connect();
+      });
+    }, 200);
+
+    return () => clearTimeout(timeoutId);
   }, [connect, isNotSupport]);
 
   return isNotSupport ? (
