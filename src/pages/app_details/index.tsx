@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
+import { PaymentModal } from "@/components/PaymentModal";
 import { PluginPolicyList } from "@/components/PluginPolicyList";
 import { PluginReviewList } from "@/components/PluginReviewList";
 import { Pricing } from "@/components/Pricing";
@@ -17,6 +18,7 @@ import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
@@ -28,8 +30,6 @@ import {
   uninstallApp,
 } from "@/utils/services/marketplace";
 import { App, CustomRecipeSchema } from "@/utils/types";
-import { PaymentModal } from "@/components/PaymentModal";
-import { modalHash } from "@/utils/constants/core";
 
 interface InitialState {
   isFeePluginInstalled?: boolean;
@@ -53,37 +53,6 @@ export const AppDetailsPage = () => {
   const goBack = useGoBack();
   const colors = useTheme();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const aboutFeePlugin = () => {
-    modalAPI.confirm({
-      title: "About Fee Plugin",
-      content: (
-        <VStack $style={{ gap: "8px" }}>
-          <Stack as="span">
-            Some plugins on our marketplace are not free to use.
-          </Stack>
-          <Stack as="span">
-            They may include either a one-time installation fee or a recurring
-            subscription fee. These fees are always shown clearly when you sign
-            up and install a plugin.
-          </Stack>
-          <Stack as="span">
-            The fee plugin runs securely in your wallet and enables us to
-            collect fees directly, making payments seamless and automatic.
-          </Stack>
-        </VStack>
-      ),
-      cancelText: "Cancel",
-      okText: "Install Fee Plugin",
-      icon: <></>,
-      onOk: () => {
-        navigate(
-          routeTree.appDetails.link(import.meta.env.VITE_FEE_PLUGIN_ID),
-          { state: true }
-        );
-      },
-    });
-  };
 
   const checkStatus = useCallback(() => {
     isAppInstalled(id).then((isInstalled) => {
