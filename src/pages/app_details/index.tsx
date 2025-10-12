@@ -1,10 +1,11 @@
-import { Anchor, message, Modal, Tooltip } from "antd";
+import { Anchor, Tooltip } from "antd";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { PaymentModal } from "@/components/PaymentModal";
 import { PolicyList } from "@/components/PolicyList";
+import { PolicyModal } from "@/components/PolicyModal";
 import { Pricing } from "@/components/Pricing";
 import { ReviewList } from "@/components/ReviewList";
 import { useApp } from "@/hooks/useApp";
@@ -48,20 +49,19 @@ export const AppDetailsPage = () => {
   const [state, setState] = useState(initialState);
   const { isFeePluginInstalled, isFree, isInstalled, loading, plugin, schema } =
     state;
+  const { connect, isConnected, messageAPI, modalAPI } = useApp();
   const { id = "" } = useParams<{ id: string }>();
-  const { connect, isConnected } = useApp();
-  const [messageApi, messageHolder] = message.useMessage();
-  const [modalAPI, modalHolder] = Modal.useModal();
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkStatus = useCallback(() => {
     isAppInstalled(id).then((isInstalled) => {
       if (isInstalled) {
         setState((prevState) => ({ ...prevState, isInstalled }));
       } else {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(checkStatus, 1000);
       }
     });
@@ -84,7 +84,7 @@ export const AppDetailsPage = () => {
               loading: false,
             }));
 
-            messageApi.open({
+            messageAPI.open({
               type: "success",
               content: "Plugin uninstalled successfully.",
             });
@@ -92,7 +92,7 @@ export const AppDetailsPage = () => {
           .catch(() => {
             setState((prevState) => ({ ...prevState, loading: false }));
 
-            messageApi.open({
+            messageAPI.open({
               type: "error",
               content: "Failed to uninstall plugin.",
             });
@@ -176,374 +176,338 @@ export const AppDetailsPage = () => {
     };
   }, [id, goBack]);
 
-  return (
+  return plugin ? (
     <>
-      {plugin ? (
-        <>
-          <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
-            <VStack
-              $style={{
-                gap: "32px",
-                maxWidth: "1200px",
-                padding: "0 16px",
-                width: "100%",
-              }}
-              $media={{ xl: { $style: { flexDirection: "row" } } }}
-            >
-              <VStack
-                $style={{ gap: "32px", paddingTop: "24px" }}
-                $media={{
-                  xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
-                }}
-              >
-                <VStack $style={{ gap: "24px" }}>
-                  <HStack
-                    as="span"
-                    $style={{
-                      alignItems: "center",
-                      border: `solid 1px ${colors.borderNormal.toHex()}`,
-                      borderRadius: "18px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      fontWeight: "500",
-                      gap: "4px",
-                      height: "36px",
-                      padding: "0 12px",
-                      width: "fit-content",
-                    }}
-                    $hover={{ color: colors.textTertiary.toHex() }}
-                    onClick={() => goBack(routeTree.apps.path)}
-                  >
-                    <ChevronLeftIcon fontSize={16} />
-                    Go back
-                  </HStack>
-                  <VStack
-                    $style={{
-                      backgroundColor: colors.bgTertiary.toHex(),
-                      borderRadius: "32px",
-                      padding: "16px",
-                    }}
-                  >
-                    <HStack
-                      $style={{
-                        backgroundColor: colors.bgPrimary.toHex(),
-                        border: `solid 1px ${colors.borderNormal.toHex()}`,
-                        borderRadius: "24px",
-                        justifyContent: "space-between",
-                        padding: "24px",
-                      }}
-                    >
-                      <HStack $style={{ alignItems: "center", gap: "16px" }}>
-                        <Stack
-                          as="img"
-                          alt={plugin.title}
-                          src="/media/payroll.png"
-                          $style={{ height: "72px", width: "72px" }}
-                        />
-                        <VStack
-                          $style={{ gap: "8px", justifyContent: "center" }}
-                        >
-                          <Stack
-                            as="span"
-                            $style={{
-                              fontSize: "22px",
-                              fontWeight: "500",
-                              lineHeight: "24px",
-                            }}
-                          >
-                            {plugin.title}
-                          </Stack>
-                          <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                            <HStack
-                              $style={{ alignItems: "center", gap: "2px" }}
-                            >
-                              <Stack
-                                as={CircleArrowDownIcon}
-                                $style={{
-                                  color: colors.textTertiary.toHex(),
-                                  fontSize: "16px",
-                                }}
-                              />
-                              <Stack
-                                as="span"
-                                $style={{
-                                  color: colors.textTertiary.toHex(),
-                                  fontWeight: "500",
-                                  lineHeight: "20px",
-                                }}
-                              >
-                                {toNumeralFormat(1258)}
-                              </Stack>
-                            </HStack>
-                            <Stack
-                              $style={{
-                                backgroundColor: colors.borderLight.toHex(),
-                                height: "3px",
-                                width: "3px",
-                              }}
-                            />
-                            <HStack
-                              $style={{ alignItems: "center", gap: "2px" }}
-                            >
-                              <Stack
-                                as={StarIcon}
-                                $style={{
-                                  color: colors.warning.toHex(),
-                                  fill: colors.warning.toHex(),
-                                  fontSize: "16px",
-                                }}
-                              />
-                              <Stack
-                                as="span"
-                                $style={{
-                                  color: colors.textTertiary.toHex(),
-                                  fontWeight: "500",
-                                  lineHeight: "20px",
-                                }}
-                              >
-                                {plugin.rating.count
-                                  ? `${plugin.rating.rate}/5 (${plugin.rating.count})`
-                                  : "No Rating yet"}
-                              </Stack>
-                            </HStack>
-                          </HStack>
-                        </VStack>
-                      </HStack>
-                      <VStack $style={{ gap: "16px" }}>
-                        {isConnected ? (
-                          isInstalled === undefined ||
-                          isFeePluginInstalled === undefined ? (
-                            <Button kind="primary" disabled loading>
-                              Checking
-                            </Button>
-                          ) : !isFree && !isFeePluginInstalled ? (
-                            <Button
-                              kind="primary"
-                              loading={loading}
-                              onClick={() =>
-                                navigate(modalHash.payment, { state: true })
-                              }
-                            >
-                              Install Fee Plugin
-                            </Button>
-                          ) : isInstalled ? (
-                            <>
-                              <Button
-                                disabled={loading || !schema}
-                                kind="primary"
-                                onClick={() =>
-                                  navigate(routeTree.appPolicy.link(id), {
-                                    state: true,
-                                  })
-                                }
-                              >
-                                Add policy
-                              </Button>
-                              <Button
-                                loading={loading}
-                                onClick={handleUninstall}
-                                status="danger"
-                              >
-                                Uninstall
-                              </Button>
-                            </>
-                          ) : (
-                            <Button
-                              kind="primary"
-                              loading={loading}
-                              onClick={handleInstall}
-                            >
-                              Install
-                            </Button>
-                          )
-                        ) : (
-                          <Button kind="primary" onClick={connect}>
-                            Connect
-                          </Button>
-                        )}
-                        <Pricing pricing={plugin.pricing} center />
-                      </VStack>
-                    </HStack>
-                  </VStack>
-                </VStack>
-                <Stack
-                  as={Anchor}
-                  direction="horizontal"
-                  items={[
-                    { key: "#overview", label: "Overview" },
-                    { key: "#features", label: "Features" },
-                    { key: "#faqs", label: "FAQs" },
-                    { key: "#informations", label: "Usage Info" },
-                    { key: "#reviews", label: "Reviews & Ratings" },
-                  ].map(({ key, label }) => ({
-                    key,
-                    href: key,
-                    title: (
-                      <HStack
-                        as="span"
-                        $style={{
-                          display: "block",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                          lineHeight: "52px",
-                          padding: "0 16px",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {label}
-                      </HStack>
-                    ),
-                  }))}
-                  offsetTop={76}
-                  targetOffset={158}
-                  $style={{ backgroundColor: colors.bgPrimary.toHex() }}
-                />
-                <Overview />
-                <Divider />
-                <Features />
-                <Divider />
-                <FAQs />
-                <Divider />
-                <UsageInfo />
-                <Divider />
-                <ReviewList
-                  isInstalled={isInstalled}
-                  onInstall={handleInstall}
-                  plugin={plugin}
-                />
-                <Divider />
-                <PolicyList plugin={plugin} />
-              </VStack>
-              <Stack
+      <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+        <VStack
+          $style={{
+            gap: "32px",
+            maxWidth: "1200px",
+            padding: "0 16px",
+            width: "100%",
+          }}
+          $media={{ xl: { $style: { flexDirection: "row" } } }}
+        >
+          <VStack
+            $style={{ gap: "32px", paddingTop: "24px" }}
+            $media={{
+              xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
+            }}
+          >
+            <VStack $style={{ gap: "24px" }}>
+              <HStack
                 as="span"
                 $style={{
-                  backgroundColor: colors.borderLight.toHex(),
-                  height: "1px",
+                  alignItems: "center",
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "18px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  gap: "4px",
+                  height: "36px",
+                  padding: "0 12px",
+                  width: "fit-content",
                 }}
-                $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
-              />
+                $hover={{ color: colors.textTertiary.toHex() }}
+                onClick={() => goBack(routeTree.apps.path)}
+              >
+                <ChevronLeftIcon fontSize={16} />
+                Go back
+              </HStack>
               <VStack
-                $style={{ paddingBottom: "24px" }}
-                $media={{
-                  xl: {
-                    $style: {
-                      flex: "none",
-                      paddingTop: "84px",
-                      width: "322px",
-                    },
-                  },
+                $style={{
+                  backgroundColor: colors.bgTertiary.toHex(),
+                  borderRadius: "32px",
+                  padding: "16px",
                 }}
               >
-                <VStack
-                  $style={{ gap: "20px" }}
-                  $media={{
-                    xl: { $style: { position: "sticky", top: "96px" } },
+                <HStack
+                  $style={{
+                    backgroundColor: colors.bgPrimary.toHex(),
+                    border: `solid 1px ${colors.borderNormal.toHex()}`,
+                    borderRadius: "24px",
+                    justifyContent: "space-between",
+                    padding: "24px",
                   }}
                 >
-                  <VStack
-                    $style={{
-                      border: `solid 1px ${colors.borderNormal.toHex()}`,
-                      borderRadius: "24px",
-                      gap: "12px",
-                      padding: "32px",
-                    }}
-                  >
+                  <HStack $style={{ alignItems: "center", gap: "16px" }}>
                     <Stack
-                      as="span"
-                      $style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        lineHeight: "24px",
-                      }}
-                    >
-                      App Permissions
-                    </Stack>
-                    {[
-                      "Access to transaction signing",
-                      "Fee deduction authorization",
-                      "Vault balance visibility",
-                    ].map((item, index) => (
-                      <HStack key={index} $style={{ gap: "8px" }}>
-                        <Stack
-                          as={ShieldCheckIcon}
-                          $style={{
-                            color: colors.warning.toHex(),
-                            flex: "none",
-                            fontSize: "16px",
-                          }}
-                        />
-                        <Stack
-                          as="span"
-                          $style={{
-                            color: colors.textSecondary.toHex(),
-                            fontWeight: "500",
-                            lineHeight: "16px",
-                          }}
-                        >
-                          {item}
-                        </Stack>
-                        <Tooltip title="Required to securely approve and route plugin payment transactions through your vault.">
-                          <CircleInfoIcon />
-                        </Tooltip>
-                      </HStack>
-                    ))}
-                  </VStack>
-                  <VStack
-                    $style={{
-                      border: `solid 1px ${colors.borderNormal.toHex()}`,
-                      borderRadius: "24px",
-                      gap: "12px",
-                      padding: "32px",
-                    }}
-                  >
-                    <Stack
-                      as="span"
-                      $style={{
-                        fontSize: "16px",
-                        fontWeight: "500",
-                        lineHeight: "24px",
-                      }}
-                    >
-                      Audit
-                    </Stack>
-                    {["Fully audited, check the certificate"].map(
-                      (item, index) => (
-                        <HStack key={index} $style={{ gap: "8px" }}>
+                      as="img"
+                      alt={plugin.title}
+                      src="/media/payroll.png"
+                      $style={{ height: "72px", width: "72px" }}
+                    />
+                    <VStack $style={{ gap: "8px", justifyContent: "center" }}>
+                      <Stack
+                        as="span"
+                        $style={{ fontSize: "22px", lineHeight: "24px" }}
+                      >
+                        {plugin.title}
+                      </Stack>
+                      <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
                           <Stack
-                            as={BadgeCheckIcon}
+                            as={CircleArrowDownIcon}
                             $style={{
-                              color: colors.success.toHex(),
-                              flex: "none",
+                              color: colors.textTertiary.toHex(),
                               fontSize: "16px",
                             }}
                           />
                           <Stack
                             as="span"
                             $style={{
-                              color: colors.textSecondary.toHex(),
-                              fontWeight: "500",
-                              lineHeight: "16px",
+                              color: colors.textTertiary.toHex(),
+                              lineHeight: "20px",
                             }}
                           >
-                            {item}
+                            {toNumeralFormat(1258)}
                           </Stack>
                         </HStack>
+                        <Stack
+                          $style={{
+                            backgroundColor: colors.borderLight.toHex(),
+                            height: "3px",
+                            width: "3px",
+                          }}
+                        />
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
+                          <Stack
+                            as={StarIcon}
+                            $style={{
+                              color: colors.warning.toHex(),
+                              fill: colors.warning.toHex(),
+                              fontSize: "16px",
+                            }}
+                          />
+                          <Stack
+                            as="span"
+                            $style={{
+                              color: colors.textTertiary.toHex(),
+                              lineHeight: "20px",
+                            }}
+                          >
+                            {plugin.rating.count
+                              ? `${plugin.rating.rate}/5 (${plugin.rating.count})`
+                              : "No Rating yet"}
+                          </Stack>
+                        </HStack>
+                      </HStack>
+                    </VStack>
+                  </HStack>
+                  <VStack $style={{ gap: "16px" }}>
+                    {isConnected ? (
+                      isInstalled === undefined ||
+                      isFeePluginInstalled === undefined ? (
+                        <Button kind="primary" disabled loading>
+                          Checking
+                        </Button>
+                      ) : !isFree && !isFeePluginInstalled ? (
+                        <Button
+                          kind="primary"
+                          loading={loading}
+                          onClick={() =>
+                            navigate(modalHash.payment, { state: true })
+                          }
+                        >
+                          Install
+                        </Button>
+                      ) : isInstalled ? (
+                        <>
+                          <Button
+                            disabled={loading || !schema}
+                            href={modalHash.policy}
+                            kind="primary"
+                          >
+                            Add policy
+                          </Button>
+                          <Button
+                            loading={loading}
+                            onClick={handleUninstall}
+                            status="danger"
+                          >
+                            Uninstall
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          kind="primary"
+                          loading={loading}
+                          onClick={handleInstall}
+                        >
+                          Install
+                        </Button>
                       )
+                    ) : (
+                      <Button kind="primary" onClick={connect}>
+                        Connect
+                      </Button>
                     )}
+                    <Pricing pricing={plugin.pricing} center />
                   </VStack>
-                </VStack>
+                </HStack>
+              </VStack>
+            </VStack>
+            <Stack
+              as={Anchor}
+              direction="horizontal"
+              items={[
+                { key: "#overview", label: "Overview" },
+                { key: "#features", label: "Features" },
+                { key: "#faqs", label: "FAQs" },
+                { key: "#informations", label: "Usage Info" },
+                { key: "#reviews", label: "Reviews & Ratings" },
+              ].map(({ key, label }) => ({
+                key,
+                href: key,
+                title: (
+                  <HStack
+                    as="span"
+                    $style={{
+                      display: "block",
+                      fontSize: "14px",
+                      lineHeight: "52px",
+                      padding: "0 16px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {label}
+                  </HStack>
+                ),
+              }))}
+              offsetTop={76}
+              targetOffset={158}
+              $style={{ backgroundColor: colors.bgPrimary.toHex() }}
+            />
+            <Overview />
+            <Divider />
+            <Features />
+            <Divider />
+            <FAQs />
+            <Divider />
+            <UsageInfo />
+            <Divider />
+            <ReviewList
+              isInstalled={isInstalled}
+              onInstall={handleInstall}
+              plugin={plugin}
+            />
+            <Divider />
+            <PolicyList plugin={plugin} />
+          </VStack>
+          <Stack
+            as="span"
+            $style={{
+              backgroundColor: colors.borderLight.toHex(),
+              height: "1px",
+            }}
+            $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
+          />
+          <VStack
+            $style={{ paddingBottom: "24px" }}
+            $media={{
+              xl: {
+                $style: {
+                  flex: "none",
+                  paddingTop: "84px",
+                  width: "322px",
+                },
+              },
+            }}
+          >
+            <VStack
+              $style={{ gap: "20px" }}
+              $media={{
+                xl: { $style: { position: "sticky", top: "96px" } },
+              }}
+            >
+              <VStack
+                $style={{
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "24px",
+                  gap: "12px",
+                  padding: "32px",
+                }}
+              >
+                <Stack
+                  as="span"
+                  $style={{ fontSize: "16px", lineHeight: "24px" }}
+                >
+                  App Permissions
+                </Stack>
+                {[
+                  "Access to transaction signing",
+                  "Fee deduction authorization",
+                  "Vault balance visibility",
+                ].map((item, index) => (
+                  <HStack key={index} $style={{ gap: "8px" }}>
+                    <Stack
+                      as={ShieldCheckIcon}
+                      $style={{
+                        color: colors.warning.toHex(),
+                        flex: "none",
+                        fontSize: "16px",
+                      }}
+                    />
+                    <Stack
+                      as="span"
+                      $style={{
+                        color: colors.textSecondary.toHex(),
+                        lineHeight: "16px",
+                      }}
+                    >
+                      {item}
+                    </Stack>
+                    <Tooltip title="Required to securely approve and route plugin payment transactions through your vault.">
+                      <CircleInfoIcon />
+                    </Tooltip>
+                  </HStack>
+                ))}
+              </VStack>
+              <VStack
+                $style={{
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "24px",
+                  gap: "12px",
+                  padding: "32px",
+                }}
+              >
+                <Stack
+                  as="span"
+                  $style={{ fontSize: "16px", lineHeight: "24px" }}
+                >
+                  Audit
+                </Stack>
+                {["Fully audited, check the certificate"].map((item, index) => (
+                  <HStack key={index} $style={{ gap: "8px" }}>
+                    <Stack
+                      as={BadgeCheckIcon}
+                      $style={{
+                        color: colors.success.toHex(),
+                        flex: "none",
+                        fontSize: "16px",
+                      }}
+                    />
+                    <Stack
+                      as="span"
+                      $style={{
+                        color: colors.textSecondary.toHex(),
+                        lineHeight: "16px",
+                      }}
+                    >
+                      {item}
+                    </Stack>
+                  </HStack>
+                ))}
               </VStack>
             </VStack>
           </VStack>
-          <PaymentModal />
-        </>
-      ) : (
-        <Spin centered />
-      )}
-
-      {messageHolder}
-      {modalHolder}
+        </VStack>
+      </VStack>
+      <PaymentModal />
+      {isConnected && <PolicyModal app={plugin} />}
     </>
+  ) : (
+    <Spin centered />
   );
 };
 
@@ -572,10 +536,7 @@ const FAQs = () => {
 
   return (
     <VStack id="faqs" $style={{ gap: "24px" }}>
-      <Stack
-        as="span"
-        $style={{ fontSize: "18px", fontWeight: "500", lineHeight: "28px" }}
-      >
+      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
         FAQs
       </Stack>
       <VStack $style={{ gap: "16px" }}>
@@ -600,10 +561,7 @@ const Features = () => {
 
   return (
     <VStack id="features" $style={{ gap: "24px" }}>
-      <Stack
-        as="span"
-        $style={{ fontSize: "18px", fontWeight: "500", lineHeight: "28px" }}
-      >
+      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
         Features
       </Stack>
       <VStack $style={{ gap: "8px" }}>
@@ -621,7 +579,7 @@ const Features = () => {
                 as={CircleCheckIcon}
                 $style={{ color: colors.success.toHex(), fontSize: "24px" }}
               />
-              <Stack as="span" $style={{ fontSize: "14px", fontWeight: "500" }}>
+              <Stack as="span" $style={{ fontSize: "14px" }}>
                 {item}
               </Stack>
             </HStack>
@@ -667,10 +625,7 @@ const UsageInfo = () => {
 
   return (
     <VStack id="informations" $style={{ gap: "24px" }}>
-      <Stack
-        as="span"
-        $style={{ fontSize: "18px", fontWeight: "500", lineHeight: "28px" }}
-      >
+      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
         Usage Info
       </Stack>
       <VStack $style={{ gap: "16px" }}>
@@ -683,19 +638,12 @@ const UsageInfo = () => {
               $style={{
                 color: colors.textTertiary.toHex(),
                 fontSize: "13px",
-                fontWeight: "500",
                 lineHeight: "18px",
               }}
             >
               {label}
             </Stack>
-            <Stack
-              $style={{
-                fontSize: "14px",
-                fontWeight: "500",
-                lineHeight: "18px",
-              }}
-            >
+            <Stack $style={{ fontSize: "14px", lineHeight: "18px" }}>
               {value}
             </Stack>
           </HStack>

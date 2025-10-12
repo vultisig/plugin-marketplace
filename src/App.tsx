@@ -1,6 +1,6 @@
-import { message, Modal } from "antd";
+import { message as Message, Modal } from "antd";
 import { hexlify, randomBytes } from "ethers";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
@@ -27,7 +27,6 @@ import {
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
-import { Spin } from "@/toolkits/Spin";
 import { Chain } from "@/utils/constants/chain";
 import { Currency } from "@/utils/constants/currency";
 import { Language } from "@/utils/constants/language";
@@ -41,78 +40,107 @@ import {
 } from "@/utils/services/extension";
 import { getAuthToken } from "@/utils/services/marketplace";
 
-import { AppPolicyPage } from "./pages/app_policy";
-
-interface InitialState {
+type InitialState = {
   address?: string;
   chain: Chain;
   currency: Currency;
   isConnected: boolean;
   language: Language;
-  loaded: boolean;
   theme: Theme;
   token?: string;
   vaultId?: string;
-}
+};
 
 export const App = () => {
-  const initialState: InitialState = useMemo(() => {
-    return {
-      chain: getChain(),
-      currency: getCurrency(),
-      isConnected: false,
-      language: getLanguage(),
-      loaded: true,
-      theme: getTheme(),
-    };
-  }, []);
-  const [state, setState] = useState(initialState);
-  const {
-    address,
-    chain,
-    currency,
-    isConnected,
-    language,
-    loaded,
-    theme,
-    vaultId,
-  } = state;
-  const [messageApi, messageHolder] = message.useMessage();
+  const [state, setState] = useState<InitialState>({
+    chain: getChain(),
+    currency: getCurrency(),
+    isConnected: false,
+    language: getLanguage(),
+    theme: getTheme(),
+  });
+  const { address, chain, currency, isConnected, language, theme, vaultId } =
+    state;
+  const [messageAPI, messageHolder] = Message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
 
   const clear = useCallback(() => {
-    disconnectFromExtension()
-      .then(() => {
-        delToken(getVaultId());
-        delVaultId();
-        setState(initialState);
-      })
-      .catch(() => {
-        messageApi.error("Disconnection failed");
+    disconnectFromExtension().finally(() => {
+      delToken(getVaultId());
+      delVaultId();
+      setState({
+        chain: getChain(),
+        currency: getCurrency(),
+        isConnected: false,
+        language: getLanguage(),
+        theme: getTheme(),
       });
-  }, [initialState, messageApi]);
+    });
+  }, []);
 
   const connect = useCallback(() => {
     connectToExtension()
-      .then((address) => {
-        if (address) {
-          signMessage(address).then((done) => {
-            if (done) {
-              messageApi.success("Successfully authenticated!");
+      .then((address: string) => {
+        getVault()
+          .then(async ({ hexChainCode, publicKeyEcdsa }) => {
+            const token = getToken(publicKeyEcdsa);
+
+            if (token) {
+              setVaultId(publicKeyEcdsa);
+
+              setState((prevState) => ({
+                ...prevState,
+                address,
+                isConnected: true,
+                token,
+                vaultId: publicKeyEcdsa,
+              }));
             } else {
-              messageApi.error("Authentication failed");
-              clear();
+              const nonce = hexlify(randomBytes(16));
+              const expiryTime = new Date(
+                Date.now() + 15 * 60 * 1000
+              ).toISOString();
+
+              const message = JSON.stringify({
+                message: "Sign into Vultisig App Store",
+                nonce: nonce,
+                expiresAt: expiryTime,
+                address,
+              });
+
+              return personalSign(address, message, "connect").then(
+                (signature) =>
+                  getAuthToken({
+                    chainCodeHex: hexChainCode,
+                    publicKey: publicKeyEcdsa,
+                    signature,
+                    message,
+                  }).then((newToken) => {
+                    setToken(publicKeyEcdsa, newToken);
+                    setVaultId(publicKeyEcdsa);
+
+                    setState((prevState) => ({
+                      ...prevState,
+                      address,
+                      isConnected: true,
+                      token: newToken,
+                      vaultId: publicKeyEcdsa,
+                    }));
+
+                    messageAPI.success("Successfully authenticated!");
+                  })
+              );
             }
+          })
+          .catch((error: Error) => {
+            if (error?.message) messageAPI.error(error?.message);
+            clear();
           });
-        } else {
-          messageApi.error("Connection failed");
-          clear();
-        }
       })
       .catch((error: Error) => {
-        messageApi.error(error.message);
+        if (error?.message) messageAPI.error(error?.message);
       });
-  }, [clear, messageApi]);
+  }, [clear, messageAPI]);
 
   const disconnect = () => {
     modalAPI.confirm({
@@ -152,60 +180,6 @@ export const App = () => {
     setState((prevState) => ({ ...prevState, theme }));
   };
 
-  const signMessage = async (address: string) => {
-    try {
-      const vault = await getVault();
-      const { hexChainCode, publicKeyEcdsa } = vault;
-      const token = getToken(publicKeyEcdsa);
-
-      if (token) {
-        setState((prevState) => ({
-          ...prevState,
-          address,
-          isConnected: true,
-          token,
-          vaultId: publicKeyEcdsa,
-        }));
-        setVaultId(publicKeyEcdsa);
-        return true;
-      }
-
-      const nonce = hexlify(randomBytes(16));
-      const expiryTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-      const message = JSON.stringify({
-        message: "Sign into Vultisig App Store",
-        nonce: nonce,
-        expiresAt: expiryTime,
-        address,
-      });
-
-      const signature = await personalSign(address, message, "connect");
-
-      const newToken = await getAuthToken({
-        chainCodeHex: hexChainCode,
-        publicKey: publicKeyEcdsa,
-        signature,
-        message,
-      });
-
-      setToken(publicKeyEcdsa, newToken);
-      setVaultId(publicKeyEcdsa);
-
-      setState((prevState) => ({
-        ...prevState,
-        address,
-        isConnected: true,
-        token: newToken,
-        vaultId: publicKeyEcdsa,
-      }));
-
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
   useLocalStorageWatcher(storageKeys.chain, () => {
     setChain(getChain());
   });
@@ -235,6 +209,8 @@ export const App = () => {
               disconnect,
               isConnected,
               language,
+              messageAPI,
+              modalAPI,
               setChain,
               setCurrency,
               setLanguage,
@@ -243,34 +219,26 @@ export const App = () => {
               vaultId,
             }}
           >
-            {loaded ? (
-              <BrowserRouter>
-                <Routes>
-                  <Route path={routeTree.root.path} element={<DefaultLayout />}>
-                    <Route
-                      element={<Navigate to={routeTree.apps.path} replace />}
-                      index
-                    />
-                    <Route element={<AppsPage />} path={routeTree.apps.path} />
-                    <Route
-                      element={<AppDetailsPage />}
-                      path={routeTree.appDetails.path}
-                    />
-                    <Route
-                      element={<AppPolicyPage />}
-                      path={routeTree.appPolicy.path}
-                    />
-                    <Route element={<FaqPage />} path={routeTree.faq.path} />
-                  </Route>
+            <BrowserRouter>
+              <Routes>
+                <Route path={routeTree.root.path} element={<DefaultLayout />}>
                   <Route
-                    path={routeTree.notFound.path}
-                    element={<NotFoundPage />}
+                    element={<Navigate to={routeTree.apps.path} replace />}
+                    index
                   />
-                </Routes>
-              </BrowserRouter>
-            ) : (
-              <Spin centered />
-            )}
+                  <Route element={<AppsPage />} path={routeTree.apps.path} />
+                  <Route
+                    element={<AppDetailsPage />}
+                    path={routeTree.appDetails.path}
+                  />
+                  <Route element={<FaqPage />} path={routeTree.faq.path} />
+                </Route>
+                <Route
+                  path={routeTree.notFound.path}
+                  element={<NotFoundPage />}
+                />
+              </Routes>
+            </BrowserRouter>
           </AppContext.Provider>
 
           {messageHolder}

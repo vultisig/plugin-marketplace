@@ -18,7 +18,7 @@ export const connect = async () => {
 
     return account;
   } catch {
-    return undefined;
+    throw new Error("Connection failed");
   }
 };
 
@@ -52,6 +52,9 @@ export const getVault = async () => {
   if (vault) {
     if (!vault.hexChainCode || !vault.publicKeyEcdsa)
       throw new Error("Missing required vault data");
+
+    if (!vault.isFastVault)
+      throw new Error("Only Fast Vaults can connect to the App Store");
 
     return vault;
   } else {
@@ -122,7 +125,7 @@ export const personalSign = async (
     params: [message, address, type],
   });
 
-  if (signature?.error) throw signature.error;
+  if (signature?.error) throw new Error(signature.error);
 
   return signature as string;
 };

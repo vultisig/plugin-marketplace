@@ -1,6 +1,6 @@
 import { Form, FormProps, Input, Modal } from "antd";
 import dayjs from "dayjs";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -47,6 +47,11 @@ export const ReviewList: FC<ReviewListProps> = ({
   const [form] = Form.useForm<ReviewForm>();
   const goBack = useGoBack();
   const colors = useTheme();
+
+  const sortedRatings = useMemo(
+    () => [...plugin.ratings].sort((a, b) => b.rating - a.rating),
+    [plugin.ratings]
+  );
 
   const fetchReviews = useCallback(
     (skip: number) => {
@@ -107,10 +112,7 @@ export const ReviewList: FC<ReviewListProps> = ({
     <>
       <VStack id="reviews" $style={{ gap: "32px" }}>
         <VStack $style={{ gap: "12px" }}>
-          <Stack
-            as="span"
-            $style={{ fontSize: "18px", fontWeight: "500", lineHeight: "28px" }}
-          >
+          <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
             Reviews
           </Stack>
           <HStack
@@ -119,11 +121,7 @@ export const ReviewList: FC<ReviewListProps> = ({
             <HStack $style={{ alignItems: "center", gap: "12px" }}>
               <Stack
                 as="span"
-                $style={{
-                  fontSize: "60px",
-                  fontWeight: "500",
-                  lineHeight: "72px",
-                }}
+                $style={{ fontSize: "60px", lineHeight: "72px" }}
               >
                 {plugin.rating.rate}
               </Stack>
@@ -131,11 +129,7 @@ export const ReviewList: FC<ReviewListProps> = ({
                 <Rate count={5} value={plugin.rating.rate} allowHalf disabled />
                 <Stack
                   as="span"
-                  $style={{
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    lineHeight: "24px",
-                  }}
+                  $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
                   {`${plugin.rating.count} Reviews`}
                 </Stack>
@@ -159,60 +153,58 @@ export const ReviewList: FC<ReviewListProps> = ({
           </HStack>
           <HStack $style={{ gap: "24px" }}>
             <VStack $style={{ flex: "none", gap: "12px" }}>
-              {plugin.ratings
-                .sort((a, b) => b.rating - a.rating)
-                .map(({ rating }) => (
-                  <HStack
-                    key={rating}
-                    $style={{
-                      color: colors.warning.toHex(),
-                      fontSize: "16px",
-                      gap: "2px",
-                      justifyContent: "end",
-                    }}
-                  >
-                    {Array.from({ length: rating }, (_, i) => (
-                      <StarIcon key={i} fill="currentColor" />
-                    ))}
-                  </HStack>
-                ))}
+              {sortedRatings.map(({ rating }) => (
+                <HStack
+                  key={rating}
+                  $style={{
+                    color: colors.warning.toHex(),
+                    fontSize: "16px",
+                    gap: "2px",
+                    justifyContent: "end",
+                  }}
+                >
+                  {Array.from({ length: rating }, (_, i) => (
+                    <StarIcon key={i} fill="currentColor" />
+                  ))}
+                </HStack>
+              ))}
             </VStack>
             <VStack $style={{ flexGrow: "1", gap: "12px" }}>
-              {plugin.ratings
-                .sort((a, b) => b.rating - a.rating)
-                .map(({ count, rating }) => (
-                  <Stack
-                    key={rating}
-                    $before={{
-                      backgroundColor: colors.warning.toHex(),
-                      borderRadius: "4px",
-                      height: "100%",
-                      position: "absolute",
-                      width: `${(count * 100) / plugin.rating.count}%`,
-                    }}
-                    $style={{
-                      backgroundColor: colors.bgTertiary.toHex(),
-                      borderRadius: "4px",
-                      height: "8px",
-                      margin: "4px 0",
-                      overflow: "hidden",
-                      position: "relative",
-                    }}
-                  />
-                ))}
+              {sortedRatings.map(({ count, rating }) => (
+                <Stack
+                  key={rating}
+                  $before={{
+                    backgroundColor: colors.warning.toHex(),
+                    borderRadius: "4px",
+                    height: "100%",
+                    position: "absolute",
+                    width: `${
+                      plugin.rating.count
+                        ? (count * 100) / plugin.rating.count
+                        : 0
+                    }%`,
+                  }}
+                  $style={{
+                    backgroundColor: colors.bgTertiary.toHex(),
+                    borderRadius: "4px",
+                    height: "8px",
+                    margin: "4px 0",
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                />
+              ))}
             </VStack>
             <VStack $style={{ flex: "none", gap: "12px" }}>
-              {plugin.ratings
-                .sort((a, b) => b.rating - a.rating)
-                .map(({ count, rating }) => (
-                  <Stack
-                    as="span"
-                    key={rating}
-                    $style={{ fontSize: "14px", lineHeight: "16px" }}
-                  >
-                    {count}
-                  </Stack>
-                ))}
+              {sortedRatings.map(({ count, rating }) => (
+                <Stack
+                  as="span"
+                  key={rating}
+                  $style={{ fontSize: "14px", lineHeight: "16px" }}
+                >
+                  {count}
+                </Stack>
+              ))}
             </VStack>
           </HStack>
         </VStack>
@@ -241,7 +233,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                           width: "110px",
                         }}
@@ -253,7 +244,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                         }}
                       >
@@ -264,7 +254,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                         $style={{
                           color: colors.textTertiary.toHex(),
                           fontSize: "14px",
-                          fontWeight: "500",
                           lineHeight: "20px",
                         }}
                       >
@@ -277,7 +266,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                     $style={{
                       color: colors.textSecondary.toHex(),
                       fontSize: "14px",
-                      fontWeight: "500",
                       lineHeight: "20px",
                     }}
                   >
@@ -325,7 +313,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{
                   fontSize: "12px",
-                  fontWeight: "500",
                   lineHeight: "16px",
                 }}
               >
@@ -352,7 +339,6 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{
                   fontSize: "12px",
-                  fontWeight: "500",
                   lineHeight: "16px",
                 }}
               >

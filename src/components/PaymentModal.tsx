@@ -55,7 +55,6 @@ export const PaymentModal = () => {
                   as="span"
                   $style={{
                     fontSize: "17px",
-                    fontWeight: "500",
                     lineHeight: "20px",
                   }}
                 >
@@ -66,7 +65,6 @@ export const PaymentModal = () => {
                   $style={{
                     color: colors.textTertiary.toHex(),
                     fontSize: "12px",
-                    fontWeight: "500",
                     lineHeight: "16px",
                   }}
                 >
@@ -79,7 +77,6 @@ export const PaymentModal = () => {
               $style={{
                 color: colors.textSecondary.toHex(),
                 fontSize: "14px",
-                fontWeight: "500",
                 lineHeight: "18px",
               }}
             >
