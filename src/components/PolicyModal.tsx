@@ -332,16 +332,10 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
     }
   };
 
-  const onFinishFailed: FormProps<FormFieldType>["onFinishFailed"] = (
-    errorInfo
-  ) => {
-    console.log(errorInfo);
-  };
-
   const onStepBack = (step: number) => {
     if (step > 1) {
       setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (properties) {
+    } else if (properties && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
 
       form.setFieldValue("rules", []);
@@ -486,7 +480,6 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
           form={form}
           layout="vertical"
           onFinish={onFinishSuccess}
-          onFinishFailed={onFinishFailed}
           initialValues={
             isFeesPlugin
               ? {

@@ -309,7 +309,7 @@ export const AppDetailsPage = () => {
                             navigate(modalHash.payment, { state: true })
                           }
                         >
-                          Install Fee Plugin
+                          Install
                         </Button>
                       ) : isInstalled ? (
                         <>
@@ -504,7 +504,7 @@ export const AppDetailsPage = () => {
         </VStack>
       </VStack>
       <PaymentModal />
-      <PolicyModal app={plugin} />
+      {isConnected && <PolicyModal app={plugin} />}
     </>
   ) : (
     <Spin centered />

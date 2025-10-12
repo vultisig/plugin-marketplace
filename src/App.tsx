@@ -86,6 +86,8 @@ export const App = () => {
             const token = getToken(publicKeyEcdsa);
 
             if (token) {
+              setVaultId(publicKeyEcdsa);
+
               setState((prevState) => ({
                 ...prevState,
                 address,
@@ -93,45 +95,42 @@ export const App = () => {
                 token,
                 vaultId: publicKeyEcdsa,
               }));
+            } else {
+              const nonce = hexlify(randomBytes(16));
+              const expiryTime = new Date(
+                Date.now() + 15 * 60 * 1000
+              ).toISOString();
 
-              setVaultId(publicKeyEcdsa);
+              const message = JSON.stringify({
+                message: "Sign into Vultisig App Store",
+                nonce: nonce,
+                expiresAt: expiryTime,
+                address,
+              });
 
-              messageAPI.success("Successfully authenticated!");
+              return personalSign(address, message, "connect").then(
+                (signature) =>
+                  getAuthToken({
+                    chainCodeHex: hexChainCode,
+                    publicKey: publicKeyEcdsa,
+                    signature,
+                    message,
+                  }).then((newToken) => {
+                    setToken(publicKeyEcdsa, newToken);
+                    setVaultId(publicKeyEcdsa);
+
+                    setState((prevState) => ({
+                      ...prevState,
+                      address,
+                      isConnected: true,
+                      token: newToken,
+                      vaultId: publicKeyEcdsa,
+                    }));
+
+                    messageAPI.success("Successfully authenticated!");
+                  })
+              );
             }
-
-            const nonce = hexlify(randomBytes(16));
-            const expiryTime = new Date(
-              Date.now() + 15 * 60 * 1000
-            ).toISOString();
-
-            const message = JSON.stringify({
-              message: "Sign into Vultisig App Store",
-              nonce: nonce,
-              expiresAt: expiryTime,
-              address,
-            });
-
-            return personalSign(address, message, "connect").then((signature) =>
-              getAuthToken({
-                chainCodeHex: hexChainCode,
-                publicKey: publicKeyEcdsa,
-                signature,
-                message,
-              }).then((newToken) => {
-                setToken(publicKeyEcdsa, newToken);
-                setVaultId(publicKeyEcdsa);
-
-                setState((prevState) => ({
-                  ...prevState,
-                  address,
-                  isConnected: true,
-                  token: newToken,
-                  vaultId: publicKeyEcdsa,
-                }));
-
-                messageAPI.success("Successfully authenticated!");
-              })
-            );
           })
           .catch((error: Error) => {
             if (error?.message) messageAPI.error(error?.message);
