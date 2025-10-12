@@ -1,6 +1,7 @@
 export const modalHash = {
   currency: "#currency",
   language: "#language",
+  payment: "#payment",
   requirements: "#requirements",
 } as const;
 
