@@ -65,42 +65,81 @@ export const App = () => {
   const [modalAPI, modalHolder] = Modal.useModal();
 
   const clear = useCallback(() => {
-    disconnectFromExtension()
-      .then(() => {
-        delToken(getVaultId());
-        delVaultId();
-        setState({
-          chain: getChain(),
-          currency: getCurrency(),
-          isConnected: false,
-          language: getLanguage(),
-          theme: getTheme(),
-        });
-      })
-      .catch(() => {
-        messageAPI.error("Disconnection failed");
+    disconnectFromExtension().finally(() => {
+      delToken(getVaultId());
+      delVaultId();
+      setState({
+        chain: getChain(),
+        currency: getCurrency(),
+        isConnected: false,
+        language: getLanguage(),
+        theme: getTheme(),
       });
-  }, [messageAPI]);
+    });
+  }, []);
 
   const connect = useCallback(() => {
     connectToExtension()
-      .then((address) => {
-        if (address) {
-          signMessage(address).then((done) => {
-            if (done) {
+      .then((address: string) => {
+        getVault()
+          .then(async ({ hexChainCode, publicKeyEcdsa }) => {
+            const token = getToken(publicKeyEcdsa);
+
+            if (token) {
+              setState((prevState) => ({
+                ...prevState,
+                address,
+                isConnected: true,
+                token,
+                vaultId: publicKeyEcdsa,
+              }));
+
+              setVaultId(publicKeyEcdsa);
+
               messageAPI.success("Successfully authenticated!");
-            } else {
-              messageAPI.error("Authentication failed");
-              clear();
             }
+
+            const nonce = hexlify(randomBytes(16));
+            const expiryTime = new Date(
+              Date.now() + 15 * 60 * 1000
+            ).toISOString();
+
+            const message = JSON.stringify({
+              message: "Sign into Vultisig App Store",
+              nonce: nonce,
+              expiresAt: expiryTime,
+              address,
+            });
+
+            return personalSign(address, message, "connect").then((signature) =>
+              getAuthToken({
+                chainCodeHex: hexChainCode,
+                publicKey: publicKeyEcdsa,
+                signature,
+                message,
+              }).then((newToken) => {
+                setToken(publicKeyEcdsa, newToken);
+                setVaultId(publicKeyEcdsa);
+
+                setState((prevState) => ({
+                  ...prevState,
+                  address,
+                  isConnected: true,
+                  token: newToken,
+                  vaultId: publicKeyEcdsa,
+                }));
+
+                messageAPI.success("Successfully authenticated!");
+              })
+            );
+          })
+          .catch((error: Error) => {
+            if (error?.message) messageAPI.error(error?.message);
+            clear();
           });
-        } else {
-          messageAPI.error("Connection failed");
-          clear();
-        }
       })
       .catch((error: Error) => {
-        messageAPI.error(error.message);
+        if (error?.message) messageAPI.error(error?.message);
       });
   }, [clear, messageAPI]);
 
@@ -140,62 +179,6 @@ export const App = () => {
     setThemeStorage(theme);
 
     setState((prevState) => ({ ...prevState, theme }));
-  };
-
-  const signMessage = async (address: string) => {
-    try {
-      const vault = await getVault();
-      const { hexChainCode, publicKeyEcdsa } = vault;
-      const token = getToken(publicKeyEcdsa);
-
-      if (token) {
-        setState((prevState) => ({
-          ...prevState,
-          address,
-          isConnected: true,
-          token,
-          vaultId: publicKeyEcdsa,
-        }));
-
-        setVaultId(publicKeyEcdsa);
-
-        return true;
-      }
-
-      const nonce = hexlify(randomBytes(16));
-      const expiryTime = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-
-      const message = JSON.stringify({
-        message: "Sign into Vultisig App Store",
-        nonce: nonce,
-        expiresAt: expiryTime,
-        address,
-      });
-
-      const signature = await personalSign(address, message, "connect");
-
-      const newToken = await getAuthToken({
-        chainCodeHex: hexChainCode,
-        publicKey: publicKeyEcdsa,
-        signature,
-        message,
-      });
-
-      setToken(publicKeyEcdsa, newToken);
-      setVaultId(publicKeyEcdsa);
-
-      setState((prevState) => ({
-        ...prevState,
-        address,
-        isConnected: true,
-        token: newToken,
-        vaultId: publicKeyEcdsa,
-      }));
-
-      return true;
-    } catch {
-      return false;
-    }
   };
 
   useLocalStorageWatcher(storageKeys.chain, () => {

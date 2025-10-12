@@ -104,6 +104,7 @@ export type ReviewForm = {
 
 export type Vault = {
   hexChainCode: string;
+  isFastVault: boolean;
   name: string;
   publicKeyEcdsa: string;
   publicKeyEddsa: string;

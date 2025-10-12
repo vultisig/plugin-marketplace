@@ -10,6 +10,8 @@ import { v4 as uuidv4 } from "uuid";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { CheckIcon } from "@/icons/CheckIcon";
+import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
+import { CrossIcon } from "@/icons/CrossIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
 import {
   ConstraintSchema,
@@ -76,6 +78,10 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
   const colors = useTheme();
+
+  const properties = useMemo(() => {
+    return schema?.configuration?.properties;
+  }, [schema]);
 
   const isFeesPlugin = useMemo(() => {
     return app.id === import.meta.env.VITE_FEE_PLUGIN_ID;
@@ -326,6 +332,24 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
     }
   };
 
+  const onFinishFailed: FormProps<FormFieldType>["onFinishFailed"] = (
+    errorInfo
+  ) => {
+    console.log(errorInfo);
+  };
+
+  const onStepBack = (step: number) => {
+    if (step > 1) {
+      setState((prevState) => ({ ...prevState, step: 1 }));
+    } else if (properties) {
+      setState((prevState) => ({ ...prevState, step: 0 }));
+
+      form.setFieldValue("rules", []);
+    } else {
+      goBack();
+    }
+  };
+
   useEffect(() => {
     getRecipeSpecification(app.id)
       .then((schema) => {
@@ -338,18 +362,20 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
       .catch(() => {});
   }, [app]);
 
-  useEffect(
-    () =>
-      setState((prevState) => ({
-        ...prevState,
-        visible: hash === modalHash.policy,
-      })),
-    [hash]
-  );
+  useEffect(() => {
+    if (hash === modalHash.policy) {
+      setState((prevState) => ({ ...prevState, visible: true }));
+    } else if (visible) {
+      setState((prevState) => ({ ...prevState, step: 0, visible: false }));
+
+      form.resetFields();
+    }
+  }, [form, hash, visible]);
 
   return (
     <Modal
       centered={true}
+      closeIcon={step > 0 ? <ChevronLeftIcon /> : <CrossIcon />}
       footer={
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
@@ -365,7 +391,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
         </>
       }
       maskClosable={false}
-      onCancel={() => goBack()}
+      onCancel={() => onStepBack(step)}
       open={visible}
       styles={{
         body: { display: "flex", gap: 32 },
@@ -460,6 +486,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
           form={form}
           layout="vertical"
           onFinish={onFinishSuccess}
+          onFinishFailed={onFinishFailed}
           initialValues={
             isFeesPlugin
               ? {
@@ -479,7 +506,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
         >
           {schema ? (
             <>
-              {!!schema?.configuration?.properties && (
+              {properties && (
                 <Stack $style={{ display: step === 0 ? "block" : "none" }}>
                   <Stack
                     $style={{
@@ -488,86 +515,84 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                       gridTemplateColumns: "repeat(2, 1fr)",
                     }}
                   >
-                    {Object.entries(schema.configuration.properties).map(
-                      ([key, field]) => {
-                        const required =
-                          !!schema.configuration?.required.includes(key);
+                    {Object.entries(properties).map(([key, field]) => {
+                      const required =
+                        !!schema.configuration?.required.includes(key);
 
-                        let element: ReactNode;
+                      let element: ReactNode;
 
-                        switch (field.type) {
-                          case "int": {
-                            element = <InputNumber />;
+                      switch (field.type) {
+                        case "int": {
+                          element = <InputNumber />;
 
+                          break;
+                        }
+                        default: {
+                          if (field.enum) {
+                            element = (
+                              <Select
+                                disabled={isFeesPlugin}
+                                options={field.enum.map((value) => ({
+                                  label: camelCaseToTitle(value),
+                                  value,
+                                }))}
+                              />
+                            );
+                          } else {
+                            switch (field.format) {
+                              case "date-time": {
+                                element = (
+                                  <DatePicker
+                                    disabledDate={(current) => {
+                                      return (
+                                        current &&
+                                        current.isBefore(dayjs(), "day")
+                                      );
+                                    }}
+                                    format="YYYY-MM-DD HH:mm"
+                                    showNow={false}
+                                    showTime={{
+                                      disabledHours: () => {
+                                        const nextHour = dayjs()
+                                          .add(1, "hour")
+                                          .startOf("hour")
+                                          .hour();
+
+                                        return Array.from(
+                                          { length: nextHour },
+                                          (_, i) => i
+                                        );
+                                      },
+                                      format: "HH",
+                                      showMinute: false,
+                                      showSecond: false,
+                                    }}
+                                  />
+                                );
+
+                                break;
+                              }
+                              default: {
+                                element = <Input />;
+                                break;
+                              }
+                            }
                             break;
                           }
-                          default: {
-                            if (field.enum) {
-                              element = (
-                                <Select
-                                  disabled={isFeesPlugin}
-                                  options={field.enum.map((value) => ({
-                                    label: camelCaseToTitle(value),
-                                    value,
-                                  }))}
-                                />
-                              );
-                            } else {
-                              switch (field.format) {
-                                case "date-time": {
-                                  element = (
-                                    <DatePicker
-                                      disabledDate={(current) => {
-                                        return (
-                                          current &&
-                                          current.isBefore(dayjs(), "day")
-                                        );
-                                      }}
-                                      format="YYYY-MM-DD HH:mm"
-                                      showNow={false}
-                                      showTime={{
-                                        disabledHours: () => {
-                                          const nextHour = dayjs()
-                                            .add(1, "hour")
-                                            .startOf("hour")
-                                            .hour();
-
-                                          return Array.from(
-                                            { length: nextHour },
-                                            (_, i) => i
-                                          );
-                                        },
-                                        format: "HH",
-                                        showMinute: false,
-                                        showSecond: false,
-                                      }}
-                                    />
-                                  );
-
-                                  break;
-                                }
-                                default: {
-                                  element = <Input />;
-                                  break;
-                                }
-                              }
-                              break;
-                            }
-                          }
                         }
-
-                        return (
-                          <Form.Item
-                            key={key}
-                            name={key}
-                            label={camelCaseToTitle(key)}
-                            rules={[{ required }]}
-                          >
-                            {element}
-                          </Form.Item>
-                        );
                       }
-                    )}
+
+                      return (
+                        <Form.Item
+                          key={key}
+                          name={key}
+                          label={camelCaseToTitle(key)}
+                          rules={[{ required }]}
+                        >
+                          {element}
+                        </Form.Item>
+                      );
+                    })}
                   </Stack>
                 </Stack>
               )}
@@ -785,28 +810,26 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                   )}
                 </Form.List>
               </Stack>
-              {step > 1 && (
-                <Stack
-                  $style={{
-                    columnGap: "16px",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
+              <Stack
+                $style={{
+                  columnGap: "16px",
+                  display: step === 2 ? "grid" : "none",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                }}
+              >
+                <Form.Item<FormFieldType>
+                  name="maxTxsPerWindow"
+                  label="Max Txs Per Window"
                 >
-                  <Form.Item<FormFieldType>
-                    name="maxTxsPerWindow"
-                    label="Max Txs Per Window"
-                  >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
-                  </Form.Item>
-                  <Form.Item<FormFieldType>
-                    name="rateLimitWindow"
-                    label="Rate Limit Window (seconds)"
-                  >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
-                  </Form.Item>
-                </Stack>
-              )}
+                  <InputNumber disabled={isFeesPlugin} min={1} />
+                </Form.Item>
+                <Form.Item<FormFieldType>
+                  name="rateLimitWindow"
+                  label="Rate Limit Window (seconds)"
+                >
+                  <InputNumber disabled={isFeesPlugin} min={1} />
+                </Form.Item>
+              </Stack>
             </>
           ) : (
             <Spin centered />
