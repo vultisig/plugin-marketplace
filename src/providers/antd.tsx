@@ -35,6 +35,10 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
         fontFamily: "inherit",
       },
       components: {
+        Anchor: {
+          linkPaddingBlock: 0,
+          linkPaddingInlineStart: 0,
+        },
         DatePicker: {
           activeBorderColor: colors.borderNormal.toHex(),
           activeShadow: "none",
@@ -58,6 +62,15 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
         Layout: {
           headerBg: colors.bgSecondary.toHex(),
           headerPadding: 0,
+        },
+        Modal: {
+          contentBg: colors.bgPrimary.toHex(),
+          headerBg: "transparent",
+        },
+        Rate: {
+          starColor: colors.warning.toHex(),
+          starSize: 16,
+          marginXS: 2,
         },
         Select: {
           activeBorderColor: colors.borderNormal.toHex(),
