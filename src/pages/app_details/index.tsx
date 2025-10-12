@@ -49,8 +49,8 @@ export const AppDetailsPage = () => {
   const [state, setState] = useState(initialState);
   const { isFeePluginInstalled, isFree, isInstalled, loading, plugin, schema } =
     state;
-  const { id = "" } = useParams<{ id: string }>();
   const { connect, isConnected, messageAPI, modalAPI } = useApp();
+  const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
