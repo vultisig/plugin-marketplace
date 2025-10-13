@@ -36,6 +36,7 @@ export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
       },
       components: {
         Anchor: {
+          colorSplit: colors.borderLight.toHex(),
           linkPaddingBlock: 0,
           linkPaddingInlineStart: 0,
         },

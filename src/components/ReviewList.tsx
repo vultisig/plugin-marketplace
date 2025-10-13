@@ -91,13 +91,7 @@ export const ReviewList: FC<ReviewListProps> = ({
     }
   };
 
-  const onFinishFailed: FormProps<ReviewForm>["onFinishFailed"] = (
-    errorInfo
-  ) => {
-    console.log("Failed:", errorInfo);
-  };
-
-  useEffect(() => fetchReviews(0), [plugin.id, fetchReviews]);
+  useEffect(() => fetchReviews(0), [plugin, fetchReviews]);
 
   useEffect(
     () =>
@@ -137,18 +131,12 @@ export const ReviewList: FC<ReviewListProps> = ({
             </HStack>
             {isConnected ? (
               isInstalled ? (
-                <Button href={modalHash.review} kind="primary">
-                  Write a review
-                </Button>
+                <Button href={modalHash.review}>Write a review</Button>
               ) : (
-                <Button kind="primary" onClick={onInstall}>
-                  Install
-                </Button>
+                <Button onClick={onInstall}>Install</Button>
               )
             ) : (
-              <Button kind="primary" onClick={connect}>
-                Connect
-              </Button>
+              <Button onClick={connect}>Connect</Button>
             )}
           </HStack>
           <HStack $style={{ gap: "24px" }}>
@@ -208,7 +196,7 @@ export const ReviewList: FC<ReviewListProps> = ({
             </VStack>
           </HStack>
         </VStack>
-        <Divider />
+        <Divider light />
         {loading ? (
           <Spin centered />
         ) : (
@@ -218,7 +206,7 @@ export const ReviewList: FC<ReviewListProps> = ({
                 <VStack
                   key={id}
                   $style={{
-                    backgroundColor: colors.bgSecondary.toHex(),
+                    backgroundColor: colors.bgTertiary.toHex(),
                     borderRadius: "12px",
                     gap: "12px",
                     height: "100%",
@@ -280,7 +268,7 @@ export const ReviewList: FC<ReviewListProps> = ({
       <Modal
         centered={true}
         footer={
-          <Button kind="primary" loading={submitting} onClick={form.submit}>
+          <Button loading={submitting} onClick={form.submit}>
             Post review
           </Button>
         }
@@ -289,7 +277,7 @@ export const ReviewList: FC<ReviewListProps> = ({
         open={visible}
         styles={{
           body: {
-            backgroundColor: colors.bgSecondary.toHex(),
+            backgroundColor: colors.bgTertiary.toHex(),
             borderRadius: 12,
             padding: 24,
           },
@@ -305,16 +293,12 @@ export const ReviewList: FC<ReviewListProps> = ({
           form={form}
           layout="vertical"
           onFinish={onFinishSuccess}
-          onFinishFailed={onFinishFailed}
         >
           <VStack $style={{ gap: "16px" }}>
             <VStack $style={{ alignItems: "start", gap: "8px" }}>
               <Stack
                 as="span"
-                $style={{
-                  fontSize: "12px",
-                  lineHeight: "16px",
-                }}
+                $style={{ fontSize: "12px", lineHeight: "16px" }}
               >
                 Rating
               </Stack>

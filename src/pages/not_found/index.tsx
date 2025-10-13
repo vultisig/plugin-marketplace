@@ -27,10 +27,7 @@ export const NotFoundPage = () => {
           subTitle="Sorry, the page you visited does not exist."
           extra={
             <HStack $style={{ justifyContent: "center" }}>
-              <Button
-                kind="primary"
-                onClick={() => goBack(routeTree.root.path)}
-              >
+              <Button onClick={() => goBack(routeTree.root.path)}>
                 Back Home
               </Button>
             </HStack>

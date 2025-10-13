@@ -337,8 +337,6 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
       setState((prevState) => ({ ...prevState, step: 1 }));
     } else if (properties && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
-
-      form.setFieldValue("rules", []);
     } else {
       goBack();
     }
@@ -374,11 +372,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-            <Button
-              kind="primary"
-              loading={submitting}
-              onClick={() => form.submit()}
-            >
+            <Button loading={submitting} onClick={() => form.submit()}>
               {step < 2 ? "Continue" : "Submit"}
             </Button>
           </HStack>
@@ -423,7 +417,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
 
           return (
             <Fragment key={index}>
-              {index > 0 && <Divider />}
+              {index > 0 && <Divider light />}
               <HStack $style={{ alignItems: "center", gap: "8px" }}>
                 <HStack
                   as="span"
@@ -438,7 +432,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                         : `solid 1px ${colors.accentFour.toHex()}`,
                     borderRadius: "50%",
                     color: passed
-                      ? colors.white.toHex()
+                      ? colors.neutral50.toHex()
                       : disabled
                       ? colors.textTertiary.toHex()
                       : colors.accentFour.toHex(),
@@ -465,11 +459,11 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
           );
         })}
       </VStack>
-      <Divider vertical />
+      <Divider light vertical />
       <VStack
         $style={{
           justifyContent: "center",
-          backgroundColor: colors.bgSecondary.toHex(),
+          backgroundColor: colors.bgTertiary.toHex(),
           borderRadius: "24px",
           flexGrow: 1,
           padding: "32px",
@@ -679,7 +673,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                                         <Form.Item
                                           label="Target"
                                           name={[name, "target"]}
-                                          rules={[{ required: true }]}
+                                          rules={[{ required: step > 0 }]}
                                         >
                                           <Input disabled={isFeesPlugin} />
                                         </Form.Item>
@@ -691,25 +685,18 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                             </Stack>
                             <Stack
                               $style={{
+                                alignItems: "center",
                                 display: "flex",
                                 flexDirection: "row-reverse",
                                 justifyContent: "space-between",
                               }}
                             >
                               {fields.length > 1 && (
-                                <Stack
-                                  as={TrashIcon}
+                                <Button
+                                  icon={<TrashIcon fontSize={16} />}
+                                  kind="danger"
                                   onClick={() => remove(name)}
-                                  $style={{
-                                    borderRadius: "50%",
-                                    color: colors.error.toHex(),
-                                    cursor: "pointer",
-                                    fontSize: "24px",
-                                    padding: "4px",
-                                  }}
-                                  $hover={{
-                                    backgroundColor: colors.bgSecondary.toHex(),
-                                  }}
+                                  ghost
                                 />
                               )}
                               <Form.Item<FormFieldType>
@@ -786,7 +773,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                               </Form.Item>
                             </Stack>
                           </VStack>
-                          <Divider />
+                          <Divider light />
                         </Fragment>
                       ))}
                       <VStack>
@@ -795,7 +782,11 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                             <Form.ErrorList errors={errors} />
                           </Stack>
                         )}
-                        <Button disabled={isFeesPlugin} onClick={() => add({})}>
+                        <Button
+                          disabled={isFeesPlugin}
+                          onClick={() => add({})}
+                          kind="secondary"
+                        >
                           Add rule
                         </Button>
                       </VStack>

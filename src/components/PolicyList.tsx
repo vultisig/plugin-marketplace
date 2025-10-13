@@ -64,12 +64,14 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
       align: "center",
       key: "action",
       render: (_, record) => (
-        <Button
-          icon={<TrashIcon />}
-          kind="link"
-          onClick={() => handleDelete(record)}
-          status="danger"
-        />
+        <HStack $style={{ justifyContent: "center" }}>
+          <Button
+            icon={<TrashIcon fontSize={16} />}
+            kind="danger"
+            onClick={() => handleDelete(record)}
+            ghost
+          />
+        </HStack>
       ),
       title: "Action",
       width: 80,
@@ -135,7 +137,7 @@ export const PolicyList: FC<PolicyListProps> = ({ plugin }) => {
             <VStack $style={{ gap: "8px" }}>
               {rules.map(({ id, parameterConstraints, target }, index) => (
                 <Fragment key={id}>
-                  {index > 0 && <Divider />}
+                  {index > 0 && <Divider light />}
                   <Stack
                     key={id}
                     $style={{

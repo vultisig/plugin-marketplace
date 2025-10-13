@@ -84,7 +84,7 @@ export const FaqPage = () => {
               </Stack>
               {items.map(({ answer, question }, index) => (
                 <Fragment key={index}>
-                  {index > 0 && <Divider />}
+                  {index > 0 && <Divider light />}
                   <Collapse
                     bordered={false}
                     items={[{ key: "1", label: question, children: answer }]}
