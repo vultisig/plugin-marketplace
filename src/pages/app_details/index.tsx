@@ -416,8 +416,12 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            <PolicyList app={plugin} />
-            <Divider light />
+            {isInstalled && (
+              <>
+                <PolicyList app={plugin} />
+                <Divider light />
+              </>
+            )}
             <Overview />
             <Divider light />
             <Features />
