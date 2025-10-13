@@ -61,7 +61,7 @@ type FormFieldType = {
   rules: RuleFieldType[];
 } & Record<string, number | string | Dayjs>;
 
-type PolicyModalProps = { app: App };
+type PolicyModalProps = { app: App; onFinish: () => void };
 
 type InitialState = {
   schema?: CustomRecipeSchema;
@@ -70,7 +70,7 @@ type InitialState = {
   visible?: boolean;
 };
 
-export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
+export const PolicyModal: FC<PolicyModalProps> = ({ app, onFinish }) => {
   const [state, setState] = useState<InitialState>({ step: 0 });
   const { schema, step, submitting, visible } = state;
   const { address, messageAPI } = useApp();
@@ -310,6 +310,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app }) => {
                   form.resetFields();
 
                   goBack();
+                  onFinish();
                 })
                 .catch((error: Error) => {
                   messageAPI.error(error.message);

@@ -6,7 +6,6 @@ import { useTheme } from "styled-components";
 
 import { PaymentModal } from "@/components/PaymentModal";
 import { PolicyList } from "@/components/PolicyList";
-import { PolicyModal } from "@/components/PolicyModal";
 import { Pricing } from "@/components/Pricing";
 import { ReviewList } from "@/components/ReviewList";
 import { useApp } from "@/hooks/useApp";
@@ -352,7 +351,7 @@ export const AppDetailsPage = () => {
                       value: dayjs(plugin.updatedAt).format("YYYY-MM-DD"),
                     },
                   ].map(({ lable, value }, index) => (
-                    <>
+                    <Fragment key={index}>
                       {index > 0 && <Divider vertical />}
                       <VStack $style={{ alignItems: "center", gap: "12px" }}>
                         <Stack
@@ -378,7 +377,7 @@ export const AppDetailsPage = () => {
                           {value}
                         </Stack>
                       </VStack>
-                    </>
+                    </Fragment>
                   ))}
                 </HStack>
               </VStack>
@@ -387,6 +386,9 @@ export const AppDetailsPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
+                ...(isInstalled
+                  ? [{ key: "#policies", label: "Policies" }]
+                  : []),
                 { key: "#overview", label: "Overview" },
                 { key: "#features", label: "Features" },
                 { key: "#faqs", label: "FAQs" },
@@ -414,6 +416,8 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
+            <PolicyList app={plugin} />
+            <Divider light />
             <Overview />
             <Divider light />
             <Features />
@@ -425,10 +429,8 @@ export const AppDetailsPage = () => {
             <ReviewList
               isInstalled={isInstalled}
               onInstall={handleInstall}
-              plugin={plugin}
+              app={plugin}
             />
-            <Divider light />
-            <PolicyList plugin={plugin} />
           </VStack>
           <Stack
             as="span"
@@ -540,7 +542,6 @@ export const AppDetailsPage = () => {
         </VStack>
       </VStack>
       <PaymentModal />
-      {isConnected && <PolicyModal app={plugin} />}
     </>
   ) : (
     <Spin centered />

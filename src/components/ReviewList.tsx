@@ -20,7 +20,7 @@ import { App, Review, ReviewForm } from "@/utils/types";
 type ReviewListProps = {
   isInstalled?: boolean;
   onInstall: () => void;
-  plugin: App;
+  app: App;
 };
 
 type InitialState = {
@@ -32,7 +32,7 @@ type InitialState = {
 };
 
 export const ReviewList: FC<ReviewListProps> = ({
-  plugin,
+  app,
   onInstall,
   isInstalled,
 }) => {
@@ -49,15 +49,15 @@ export const ReviewList: FC<ReviewListProps> = ({
   const colors = useTheme();
 
   const sortedRatings = useMemo(
-    () => [...plugin.ratings].sort((a, b) => b.rating - a.rating),
-    [plugin.ratings]
+    () => [...app.ratings].sort((a, b) => b.rating - a.rating),
+    [app]
   );
 
   const fetchReviews = useCallback(
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getReviews(plugin.id, { skip })
+      getReviews(app.id, { skip })
         .then(({ reviews, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -70,14 +70,14 @@ export const ReviewList: FC<ReviewListProps> = ({
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    [plugin.id]
+    [app]
   );
 
   const onFinishSuccess: FormProps<ReviewForm>["onFinish"] = (values) => {
     if (address) {
       setState((prevState) => ({ ...prevState, submitting: true }));
 
-      addReview(plugin.id, { ...values, address })
+      addReview(app.id, { ...values, address })
         .then(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));
 
@@ -91,7 +91,7 @@ export const ReviewList: FC<ReviewListProps> = ({
     }
   };
 
-  useEffect(() => fetchReviews(0), [plugin, fetchReviews]);
+  useEffect(() => fetchReviews(0), [app, fetchReviews]);
 
   useEffect(
     () =>
@@ -117,15 +117,15 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{ fontSize: "60px", lineHeight: "72px" }}
               >
-                {plugin.rating.rate}
+                {app.rating.rate}
               </Stack>
               <VStack $style={{ gap: "4px" }}>
-                <Rate count={5} value={plugin.rating.rate} allowHalf disabled />
+                <Rate count={5} value={app.rating.rate} allowHalf disabled />
                 <Stack
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  {`${plugin.rating.count} Reviews`}
+                  {`${app.rating.count} Reviews`}
                 </Stack>
               </VStack>
             </HStack>
@@ -167,9 +167,7 @@ export const ReviewList: FC<ReviewListProps> = ({
                     height: "100%",
                     position: "absolute",
                     width: `${
-                      plugin.rating.count
-                        ? (count * 100) / plugin.rating.count
-                        : 0
+                      app.rating.count ? (count * 100) / app.rating.count : 0
                     }%`,
                   }}
                   $style={{
