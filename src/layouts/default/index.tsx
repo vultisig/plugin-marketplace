@@ -130,7 +130,7 @@ export const DefaultLayout = () => {
         backgroundPosition: "center center",
         backgroundSize: "cover",
         bottom: "0",
-        color: colors.white.toHex(),
+        color: colors.neutral50.toHex(),
         gap: "16px",
         justifyContent: "center",
         left: "0",
@@ -248,7 +248,7 @@ export const DefaultLayout = () => {
             </HStack>
             {isConnected && address ? (
               <HStack $style={{ alignItems: "center", gap: "20px" }}>
-                <Button kind="primary" onClick={copyAddress}>
+                <Button onClick={copyAddress}>
                   <MiddleTruncate $style={{ width: "118px" }}>
                     {address}
                   </MiddleTruncate>
@@ -261,9 +261,7 @@ export const DefaultLayout = () => {
                 </Dropdown>
               </HStack>
             ) : (
-              <Button kind="primary" onClick={connect}>
-                Connect Wallet
-              </Button>
+              <Button onClick={connect}>Connect Wallet</Button>
             )}
           </HStack>
         </HStack>

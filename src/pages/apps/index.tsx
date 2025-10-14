@@ -85,7 +85,7 @@ export const AppsPage = () => {
             <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
               Discover Apps
             </Stack>
-            <Divider />
+            <Divider light />
             <HStack $style={{ gap: "12px" }}>
               <HStack $style={{ flexGrow: "1", gap: "12px" }}>
                 {categories.map(({ id, name }) => (
@@ -95,7 +95,7 @@ export const AppsPage = () => {
                     onClick={() => setFilters({ ...filters, categoryId: id })}
                     $hover={{
                       backgroundColor: colors.textSecondary.toHex(),
-                      color: colors.buttonText.toHex(),
+                      color: colors.buttonTextLight.toHex(),
                     }}
                     $style={{
                       alignItems: "center",
@@ -107,7 +107,7 @@ export const AppsPage = () => {
                       borderRadius: "8px",
                       color:
                         filters.categoryId === id
-                          ? colors.buttonText.toHex()
+                          ? colors.buttonTextLight.toHex()
                           : colors.textPrimary.toHex(),
                       cursor: "pointer",
                       fontSize: "12px",
@@ -160,7 +160,7 @@ export const AppsPage = () => {
                     </Stack>
                     <PluginItem plugin={newPlugin} horizontal />
                   </VStack>
-                  <Divider />
+                  <Divider light />
                 </>
               ) : (
                 <></>

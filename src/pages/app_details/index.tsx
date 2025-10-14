@@ -1,11 +1,11 @@
 import { Anchor, Tooltip } from "antd";
+import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { PaymentModal } from "@/components/PaymentModal";
 import { PolicyList } from "@/components/PolicyList";
-import { PolicyModal } from "@/components/PolicyModal";
 import { Pricing } from "@/components/Pricing";
 import { ReviewList } from "@/components/ReviewList";
 import { useApp } from "@/hooks/useApp";
@@ -24,7 +24,7 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
-import { toNumeralFormat } from "@/utils/functions";
+import { snakeCaseToTitle, toNumeralFormat } from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
 import {
   getApp,
@@ -218,6 +218,7 @@ export const AppDetailsPage = () => {
                 $style={{
                   backgroundColor: colors.bgTertiary.toHex(),
                   borderRadius: "32px",
+                  gap: "16px",
                   padding: "16px",
                 }}
               >
@@ -298,12 +299,11 @@ export const AppDetailsPage = () => {
                     {isConnected ? (
                       isInstalled === undefined ||
                       isFeePluginInstalled === undefined ? (
-                        <Button kind="primary" disabled loading>
+                        <Button disabled loading>
                           Checking
                         </Button>
                       ) : !isFree && !isFeePluginInstalled ? (
                         <Button
-                          kind="primary"
                           loading={loading}
                           onClick={() =>
                             navigate(modalHash.payment, { state: true })
@@ -316,34 +316,69 @@ export const AppDetailsPage = () => {
                           <Button
                             disabled={loading || !schema}
                             href={modalHash.policy}
-                            kind="primary"
                           >
                             Add policy
                           </Button>
                           <Button
                             loading={loading}
                             onClick={handleUninstall}
-                            status="danger"
+                            kind="danger"
                           >
                             Uninstall
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          kind="primary"
-                          loading={loading}
-                          onClick={handleInstall}
-                        >
+                        <Button loading={loading} onClick={handleInstall}>
                           Install
                         </Button>
                       )
                     ) : (
-                      <Button kind="primary" onClick={connect}>
-                        Connect
-                      </Button>
+                      <Button onClick={connect}>Connect</Button>
                     )}
                     <Pricing pricing={plugin.pricing} center />
                   </VStack>
+                </HStack>
+                <HStack $style={{ justifyContent: "center", gap: "56px" }}>
+                  {[
+                    {
+                      lable: "Category",
+                      value: snakeCaseToTitle(plugin.categoryId),
+                    },
+                    { lable: "Created By", value: "Vultisig" },
+                    { lable: "Version", value: "2.1.0" },
+                    {
+                      lable: "Last Update",
+                      value: dayjs(plugin.updatedAt).format("YYYY-MM-DD"),
+                    },
+                  ].map(({ lable, value }, index) => (
+                    <Fragment key={index}>
+                      {index > 0 && <Divider vertical />}
+                      <VStack $style={{ alignItems: "center", gap: "12px" }}>
+                        <Stack
+                          as="span"
+                          $style={{
+                            color: colors.textTertiary.toHex(),
+                            fontSize: "13px",
+                          }}
+                        >
+                          {lable}
+                        </Stack>
+                        <Stack
+                          as="span"
+                          $style={{
+                            backgroundColor: colors.accentFour.toRgba(0.05),
+                            borderRadius: "4px",
+                            color: colors.accentFour.toHex(),
+                            fontSize: "12px",
+                            lineHeight: "20px",
+                            padding: "0 8px",
+                          }}
+                        >
+                          {value}
+                        </Stack>
+                      </VStack>
+                    </Fragment>
+                  ))}
                 </HStack>
               </VStack>
             </VStack>
@@ -351,6 +386,9 @@ export const AppDetailsPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
+                ...(isInstalled
+                  ? [{ key: "#policies", label: "Policies" }]
+                  : []),
                 { key: "#overview", label: "Overview" },
                 { key: "#features", label: "Features" },
                 { key: "#faqs", label: "FAQs" },
@@ -378,21 +416,25 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
+            {isInstalled && (
+              <>
+                <PolicyList app={plugin} />
+                <Divider light />
+              </>
+            )}
             <Overview />
-            <Divider />
+            <Divider light />
             <Features />
-            <Divider />
+            <Divider light />
             <FAQs />
-            <Divider />
+            <Divider light />
             <UsageInfo />
-            <Divider />
+            <Divider light />
             <ReviewList
               isInstalled={isInstalled}
               onInstall={handleInstall}
-              plugin={plugin}
+              app={plugin}
             />
-            <Divider />
-            <PolicyList plugin={plugin} />
           </VStack>
           <Stack
             as="span"
@@ -504,7 +546,6 @@ export const AppDetailsPage = () => {
         </VStack>
       </VStack>
       <PaymentModal />
-      {isConnected && <PolicyModal app={plugin} />}
     </>
   ) : (
     <Spin centered />
@@ -542,7 +583,7 @@ const FAQs = () => {
       <VStack $style={{ gap: "16px" }}>
         {data.map(({ answer, question }, index) => (
           <Fragment key={index}>
-            {index > 0 && <Divider />}
+            {index > 0 && <Divider light />}
             <Collapse
               bordered={false}
               items={[{ key: "1", label: question, children: answer }]}
@@ -573,7 +614,7 @@ const Features = () => {
           "Direct deposit integration",
         ].map((item, index) => (
           <Fragment key={index}>
-            {index > 0 && <Divider />}
+            {index > 0 && <Divider light />}
             <HStack $style={{ alignItems: "center", gap: "8px" }}>
               <Stack
                 as={CircleCheckIcon}
