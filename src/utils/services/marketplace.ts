@@ -102,7 +102,9 @@ export const getPolicies = (
   });
 
 export const getRecipeSpecification = (appId: string) =>
-  get<CustomRecipeSchema>(`${baseUrl}/plugins/${appId}/recipe-specification`);
+  get<CustomRecipeSchema>(
+    `${baseUrl}/plugins/${appId}/recipe-specification`
+  ).catch(() => undefined);
 
 export const getRecipeSuggestion = (
   appId: string,

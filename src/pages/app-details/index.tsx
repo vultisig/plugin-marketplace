@@ -36,25 +36,62 @@ import {
 import { App, CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
-  isFeePluginInstalled?: boolean;
+  app?: App;
+  isFeeApp?: boolean;
+  isFeeAppInstalled?: boolean;
   isFree?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
-  plugin?: App;
   schema?: CustomRecipeSchema;
 }
 
 export const AppDetailsPage = () => {
-  const initialState: InitialState = {};
-  const [state, setState] = useState(initialState);
-  const { isFeePluginInstalled, isFree, isInstalled, loading, plugin, schema } =
-    state;
+  const [state, setState] = useState<InitialState>({});
+  const {
+    app,
+    isFeeApp,
+    isFeeAppInstalled,
+    isFree,
+    isInstalled,
+    loading,
+    schema,
+  } = state;
   const { connect, isConnected, messageAPI, modalAPI } = useApp();
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const faqs = [
+    {
+      answer:
+        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
+      question: "How does it work?",
+    },
+    {
+      answer:
+        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
+      question: "How to install?",
+    },
+    {
+      answer:
+        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
+      question: "Is it safe? I don’t want to risk my funds.",
+    },
+    {
+      answer:
+        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
+      question: "Are apps audited?",
+    },
+  ];
+
+  const informations = [
+    { label: "Price", value: "$29.99" },
+    { label: "Fee Structure", value: "0.1% per trade" },
+    { label: "Downloads", value: "1,294" },
+    { label: "Support", value: "24/7" },
+  ];
 
   const checkStatus = useCallback(() => {
     isAppInstalled(id).then((isInstalled) => {
@@ -94,7 +131,7 @@ export const AppDetailsPage = () => {
 
             messageAPI.open({
               type: "error",
-              content: "Failed to uninstall plugin.",
+              content: "Failed to uninstall app.",
             });
           });
       },
@@ -107,52 +144,50 @@ export const AppDetailsPage = () => {
   };
 
   useEffect(() => {
+    if (!app) return;
+
+    const isFree = !app.pricing.length || isFeeApp;
+
+    if (isFree) {
+      setState((prevState) => ({
+        ...prevState,
+        isFree,
+        isFeeAppInstalled: false,
+      }));
+    } else {
+      isPluginInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+        (isFeeAppInstalled) => {
+          setState((prevState) => ({
+            ...prevState,
+            isFree,
+            isFeeAppInstalled,
+          }));
+        }
+      );
+    }
+  }, [app, isFeeApp]);
+
+  useEffect(() => {
     if (isInstalled === false) checkStatus();
   }, [checkStatus, isInstalled]);
 
   useEffect(() => {
-    if (isInstalled) {
-      getRecipeSpecification(id)
-        .then((schema) => {
-          setState((prevState) => ({ ...prevState, schema }));
-        })
-        .catch(() => {});
-    }
-  }, [id, isInstalled]);
+    if (!app || !isInstalled || isFeeApp) return;
+
+    getRecipeSpecification(app.id).then((schema) => {
+      setState((prevState) => ({ ...prevState, schema }));
+    });
+  }, [app, isFeeApp, isInstalled]);
 
   useEffect(() => {
-    if (plugin) {
-      const isFree = !plugin.pricing.length;
-
-      if (isFree) {
-        setState((prevState) => ({
-          ...prevState,
-          isFree,
-          isFeePluginInstalled: false,
-        }));
-      } else {
-        isPluginInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
-          (isFeePluginInstalled) => {
-            setState((prevState) => ({
-              ...prevState,
-              isFeePluginInstalled,
-              isFree,
-            }));
-          }
-        );
-      }
-    }
-  }, [id, isConnected, plugin]);
-
-  useEffect(() => {
-    if (isConnected) {
-      isAppInstalled(id).then((isInstalled) => {
+    if (app && isConnected) {
+      isAppInstalled(app.id).then((isInstalled) => {
         setState((prevState) => ({ ...prevState, isInstalled }));
       });
     } else {
       setState((prevState) => ({ ...prevState, isInstalled: undefined }));
     }
-  }, [id, isConnected]);
+  }, [app, isConnected]);
 
   useEffect(() => {
     if (timeoutRef.current !== null) {
@@ -161,8 +196,12 @@ export const AppDetailsPage = () => {
     }
 
     getApp(id)
-      .then((plugin) => {
-        setState((prevState) => ({ ...prevState, plugin }));
+      .then((app) => {
+        setState((prevState) => ({
+          ...prevState,
+          app,
+          isFeeApp: app.id === import.meta.env.VITE_FEE_PLUGIN_ID,
+        }));
       })
       .catch(() => {
         goBack(routeTree.apps.path);
@@ -176,7 +215,7 @@ export const AppDetailsPage = () => {
     };
   }, [id, goBack]);
 
-  return plugin ? (
+  return app ? (
     <>
       <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
         <VStack
@@ -234,7 +273,7 @@ export const AppDetailsPage = () => {
                   <HStack $style={{ alignItems: "center", gap: "16px" }}>
                     <Stack
                       as="img"
-                      alt={plugin.title}
+                      alt={app.title}
                       src="/media/payroll.png"
                       $style={{ height: "72px", width: "72px" }}
                     />
@@ -243,7 +282,7 @@ export const AppDetailsPage = () => {
                         as="span"
                         $style={{ fontSize: "22px", lineHeight: "24px" }}
                       >
-                        {plugin.title}
+                        {app.title}
                       </Stack>
                       <HStack $style={{ alignItems: "center", gap: "8px" }}>
                         <HStack $style={{ alignItems: "center", gap: "2px" }}>
@@ -287,8 +326,8 @@ export const AppDetailsPage = () => {
                               lineHeight: "20px",
                             }}
                           >
-                            {plugin.rating.count
-                              ? `${plugin.rating.rate}/5 (${plugin.rating.count})`
+                            {app.rating.count
+                              ? `${app.rating.rate}/5 (${app.rating.count})`
                               : "No Rating yet"}
                           </Stack>
                         </HStack>
@@ -298,11 +337,11 @@ export const AppDetailsPage = () => {
                   <VStack $style={{ gap: "16px" }}>
                     {isConnected ? (
                       isInstalled === undefined ||
-                      isFeePluginInstalled === undefined ? (
+                      isFeeAppInstalled === undefined ? (
                         <Button disabled loading>
                           Checking
                         </Button>
-                      ) : !isFree && !isFeePluginInstalled ? (
+                      ) : !isFree && !isFeeAppInstalled ? (
                         <Button
                           loading={loading}
                           onClick={() =>
@@ -313,12 +352,14 @@ export const AppDetailsPage = () => {
                         </Button>
                       ) : isInstalled ? (
                         <>
-                          <Button
-                            disabled={loading || !schema}
-                            href={modalHash.policy}
-                          >
-                            Add policy
-                          </Button>
+                          {!isFeeApp && (
+                            <Button
+                              disabled={loading || !schema}
+                              href={modalHash.policy}
+                            >
+                              Add policy
+                            </Button>
+                          )}
                           <Button
                             loading={loading}
                             onClick={handleUninstall}
@@ -335,20 +376,20 @@ export const AppDetailsPage = () => {
                     ) : (
                       <Button onClick={connect}>Connect</Button>
                     )}
-                    <Pricing pricing={plugin.pricing} center />
+                    <Pricing pricing={app.pricing} center />
                   </VStack>
                 </HStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
                     {
                       lable: "Category",
-                      value: snakeCaseToTitle(plugin.categoryId),
+                      value: snakeCaseToTitle(app.categoryId),
                     },
                     { lable: "Created By", value: "Vultisig" },
                     { lable: "Version", value: "2.1.0" },
                     {
                       lable: "Last Update",
-                      value: dayjs(plugin.updatedAt).format("YYYY-MM-DD"),
+                      value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                     },
                   ].map(({ lable, value }, index) => (
                     <Fragment key={index}>
@@ -386,7 +427,7 @@ export const AppDetailsPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
-                ...(isInstalled
+                ...(isInstalled && !isFeeApp
                   ? [{ key: "#policies", label: "Policies" }]
                   : []),
                 { key: "#overview", label: "Overview" },
@@ -416,24 +457,112 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            {isInstalled && (
+            {isInstalled && !isFeeApp && (
               <>
-                <PolicyList app={plugin} />
+                <PolicyList app={app} />
                 <Divider light />
               </>
             )}
-            <Overview />
+            <Stack id="overview">
+              Set and forget payroll for your team. Automate recurring team
+              payments with confidence. This plugin makes it easy to set,
+              schedule, and manage payroll so you can focus on building while
+              your contributors get paid on time.
+            </Stack>
             <Divider light />
-            <Features />
+            <VStack id="features" $style={{ gap: "24px" }}>
+              <Stack
+                as="span"
+                $style={{ fontSize: "18px", lineHeight: "28px" }}
+              >
+                Features
+              </Stack>
+              <VStack $style={{ gap: "8px" }}>
+                {[
+                  "Automated payroll processing",
+                  "Direct deposit integration",
+                  "Automated payroll processing",
+                  "Employee self-service portal",
+                  "Direct deposit integration",
+                ].map((item, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <Divider light />}
+                    <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                      <Stack
+                        as={CircleCheckIcon}
+                        $style={{
+                          color: colors.success.toHex(),
+                          fontSize: "24px",
+                        }}
+                      />
+                      <Stack as="span" $style={{ fontSize: "14px" }}>
+                        {item}
+                      </Stack>
+                    </HStack>
+                  </Fragment>
+                ))}
+              </VStack>
+            </VStack>
             <Divider light />
-            <FAQs />
+            <VStack id="faqs" $style={{ gap: "24px" }}>
+              <Stack
+                as="span"
+                $style={{ fontSize: "18px", lineHeight: "28px" }}
+              >
+                FAQs
+              </Stack>
+              <VStack $style={{ gap: "16px" }}>
+                {faqs.map(({ answer, question }, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <Divider light />}
+                    <Collapse
+                      bordered={false}
+                      items={[{ key: "1", label: question, children: answer }]}
+                      expandIconPosition="end"
+                      ghost
+                    />
+                  </Fragment>
+                ))}
+              </VStack>
+            </VStack>
             <Divider light />
-            <UsageInfo />
+            <VStack id="informations" $style={{ gap: "24px" }}>
+              <Stack
+                as="span"
+                $style={{ fontSize: "18px", lineHeight: "28px" }}
+              >
+                Usage Info
+              </Stack>
+              <VStack $style={{ gap: "16px" }}>
+                {informations.map(({ label, value }, index) => (
+                  <HStack
+                    key={index}
+                    $style={{
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Stack
+                      $style={{
+                        color: colors.textTertiary.toHex(),
+                        fontSize: "13px",
+                        lineHeight: "18px",
+                      }}
+                    >
+                      {label}
+                    </Stack>
+                    <Stack $style={{ fontSize: "14px", lineHeight: "18px" }}>
+                      {value}
+                    </Stack>
+                  </HStack>
+                ))}
+              </VStack>
+            </VStack>
             <Divider light />
             <ReviewList
               isInstalled={isInstalled}
               onInstall={handleInstall}
-              app={plugin}
+              app={app}
             />
           </VStack>
           <Stack
@@ -545,151 +674,9 @@ export const AppDetailsPage = () => {
           </VStack>
         </VStack>
       </VStack>
-      <PaymentModal />
+      {!isFeeApp && <PaymentModal />}
     </>
   ) : (
     <Spin centered />
-  );
-};
-
-const FAQs = () => {
-  const text =
-    "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.";
-
-  const data = [
-    {
-      answer: text,
-      question: "How does it work?",
-    },
-    {
-      answer: text,
-      question: "How to install?",
-    },
-    {
-      answer: text,
-      question: "Is it safe? I don’t want to risk my funds.",
-    },
-    {
-      answer: text,
-      question: "Are apps audited?",
-    },
-  ];
-
-  return (
-    <VStack id="faqs" $style={{ gap: "24px" }}>
-      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
-        FAQs
-      </Stack>
-      <VStack $style={{ gap: "16px" }}>
-        {data.map(({ answer, question }, index) => (
-          <Fragment key={index}>
-            {index > 0 && <Divider light />}
-            <Collapse
-              bordered={false}
-              items={[{ key: "1", label: question, children: answer }]}
-              expandIconPosition="end"
-              ghost
-            />
-          </Fragment>
-        ))}
-      </VStack>
-    </VStack>
-  );
-};
-
-const Features = () => {
-  const colors = useTheme();
-
-  return (
-    <VStack id="features" $style={{ gap: "24px" }}>
-      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
-        Features
-      </Stack>
-      <VStack $style={{ gap: "8px" }}>
-        {[
-          "Automated payroll processing",
-          "Direct deposit integration",
-          "Automated payroll processing",
-          "Employee self-service portal",
-          "Direct deposit integration",
-        ].map((item, index) => (
-          <Fragment key={index}>
-            {index > 0 && <Divider light />}
-            <HStack $style={{ alignItems: "center", gap: "8px" }}>
-              <Stack
-                as={CircleCheckIcon}
-                $style={{ color: colors.success.toHex(), fontSize: "24px" }}
-              />
-              <Stack as="span" $style={{ fontSize: "14px" }}>
-                {item}
-              </Stack>
-            </HStack>
-          </Fragment>
-        ))}
-      </VStack>
-    </VStack>
-  );
-};
-
-const Overview = () => {
-  return (
-    <Stack id="overview">
-      Set and forget payroll for your team. Automate recurring team payments
-      with confidence. This plugin makes it easy to set, schedule, and manage
-      payroll so you can focus on building while your contributors get paid on
-      time.
-    </Stack>
-  );
-};
-
-const UsageInfo = () => {
-  const colors = useTheme();
-
-  const data = [
-    {
-      label: "Price",
-      value: "$29.99",
-    },
-    {
-      label: "Fee Structure",
-      value: "0.1% per trade",
-    },
-    {
-      label: "Downloads",
-      value: "1,294",
-    },
-    {
-      label: "Support",
-      value: "24/7",
-    },
-  ];
-
-  return (
-    <VStack id="informations" $style={{ gap: "24px" }}>
-      <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
-        Usage Info
-      </Stack>
-      <VStack $style={{ gap: "16px" }}>
-        {data.map(({ label, value }, index) => (
-          <HStack
-            key={index}
-            $style={{ alignItems: "center", justifyContent: "space-between" }}
-          >
-            <Stack
-              $style={{
-                color: colors.textTertiary.toHex(),
-                fontSize: "13px",
-                lineHeight: "18px",
-              }}
-            >
-              {label}
-            </Stack>
-            <Stack $style={{ fontSize: "14px", lineHeight: "18px" }}>
-              {value}
-            </Stack>
-          </HStack>
-        ))}
-      </VStack>
-    </VStack>
   );
 };
