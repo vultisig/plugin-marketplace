@@ -72,7 +72,7 @@ jobs:
         run: npm ci
       - name: Build marketplace UI
         env:
-          VITE_MARKETPLACE_URL: https://store.vultisigplugin.app/api/
+          VITE_MARKETPLACE_URL: https://verifier-server-dev.fly.dev/
           VITE_FEE_PLUGIN_ID: vultisig-fees-feee
         run: npm run build
       - name: Upload build artifacts
