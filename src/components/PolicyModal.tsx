@@ -349,7 +349,7 @@ export const PolicyModal: FC<PolicyModalProps> = ({ app, onFinish }) => {
         setState((prevState) => ({
           ...prevState,
           schema,
-          step: schema.configuration?.properties ? 0 : 1,
+          step: schema?.configuration?.properties ? 0 : 1,
         }));
       })
       .catch(() => {});
