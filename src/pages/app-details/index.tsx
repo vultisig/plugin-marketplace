@@ -7,7 +7,6 @@ import { useTheme } from "styled-components";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
-import { Pricing } from "@/components/Pricing";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
@@ -24,7 +23,11 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import { routeTree } from "@/utils/constants/routes";
-import { snakeCaseToTitle, toNumeralFormat } from "@/utils/functions";
+import {
+  pricingText,
+  snakeCaseToTitle,
+  toNumeralFormat,
+} from "@/utils/functions";
 import { startReshareSession } from "@/utils/services/extension";
 import {
   getApp,
@@ -388,7 +391,24 @@ export const AppDetailsPage = () => {
                       )}
                     </VStack>
                   </HStack>
-                  <Pricing pricing={app.pricing} center />
+                  <VStack
+                    as="span"
+                    $style={{
+                      alignItems: "center",
+                      color: colors.textSecondary.toHex(),
+                      flexGrow: "1",
+                    }}
+                  >
+                    {app.pricing.length ? (
+                      app.pricing.map((price, index) => (
+                        <Stack as="span" key={index}>
+                          {pricingText(price)}
+                        </Stack>
+                      ))
+                    ) : (
+                      <Stack as="span">This plugin is free</Stack>
+                    )}
+                  </VStack>
                 </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[

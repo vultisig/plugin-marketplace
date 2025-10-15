@@ -1,13 +1,12 @@
 import { FC } from "react";
 import { useTheme } from "styled-components";
 
-import { Pricing } from "@/components/Pricing";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { routeTree } from "@/utils/constants/routes";
-import { toNumeralFormat } from "@/utils/functions";
+import { pricingText, toNumeralFormat } from "@/utils/functions";
 import { App } from "@/utils/types";
 
 export const AppItem: FC<App & { horizontal?: boolean }> = ({
@@ -121,7 +120,24 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
           {description}
         </VStack>
         <VStack $style={{ gap: "12px" }}>
-          <Pricing pricing={pricing} center={!horizontal} />
+          <VStack
+            as="span"
+            $style={{
+              alignItems: horizontal ? "normal" : "center",
+              color: colors.textSecondary.toHex(),
+              flexGrow: "1",
+            }}
+          >
+            {pricing.length ? (
+              pricing.map((price, index) => (
+                <Stack as="span" key={index}>
+                  {pricingText(price)}
+                </Stack>
+              ))
+            ) : (
+              <Stack as="span">This plugin is free</Stack>
+            )}
+          </VStack>
           <Button href={routeTree.appDetails.link(id)}>See Details</Button>
         </VStack>
       </VStack>
