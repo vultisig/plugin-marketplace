@@ -10,10 +10,13 @@ import { routeTree } from "@/utils/constants/routes";
 import { toNumeralFormat } from "@/utils/functions";
 import { App } from "@/utils/types";
 
-type PluginItemProps = { plugin: App; horizontal?: boolean };
-
-export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
-  const { description, id, pricing, title } = plugin;
+export const AppItem: FC<App & { horizontal?: boolean }> = ({
+  description,
+  horizontal,
+  id,
+  pricing,
+  title,
+}) => {
   const colors = useTheme();
 
   return (
@@ -118,8 +121,8 @@ export const PluginItem: FC<PluginItemProps> = ({ horizontal, plugin }) => {
           {description}
         </VStack>
         <VStack $style={{ gap: "12px" }}>
-          <Button href={routeTree.appDetails.link(id)}>See Details</Button>
           <Pricing pricing={pricing} center={!horizontal} />
+          <Button href={routeTree.appDetails.link(id)}>See Details</Button>
         </VStack>
       </VStack>
     </Stack>

@@ -3,7 +3,7 @@ import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { PluginItem } from "@/components/PluginItem";
+import { AppItem } from "@/components/AppItem";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { Divider } from "@/toolkits/Divider";
 import { Select } from "@/toolkits/Select";
@@ -15,27 +15,27 @@ import { App, AppFilters, Category } from "@/utils/types";
 type InitialState = {
   categories: Category[];
   loading: boolean;
-  plugins: App[];
+  apps: App[];
 };
 
 export const AppsPage = () => {
   const initialState: InitialState = {
     categories: [],
     loading: true,
-    plugins: [],
+    apps: [],
   };
   const [state, setState] = useState(initialState);
-  const { categories, loading, plugins } = state;
+  const { categories, loading, apps } = state;
   const { filters, setFilters } = useFilterParams<AppFilters>();
   const colors = useTheme();
-  const [newPlugin] = plugins;
+  const [newPlugin] = apps;
 
   const fetchPlugins = useCallback((skip: number, filters: AppFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
     getApps({ ...filters, skip })
-      .then(({ plugins }) => {
-        setState((prevState) => ({ ...prevState, loading: false, plugins }));
+      .then(({ apps }) => {
+        setState((prevState) => ({ ...prevState, loading: false, apps }));
       })
       .catch(() => {
         setState((prevState) => ({ ...prevState, loading: false }));
@@ -147,7 +147,7 @@ export const AppsPage = () => {
 
           {loading ? (
             <Spin centered />
-          ) : plugins.length ? (
+          ) : apps.length ? (
             <>
               {newPlugin ? (
                 <>
@@ -158,7 +158,7 @@ export const AppsPage = () => {
                     >
                       New
                     </Stack>
-                    <PluginItem plugin={newPlugin} horizontal />
+                    <AppItem {...newPlugin} horizontal />
                   </VStack>
                   <Divider light />
                 </>
@@ -182,8 +182,8 @@ export const AppsPage = () => {
                     xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
                   }}
                 >
-                  {plugins.map((plugin) => (
-                    <PluginItem key={plugin.id} plugin={plugin} />
+                  {apps.map((app) => (
+                    <AppItem key={app.id} {...app} />
                   ))}
                 </Stack>
               </VStack>

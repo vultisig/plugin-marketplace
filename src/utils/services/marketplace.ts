@@ -77,7 +77,7 @@ export const getApps = ({
         pricing: plugin.pricing || [],
       })) || [];
 
-    return { plugins: modifiedPlugins, totalCount };
+    return { apps: modifiedPlugins, totalCount };
   });
 
 export const getCategories = () => get<Category[]>(`${baseUrl}/categories`);

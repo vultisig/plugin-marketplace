@@ -570,11 +570,7 @@ export const AppDetailsPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <ReviewList
-              isInstalled={isInstalled}
-              onInstall={handleInstall}
-              app={app}
-            />
+            <ReviewList {...app} />
           </VStack>
           <Stack
             as="span"
