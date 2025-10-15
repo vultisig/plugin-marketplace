@@ -1,3 +1,4 @@
+import { Form, FormItemProps } from "antd";
 import dayjs from "dayjs";
 import { FC, ReactNode } from "react";
 
@@ -6,39 +7,45 @@ import { Input } from "@/toolkits/Input";
 import { InputNumber } from "@/toolkits/InputNumber";
 import { Select } from "@/toolkits/Select";
 import { camelCaseToTitle } from "@/utils/functions";
-import { DynamicFieldProps } from "@/utils/types";
+import { FieldProps } from "@/utils/types";
 
-export const DynamicField: FC<DynamicFieldProps & { disabled?: boolean }> = (
-  field
-) => {
+type DynamicFormItemProps = FieldProps & FormItemProps & { disabled?: boolean };
+
+export const DynamicFormItem: FC<DynamicFormItemProps> = ({
+  disabled,
+  enum: enumerable,
+  format,
+  type,
+  ...rest
+}) => {
   let element: ReactNode;
 
-  switch (field.type) {
+  switch (type) {
     case "int": {
-      element = <InputNumber />;
+      element = <InputNumber disabled={disabled} />;
 
       break;
     }
     default: {
-      if (field.enum) {
+      if (enumerable) {
         element = (
           <Select
-            disabled={field.disabled}
-            options={field.enum.map((value) => ({
+            disabled={disabled}
+            options={enumerable.map((value) => ({
               label: camelCaseToTitle(value),
               value,
             }))}
           />
         );
       } else {
-        switch (field.format) {
+        switch (format) {
           case "date-time": {
             element = (
               <DatePicker
-                disabled={field.disabled}
-                disabledDate={(current) => {
-                  return current && current.isBefore(dayjs(), "day");
-                }}
+                disabled={disabled}
+                disabledDate={(current) =>
+                  current && current.isBefore(dayjs(), "day")
+                }
                 format="YYYY-MM-DD HH:mm"
                 showNow={false}
                 showTime={{
@@ -60,7 +67,7 @@ export const DynamicField: FC<DynamicFieldProps & { disabled?: boolean }> = (
             break;
           }
           default: {
-            element = <Input />;
+            element = <Input disabled={disabled} />;
             break;
           }
         }
@@ -69,5 +76,5 @@ export const DynamicField: FC<DynamicFieldProps & { disabled?: boolean }> = (
     }
   }
 
-  return element;
+  return <Form.Item {...rest}>{element}</Form.Item>;
 };
