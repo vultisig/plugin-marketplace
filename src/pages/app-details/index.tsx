@@ -30,7 +30,6 @@ import {
   getApp,
   getRecipeSpecification,
   isAppInstalled,
-  isPluginInstalled,
   uninstallApp,
 } from "@/utils/services/marketplace";
 import { App, CustomRecipeSchema } from "@/utils/types";
@@ -94,15 +93,38 @@ export const AppDetailsPage = () => {
   ];
 
   const checkStatus = useCallback(() => {
-    isAppInstalled(id).then((isInstalled) => {
-      if (isInstalled) {
-        setState((prevState) => ({ ...prevState, isInstalled }));
-      } else {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(checkStatus, 1000);
-      }
-    });
-  }, [id]);
+    if (!app) return;
+
+    if (isFree || isFeeAppInstalled) {
+      isAppInstalled(app.id).then((isInstalled) => {
+        if (isInstalled) {
+          if (isFeeApp) {
+            setState((prevState) => ({ ...prevState, isInstalled }));
+          } else {
+            getRecipeSpecification(app.id).then((schema) => {
+              setState((prevState) => ({ ...prevState, isInstalled, schema }));
+            });
+          }
+        } else {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(checkStatus, 1000);
+        }
+      });
+    } else {
+      isAppInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+        (isFeeAppInstalled) => {
+          setState((prevState) => ({ ...prevState, isFeeAppInstalled }));
+
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = setTimeout(checkStatus, 1000);
+        }
+      );
+    }
+  }, [app, isFeeApp, isFeeAppInstalled, isFree]);
+
+  const handleInstall = () => {
+    startReshareSession(id);
+  };
 
   const handleUninstall = () => {
     modalAPI.confirm({
@@ -139,55 +161,13 @@ export const AppDetailsPage = () => {
     });
   };
 
-  const handleInstall = () => {
-    startReshareSession(id);
-  };
-
   useEffect(() => {
-    if (!app) return;
-
-    const isFree = !app.pricing.length || isFeeApp;
-
-    if (isFree) {
-      setState((prevState) => ({
-        ...prevState,
-        isFree,
-        isFeeAppInstalled: false,
-      }));
-    } else {
-      isPluginInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
-        (isFeeAppInstalled) => {
-          setState((prevState) => ({
-            ...prevState,
-            isFree,
-            isFeeAppInstalled,
-          }));
-        }
-      );
-    }
-  }, [app, isFeeApp]);
-
-  useEffect(() => {
-    if (isInstalled === false) checkStatus();
-  }, [checkStatus, isInstalled]);
-
-  useEffect(() => {
-    if (!app || !isInstalled || isFeeApp) return;
-
-    getRecipeSpecification(app.id).then((schema) => {
-      setState((prevState) => ({ ...prevState, schema }));
-    });
-  }, [app, isFeeApp, isInstalled]);
-
-  useEffect(() => {
-    if (app && isConnected) {
-      isAppInstalled(app.id).then((isInstalled) => {
-        setState((prevState) => ({ ...prevState, isInstalled }));
-      });
+    if (isConnected) {
+      checkStatus();
     } else {
       setState((prevState) => ({ ...prevState, isInstalled: undefined }));
     }
-  }, [app, isConnected]);
+  }, [checkStatus, isConnected]);
 
   useEffect(() => {
     if (timeoutRef.current !== null) {
@@ -197,11 +177,30 @@ export const AppDetailsPage = () => {
 
     getApp(id)
       .then((app) => {
-        setState((prevState) => ({
-          ...prevState,
-          app,
-          isFeeApp: app.id === import.meta.env.VITE_FEE_PLUGIN_ID,
-        }));
+        const isFeeApp = app.id === import.meta.env.VITE_FEE_PLUGIN_ID;
+        const isFree = !app.pricing.length || isFeeApp;
+
+        if (isFree) {
+          setState((prevState) => ({
+            ...prevState,
+            app,
+            isFeeApp,
+            isFree,
+            isFeeAppInstalled: true,
+          }));
+        } else {
+          isAppInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+            (isFeeAppInstalled) => {
+              setState((prevState) => ({
+                ...prevState,
+                app,
+                isFeeApp,
+                isFree,
+                isFeeAppInstalled,
+              }));
+            }
+          );
+        }
       })
       .catch(() => {
         goBack(routeTree.apps.path);
@@ -261,124 +260,132 @@ export const AppDetailsPage = () => {
                   padding: "16px",
                 }}
               >
-                <HStack
+                <VStack
                   $style={{
                     backgroundColor: colors.bgPrimary.toHex(),
                     border: `solid 1px ${colors.borderNormal.toHex()}`,
                     borderRadius: "24px",
-                    justifyContent: "space-between",
+                    gap: "16px",
                     padding: "24px",
                   }}
                 >
-                  <HStack $style={{ alignItems: "center", gap: "16px" }}>
-                    <Stack
-                      as="img"
-                      alt={app.title}
-                      src="/media/payroll.png"
-                      $style={{ height: "72px", width: "72px" }}
-                    />
-                    <VStack $style={{ gap: "8px", justifyContent: "center" }}>
+                  <HStack
+                    $style={{
+                      alignItems: "center",
+                      gap: "16px",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <HStack $style={{ alignItems: "center", gap: "16px" }}>
                       <Stack
-                        as="span"
-                        $style={{ fontSize: "22px", lineHeight: "24px" }}
-                      >
-                        {app.title}
-                      </Stack>
-                      <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
-                          <Stack
-                            as={CircleArrowDownIcon}
-                            $style={{
-                              color: colors.textTertiary.toHex(),
-                              fontSize: "16px",
-                            }}
-                          />
-                          <Stack
-                            as="span"
-                            $style={{
-                              color: colors.textTertiary.toHex(),
-                              lineHeight: "20px",
-                            }}
-                          >
-                            {toNumeralFormat(1258)}
-                          </Stack>
-                        </HStack>
+                        as="img"
+                        alt={app.title}
+                        src="/media/payroll.png"
+                        $style={{ height: "72px", width: "72px" }}
+                      />
+                      <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                         <Stack
-                          $style={{
-                            backgroundColor: colors.borderLight.toHex(),
-                            height: "3px",
-                            width: "3px",
-                          }}
-                        />
-                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
+                          as="span"
+                          $style={{ fontSize: "22px", lineHeight: "24px" }}
+                        >
+                          {app.title}
+                        </Stack>
+                        <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                          <HStack $style={{ alignItems: "center", gap: "2px" }}>
+                            <Stack
+                              as={CircleArrowDownIcon}
+                              $style={{
+                                color: colors.textTertiary.toHex(),
+                                fontSize: "16px",
+                              }}
+                            />
+                            <Stack
+                              as="span"
+                              $style={{
+                                color: colors.textTertiary.toHex(),
+                                lineHeight: "20px",
+                              }}
+                            >
+                              {toNumeralFormat(1258)}
+                            </Stack>
+                          </HStack>
                           <Stack
-                            as={StarIcon}
                             $style={{
-                              color: colors.warning.toHex(),
-                              fill: colors.warning.toHex(),
-                              fontSize: "16px",
+                              backgroundColor: colors.borderLight.toHex(),
+                              height: "3px",
+                              width: "3px",
                             }}
                           />
-                          <Stack
-                            as="span"
-                            $style={{
-                              color: colors.textTertiary.toHex(),
-                              lineHeight: "20px",
-                            }}
-                          >
-                            {app.rating.count
-                              ? `${app.rating.rate}/5 (${app.rating.count})`
-                              : "No Rating yet"}
-                          </Stack>
-                        </HStack>
-                      </HStack>
-                    </VStack>
-                  </HStack>
-                  <VStack $style={{ gap: "16px" }}>
-                    {isConnected ? (
-                      isInstalled === undefined ||
-                      isFeeAppInstalled === undefined ? (
-                        <Button disabled loading>
-                          Checking
-                        </Button>
-                      ) : !isFree && !isFeeAppInstalled ? (
-                        <Button
-                          loading={loading}
-                          onClick={() =>
-                            navigate(modalHash.payment, { state: true })
-                          }
-                        >
-                          Install
-                        </Button>
-                      ) : isInstalled ? (
-                        <>
-                          {!isFeeApp && (
-                            <Button
-                              disabled={loading || !schema}
-                              href={modalHash.policy}
+                          <HStack $style={{ alignItems: "center", gap: "2px" }}>
+                            <Stack
+                              as={StarIcon}
+                              $style={{
+                                color: colors.warning.toHex(),
+                                fill: colors.warning.toHex(),
+                                fontSize: "16px",
+                              }}
+                            />
+                            <Stack
+                              as="span"
+                              $style={{
+                                color: colors.textTertiary.toHex(),
+                                lineHeight: "20px",
+                              }}
                             >
-                              Add policy
-                            </Button>
-                          )}
+                              {app.rating.count
+                                ? `${app.rating.rate}/5 (${app.rating.count})`
+                                : "No Rating yet"}
+                            </Stack>
+                          </HStack>
+                        </HStack>
+                      </VStack>
+                    </HStack>
+                    <VStack $style={{ gap: "8px" }}>
+                      {isConnected ? (
+                        isInstalled === undefined ||
+                        isFeeAppInstalled === undefined ? (
+                          <Button disabled loading>
+                            Checking
+                          </Button>
+                        ) : !isFree && !isFeeAppInstalled ? (
                           <Button
                             loading={loading}
-                            onClick={handleUninstall}
-                            kind="danger"
+                            onClick={() =>
+                              navigate(modalHash.payment, { state: true })
+                            }
                           >
-                            Uninstall
+                            Install
                           </Button>
-                        </>
+                        ) : isInstalled ? (
+                          <>
+                            {!isFeeApp && (
+                              <Button
+                                disabled={loading || !schema}
+                                href={modalHash.policy}
+                              >
+                                Add policy
+                              </Button>
+                            )}
+                            <Button
+                              loading={loading}
+                              onClick={handleUninstall}
+                              kind="danger"
+                            >
+                              Uninstall
+                            </Button>
+                          </>
+                        ) : (
+                          <Button loading={loading} onClick={handleInstall}>
+                            Install
+                          </Button>
+                        )
                       ) : (
-                        <Button loading={loading} onClick={handleInstall}>
-                          Install
-                        </Button>
-                      )
-                    ) : (
-                      <Button onClick={connect}>Connect</Button>
-                    )}
-                    <Pricing pricing={app.pricing} center />
-                  </VStack>
-                </HStack>
+                        <Button onClick={connect}>Connect</Button>
+                      )}
+                    </VStack>
+                  </HStack>
+                  <Pricing pricing={app.pricing} center />
+                </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
                     {
@@ -674,7 +681,7 @@ export const AppDetailsPage = () => {
           </VStack>
         </VStack>
       </VStack>
-      {!isFeeApp && <PaymentModal />}
+      {!isFeeApp && !isFeeAppInstalled && <PaymentModal />}
     </>
   ) : (
     <Spin centered />

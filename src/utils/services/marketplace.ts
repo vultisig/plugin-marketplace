@@ -131,11 +131,6 @@ export const isAppInstalled = (id: string) =>
     .then(() => true)
     .catch(() => false);
 
-export const isPluginInstalled = (id: string) =>
-  get<{ totalCount: number }>(`${baseUrl}/plugin/policies/${id}`)
-    .then(({ totalCount }) => totalCount > 0)
-    .catch(() => false);
-
 export const reshareVault = (data: ReshareForm) =>
   post(`${baseUrl}/vault/reshare`, toSnakeCase(data));
 
