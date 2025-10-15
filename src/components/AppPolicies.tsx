@@ -7,7 +7,7 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
-import { DynamicField } from "@/components/DynamicField";
+import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -741,21 +741,21 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                         gridTemplateColumns: "repeat(2, 1fr)",
                       }}
                     >
-                      {Object.entries(properties).map(([key, field]) => {
-                        const required =
-                          !!schema.configuration?.required.includes(key);
-
-                        return (
-                          <Form.Item
-                            key={key}
-                            name={key}
-                            label={camelCaseToTitle(key)}
-                            rules={[{ required }]}
-                          >
-                            <DynamicField disabled={isFeesPlugin} {...field} />
-                          </Form.Item>
-                        );
-                      })}
+                      {Object.entries(properties).map(([key, field]) => (
+                        <DynamicFormItem
+                          disabled={isFeesPlugin}
+                          key={key}
+                          label={camelCaseToTitle(key)}
+                          name={key}
+                          rules={[
+                            {
+                              required:
+                                schema.configuration?.required.includes(key),
+                            },
+                          ]}
+                          {...field}
+                        />
+                      ))}
                     </Stack>
                   </Stack>
                 )}

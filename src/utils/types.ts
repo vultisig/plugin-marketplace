@@ -19,13 +19,13 @@ export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
   configuration?: {
-    properties: Record<string, DynamicFieldProps>;
+    properties: Record<string, FieldProps>;
     required: string[];
     type: "object";
   };
 };
 
-export type DynamicFieldProps = {
+export type FieldProps = {
   enum: string[];
   format: string;
   type: string;
