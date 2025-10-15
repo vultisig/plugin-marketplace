@@ -17,12 +17,6 @@ import { modalHash } from "@/utils/constants/core";
 import { addReview, getReviews } from "@/utils/services/marketplace";
 import { App, Review, ReviewForm } from "@/utils/types";
 
-type ReviewListProps = {
-  isInstalled?: boolean;
-  onInstall: () => void;
-  app: App;
-};
-
 type InitialState = {
   loading: boolean;
   reviews: Review[];
@@ -31,11 +25,7 @@ type InitialState = {
   visible?: boolean;
 };
 
-export const ReviewList: FC<ReviewListProps> = ({
-  app,
-  onInstall,
-  isInstalled,
-}) => {
+export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
   const [state, setState] = useState<InitialState>({
     loading: true,
     reviews: [],
@@ -49,15 +39,15 @@ export const ReviewList: FC<ReviewListProps> = ({
   const colors = useTheme();
 
   const sortedRatings = useMemo(
-    () => [...app.ratings].sort((a, b) => b.rating - a.rating),
-    [app]
+    () => [...ratings].sort((a, b) => b.rating - a.rating),
+    [ratings]
   );
 
   const fetchReviews = useCallback(
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getReviews(app.id, { skip })
+      getReviews(id, { skip })
         .then(({ reviews, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -70,14 +60,14 @@ export const ReviewList: FC<ReviewListProps> = ({
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    [app]
+    [id]
   );
 
   const onFinishSuccess: FormProps<ReviewForm>["onFinish"] = (values) => {
     if (address) {
       setState((prevState) => ({ ...prevState, submitting: true }));
 
-      addReview(app.id, { ...values, address })
+      addReview(id, { ...values, address })
         .then(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));
 
@@ -91,7 +81,7 @@ export const ReviewList: FC<ReviewListProps> = ({
     }
   };
 
-  useEffect(() => fetchReviews(0), [app, fetchReviews]);
+  useEffect(() => fetchReviews(0), [id, fetchReviews]);
 
   useEffect(
     () =>
@@ -117,24 +107,20 @@ export const ReviewList: FC<ReviewListProps> = ({
                 as="span"
                 $style={{ fontSize: "60px", lineHeight: "72px" }}
               >
-                {app.rating.rate}
+                {rating.rate}
               </Stack>
               <VStack $style={{ gap: "4px" }}>
-                <Rate count={5} value={app.rating.rate} allowHalf disabled />
+                <Rate count={5} value={rating.rate} allowHalf disabled />
                 <Stack
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  {`${app.rating.count} Reviews`}
+                  {`${rating.count} Reviews`}
                 </Stack>
               </VStack>
             </HStack>
             {isConnected ? (
-              isInstalled ? (
-                <Button href={modalHash.review}>Write a review</Button>
-              ) : (
-                <Button onClick={onInstall}>Install</Button>
-              )
+              <Button href={modalHash.review}>Write a review</Button>
             ) : (
               <Button onClick={connect}>Connect</Button>
             )}
@@ -158,16 +144,16 @@ export const ReviewList: FC<ReviewListProps> = ({
               ))}
             </VStack>
             <VStack $style={{ flexGrow: "1", gap: "12px" }}>
-              {sortedRatings.map(({ count, rating }) => (
+              {sortedRatings.map((item) => (
                 <Stack
-                  key={rating}
+                  key={item.rating}
                   $before={{
                     backgroundColor: colors.warning.toHex(),
                     borderRadius: "4px",
                     height: "100%",
                     position: "absolute",
                     width: `${
-                      app.rating.count ? (count * 100) / app.rating.count : 0
+                      rating.count ? (item.count * 100) / rating.count : 0
                     }%`,
                   }}
                   $style={{

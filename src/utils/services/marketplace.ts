@@ -77,7 +77,7 @@ export const getApps = ({
         pricing: plugin.pricing || [],
       })) || [];
 
-    return { plugins: modifiedPlugins, totalCount };
+    return { apps: modifiedPlugins, totalCount };
   });
 
 export const getCategories = () => get<Category[]>(`${baseUrl}/categories`);
@@ -102,7 +102,9 @@ export const getPolicies = (
   });
 
 export const getRecipeSpecification = (appId: string) =>
-  get<CustomRecipeSchema>(`${baseUrl}/plugins/${appId}/recipe-specification`);
+  get<CustomRecipeSchema>(
+    `${baseUrl}/plugins/${appId}/recipe-specification`
+  ).catch(() => undefined);
 
 export const getRecipeSuggestion = (
   appId: string,
@@ -127,11 +129,6 @@ export const getReviews = (
 export const isAppInstalled = (id: string) =>
   get(`${baseUrl}/vault/exist/${id}/${getVaultId()}`)
     .then(() => true)
-    .catch(() => false);
-
-export const isPluginInstalled = (id: string) =>
-  get<{ totalCount: number }>(`${baseUrl}/plugin/policies/${id}`)
-    .then(({ totalCount }) => totalCount > 0)
     .catch(() => false);
 
 export const reshareVault = (data: ReshareForm) =>

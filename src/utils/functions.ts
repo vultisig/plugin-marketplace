@@ -1,6 +1,6 @@
 import { Dayjs } from "dayjs";
 
-import { AppPolicy, CSSProperties } from "@/utils/types";
+import { AppPolicy, AppPricing, CSSProperties } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -68,6 +68,19 @@ export const policyToHexMessage = ({
   }
 
   return fields.join(delimiter);
+};
+
+export const pricingText = ({ amount, frequency, type }: AppPricing) => {
+  switch (type) {
+    case "once":
+      return `$${amount / 1e6} one time installation fee`;
+    case "recurring":
+      return `$${amount / 1e6} ${frequency} recurring fee`;
+    case "per-tx":
+      return `$${amount / 1e6} per transaction fee`;
+    default:
+      return "Unknown pricing type";
+  }
 };
 
 export const snakeCaseToTitle = (input: string) => {
