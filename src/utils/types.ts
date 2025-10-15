@@ -15,20 +15,20 @@ export type Category = {
   name: string;
 };
 
-type Property = {
-  enum: string[];
-  format: string;
-  type: string;
-};
-
 export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
   configuration?: {
-    properties: Record<string, Property>;
+    properties: Record<string, DynamicFieldProps>;
     required: string[];
     type: "object";
   };
+};
+
+export type DynamicFieldProps = {
+  enum: string[];
+  format: string;
+  type: string;
 };
 
 export type ListFilters = {

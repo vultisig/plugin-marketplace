@@ -4,10 +4,10 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
+import { AppPolicies } from "@/components/AppPolicies";
+import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
-import { PolicyList } from "@/components/PolicyList";
 import { Pricing } from "@/components/Pricing";
-import { ReviewList } from "@/components/ReviewList";
 import { useApp } from "@/hooks/useApp";
 import { useGoBack } from "@/hooks/useGoBack";
 import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
@@ -470,7 +470,7 @@ export const AppDetailsPage = () => {
             />
             {isInstalled && !isFeeApp && (
               <>
-                <PolicyList app={app} />
+                <AppPolicies {...app} />
                 <Divider light />
               </>
             )}
@@ -570,7 +570,7 @@ export const AppDetailsPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <ReviewList {...app} />
+            <AppReviews {...app} />
           </VStack>
           <Stack
             as="span"

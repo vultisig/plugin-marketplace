@@ -25,7 +25,7 @@ type InitialState = {
   visible?: boolean;
 };
 
-export const ReviewList: FC<App> = ({ id, rating, ratings }) => {
+export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
   const [state, setState] = useState<InitialState>({
     loading: true,
     reviews: [],
