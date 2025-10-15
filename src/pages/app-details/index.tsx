@@ -97,12 +97,12 @@ export const AppDetailsPage = () => {
 
     if (isFree || isFeeAppInstalled) {
       isAppInstalled(app.id).then((isInstalled) => {
+        setState((prevState) => ({ ...prevState, isInstalled }));
+
         if (isInstalled) {
-          if (isFeeApp) {
-            setState((prevState) => ({ ...prevState, isInstalled }));
-          } else {
+          if (!isFeeApp) {
             getRecipeSpecification(app.id).then((schema) => {
-              setState((prevState) => ({ ...prevState, isInstalled, schema }));
+              setState((prevState) => ({ ...prevState, schema }));
             });
           }
         } else {
@@ -113,7 +113,11 @@ export const AppDetailsPage = () => {
     } else {
       isAppInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
         (isFeeAppInstalled) => {
-          setState((prevState) => ({ ...prevState, isFeeAppInstalled }));
+          setState((prevState) => ({
+            ...prevState,
+            isFeeAppInstalled,
+            isInstalled: false,
+          }));
 
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           timeoutRef.current = setTimeout(checkStatus, 1000);
