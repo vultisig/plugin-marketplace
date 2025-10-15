@@ -37,7 +37,7 @@ import { InputNumber } from "@/toolkits/InputNumber";
 import { Select } from "@/toolkits/Select";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
+import { feeAppRules, modalHash } from "@/utils/constants/core";
 import {
   camelCaseToTitle,
   policyToHexMessage,
@@ -50,7 +50,6 @@ import {
   addPolicy,
   delPolicy,
   getPolicies,
-  getRecipeSpecification,
   getRecipeSuggestion,
 } from "@/utils/services/marketplace";
 import {
@@ -74,21 +73,22 @@ type FormFieldType = {
 type InitialState = {
   loading: boolean;
   policies: CustomAppPolicy[];
-  schema?: CustomRecipeSchema;
   step: number;
   submitting?: boolean;
   totalCount: number;
   visible?: boolean;
 };
 
-export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
+type AppPoliciesProps = { app: App; schema: CustomRecipeSchema };
+
+export const AppPolicies: FC<AppPoliciesProps> = ({ app, schema }) => {
   const [state, setState] = useState<InitialState>({
     loading: true,
     policies: [],
-    step: 0,
+    step: schema.configuration?.properties ? 0 : 1,
     totalCount: 0,
   });
-  const { loading, policies, schema, step, submitting, visible } = state;
+  const { loading, policies, step, submitting, visible } = state;
   const { address, messageAPI, modalAPI } = useApp();
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
@@ -144,19 +144,23 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     },
   ];
 
-  const isFeesPlugin = useMemo(() => {
-    return id === import.meta.env.VITE_FEE_PLUGIN_ID;
-  }, [id]);
+  const isFeeApp = useMemo(() => {
+    return app.id === import.meta.env.VITE_FEE_PLUGIN_ID;
+  }, [app]);
+
+  const isFreeApp = useMemo(() => {
+    return !app.pricing.length;
+  }, [app]);
 
   const properties = useMemo(() => {
-    return schema?.configuration?.properties;
+    return schema.configuration?.properties;
   }, [schema]);
 
   const fetchPolicies = useCallback(
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getPolicies(id, { skip })
+      getPolicies(app.id, { skip })
         .then(({ policies, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -169,7 +173,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    [id]
+    [app]
   );
 
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
@@ -219,7 +223,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
           )
         ) as Record<string, string>;
 
-        getRecipeSuggestion(id, configuration).then(
+        getRecipeSuggestion(app.id, configuration).then(
           ({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
@@ -260,7 +264,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         if (address && schema) {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          const rules = values.rules
+          const appRules = values.rules
             .filter(
               ({ resource }) =>
                 schema.supportedResources.findIndex(
@@ -321,7 +325,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
               });
             });
 
-          const feePolicies = pricing.map((price) => {
+          const feePolicies = app.pricing.map((price) => {
             let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
             let type = FeeType.FEE_TYPE_UNSPECIFIED;
 
@@ -397,7 +401,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             id: schema.pluginId,
             maxTxsPerWindow: values.maxTxsPerWindow,
             name: schema.pluginName,
-            rules,
+            rules: isFreeApp ? appRules : [...appRules, ...feeAppRules],
             rateLimitWindow: values.rateLimitWindow,
             version: schema.pluginVersion,
           });
@@ -409,7 +413,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
           const policy: AppPolicy = {
             active: true,
             id: uuidv4(),
-            pluginId: id,
+            pluginId: app.id,
             pluginVersion: String(schema.pluginVersion),
             policyVersion: 0,
             publicKey: getVaultId(),
@@ -463,19 +467,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     }
   }, [form, hash, visible]);
 
-  useEffect(() => {
-    fetchPolicies(0);
-
-    getRecipeSpecification(id)
-      .then((schema) => {
-        setState((prevState) => ({
-          ...prevState,
-          schema,
-          step: schema?.configuration?.properties ? 0 : 1,
-        }));
-      })
-      .catch(() => {});
-  }, [id, fetchPolicies]);
+  useEffect(() => fetchPolicies(0), [fetchPolicies]);
 
   return (
     <>
@@ -503,33 +495,12 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                       }}
                     >
                       {parameterConstraints.map(
-                        ({ constraint, parameterName }) => {
-                          const value = String(constraint?.value.value || "");
-
-                          return (
-                            <VStack key={parameterName}>
-                              {constraint?.value.case ? (
-                                <HStack
-                                  $style={{ alignItems: "center", gap: "4px" }}
-                                >
-                                  <Stack
-                                    as="span"
-                                    $style={{
-                                      fontSize: "12px",
-                                      lineHeight: "18px",
-                                    }}
-                                  >
-                                    {camelCaseToTitle(parameterName)}
-                                  </Stack>
-                                  <Stack
-                                    as="span"
-                                    $style={{
-                                      fontSize: "10px",
-                                      lineHeight: "18px",
-                                    }}
-                                  >{`(${constraint.value.case})`}</Stack>
-                                </HStack>
-                              ) : (
+                        ({ constraint, parameterName }) => (
+                          <VStack key={parameterName}>
+                            {constraint?.value.case ? (
+                              <HStack
+                                $style={{ alignItems: "center", gap: "4px" }}
+                              >
                                 <Stack
                                   as="span"
                                   $style={{
@@ -537,56 +508,91 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  {camelCaseToTitle(parameterName)}
+                                  {snakeCaseToTitle(parameterName)}
                                 </Stack>
-                              )}
-                              {value.startsWith("0x") ? (
-                                <MiddleTruncate>{value}</MiddleTruncate>
-                              ) : (
                                 <Stack
                                   as="span"
                                   $style={{
-                                    fontSize: "12px",
+                                    fontSize: "10px",
                                     lineHeight: "18px",
                                   }}
-                                >
-                                  {value}
-                                </Stack>
-                              )}
-                            </VStack>
-                          );
-                        }
+                                >{`(${constraint.value.case})`}</Stack>
+                              </HStack>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {snakeCaseToTitle(parameterName)}
+                              </Stack>
+                            )}
+                            {typeof constraint?.value.value === "string" &&
+                            constraint.value.value.startsWith("0x") ? (
+                              <MiddleTruncate>
+                                {constraint.value.value}
+                              </MiddleTruncate>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {constraint?.value.value || "-"}
+                              </Stack>
+                            )}
+                          </VStack>
+                        )
                       )}
 
                       {target ? (
                         <VStack>
-                          <HStack $style={{ gap: "4px" }}>
+                          {target.target.case ? (
+                            <HStack
+                              $style={{ alignItems: "center", gap: "4px" }}
+                            >
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                Target
+                              </Stack>
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "10px",
+                                  lineHeight: "18px",
+                                }}
+                              >{`(${target.target.case})`}</Stack>
+                            </HStack>
+                          ) : (
                             <Stack
                               as="span"
-                              $style={{
-                                fontSize: "12px",
-                                lineHeight: "18px",
-                              }}
+                              $style={{ fontSize: "12px", lineHeight: "18px" }}
                             >
                               Target
                             </Stack>
+                          )}
+                          {typeof target.target.value === "string" &&
+                          target.target.value.startsWith("0x") ? (
+                            <MiddleTruncate>
+                              {target.target.value}
+                            </MiddleTruncate>
+                          ) : (
                             <Stack
                               as="span"
-                              $style={{
-                                fontSize: "10px",
-                                lineHeight: "18px",
-                              }}
-                            >{`(${target.target.case})`}</Stack>
-                          </HStack>
-                          <Stack
-                            as="span"
-                            $style={{
-                              fontSize: "12px",
-                              lineHeight: "18px",
-                            }}
-                          >
-                            {target.target.value || "-"}
-                          </Stack>
+                              $style={{ fontSize: "12px", lineHeight: "18px" }}
+                            >
+                              {target.target.value || ""}
+                            </Stack>
+                          )}
                         </VStack>
                       ) : (
                         <></>
@@ -640,7 +646,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                 lineHeight: "24px",
               }}
             >
-              <Stack as="span">{title}</Stack>
+              <Stack as="span">{app.title}</Stack>
               <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
                 / Add New Policy
               </Stack>
@@ -714,7 +720,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             layout="vertical"
             onFinish={onFinishSuccess}
             initialValues={
-              isFeesPlugin
+              isFeeApp
                 ? {
                     maxTxsPerWindow: 2,
                     rateLimitWindow: 2,
@@ -743,7 +749,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                     >
                       {Object.entries(properties).map(([key, field]) => (
                         <DynamicFormItem
-                          disabled={isFeesPlugin}
+                          disabled={isFeeApp}
                           key={key}
                           label={camelCaseToTitle(key)}
                           name={key}
@@ -793,7 +799,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                   {...restField}
                                 >
                                   <Select
-                                    disabled={isFeesPlugin}
+                                    disabled={isFeeApp}
                                     options={schema.supportedResources.map(
                                       (resource) => ({
                                         label: resource.resourcePath?.full,
@@ -843,9 +849,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                                   },
                                                 ]}
                                               >
-                                                <Input
-                                                  disabled={isFeesPlugin}
-                                                />
+                                                <Input disabled={isFeeApp} />
                                               </Form.Item>
                                             )
                                           )}
@@ -856,7 +860,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                             name={[name, "target"]}
                                             rules={[{ required: step > 0 }]}
                                           >
-                                            <Input disabled={isFeesPlugin} />
+                                            <Input disabled={isFeeApp} />
                                           </Form.Item>
                                         )}
                                       </>
@@ -964,7 +968,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                             </Stack>
                           )}
                           <Button
-                            disabled={isFeesPlugin}
+                            disabled={isFeeApp}
                             onClick={() => add({})}
                             kind="secondary"
                           >
@@ -986,13 +990,13 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                     name="maxTxsPerWindow"
                     label="Max Txs Per Window"
                   >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
+                    <InputNumber disabled={isFeeApp} min={1} />
                   </Form.Item>
                   <Form.Item<FormFieldType>
                     name="rateLimitWindow"
                     label="Rate Limit Window (seconds)"
                   >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
+                    <InputNumber disabled={isFeeApp} min={1} />
                   </Form.Item>
                 </Stack>
               </>

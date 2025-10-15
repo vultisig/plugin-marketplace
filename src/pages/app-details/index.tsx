@@ -458,7 +458,7 @@ export const AppDetailsPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
-                ...(isInstalled && !isFeeApp
+                ...(isInstalled && !isFeeApp && !!schema
                   ? [{ key: "#policies", label: "Policies" }]
                   : []),
                 { key: "#overview", label: "Overview" },
@@ -488,9 +488,9 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            {isInstalled && !isFeeApp && (
+            {isInstalled && !isFeeApp && !!schema && (
               <>
-                <AppPolicies {...app} />
+                <AppPolicies app={app} schema={schema} />
                 <Divider light />
               </>
             )}

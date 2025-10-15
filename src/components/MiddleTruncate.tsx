@@ -81,6 +81,7 @@ export const MiddleTruncate: FC<MiddleTruncateProps> = ({
       $style={{
         ...$style,
         display: "block",
+        overflow: "hidden",
         position: "relative",
         whiteSpace: "nowrap",
       }}
