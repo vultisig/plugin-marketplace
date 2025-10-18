@@ -108,7 +108,7 @@ export const getRecipeSpecification = (appId: string) =>
 
 export const getRecipeSuggestion = (
   appId: string,
-  configuration: Record<string, string>
+  configuration: Record<string, any>
 ) =>
   post<PolicySuggestJson>(
     `${baseUrl}/plugins/${appId}/recipe-specification/suggest`,

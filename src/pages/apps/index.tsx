@@ -1,4 +1,4 @@
-import { Empty } from "antd";
+import { Empty, Select } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
@@ -6,7 +6,6 @@ import { useTheme } from "styled-components";
 import { AppItem } from "@/components/AppItem";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { Divider } from "@/toolkits/Divider";
-import { Select } from "@/toolkits/Select";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getApps, getCategories } from "@/utils/services/marketplace";

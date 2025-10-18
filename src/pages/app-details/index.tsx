@@ -1,7 +1,7 @@
-import { Anchor, Tooltip } from "antd";
+import { Anchor, Collapse, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { AppPolicies } from "@/components/AppPolicies";
@@ -17,7 +17,6 @@ import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
-import { Collapse } from "@/toolkits/Collapse";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -89,8 +88,20 @@ export const AppDetailsPage = () => {
   ];
 
   const informations = [
-    { label: "Price", value: "$29.99" },
-    { label: "Fee Structure", value: "0.1% per trade" },
+    {
+      label: "Fee Structure",
+      value: (
+        <>
+          {app?.pricing.length
+            ? app.pricing.map((price, index) => (
+                <Stack as="span" key={index}>
+                  {pricingText(price)}
+                </Stack>
+              ))
+            : "This plugin is free"}
+        </>
+      ),
+    },
     { label: "Downloads", value: "1,294" },
     { label: "Support", value: "24/7" },
   ];
@@ -172,7 +183,11 @@ export const AppDetailsPage = () => {
     if (isConnected) {
       checkStatus();
     } else {
-      setState((prevState) => ({ ...prevState, isInstalled: undefined }));
+      setState((prevState) => ({
+        ...prevState,
+        isInstalled: undefined,
+        isFeeAppInstalled: undefined,
+      }));
     }
   }, [checkStatus, isConnected]);
 
@@ -413,6 +428,7 @@ export const AppDetailsPage = () => {
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
                     {
+                      href: `${routeTree.apps.path}?categoryId=${app.categoryId}`,
                       lable: "Category",
                       value: snakeCaseToTitle(app.categoryId),
                     },
@@ -422,7 +438,7 @@ export const AppDetailsPage = () => {
                       lable: "Last Update",
                       value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                     },
-                  ].map(({ lable, value }, index) => (
+                  ].map(({ href, lable, value }, index) => (
                     <Fragment key={index}>
                       {index > 0 && <Divider vertical />}
                       <VStack $style={{ alignItems: "center", gap: "12px" }}>
@@ -436,15 +452,25 @@ export const AppDetailsPage = () => {
                           {lable}
                         </Stack>
                         <Stack
-                          as="span"
+                          as={href ? Link : "span"}
                           $style={{
-                            backgroundColor: colors.accentFour.toRgba(0.05),
+                            backgroundColor: colors.accentFour.toRgba(0.1),
                             borderRadius: "4px",
                             color: colors.accentFour.toHex(),
                             fontSize: "12px",
                             lineHeight: "20px",
                             padding: "0 8px",
+                            ...(href ? { cursor: "pointer" } : {}),
                           }}
+                          {...(href
+                            ? {
+                                to: href,
+                                $hover: {
+                                  backgroundColor:
+                                    colors.accentFour.toRgba(0.2),
+                                },
+                              }
+                            : {})}
                         >
                           {value}
                         </Stack>
@@ -494,12 +520,7 @@ export const AppDetailsPage = () => {
                 <Divider light />
               </>
             )}
-            <Stack id="overview">
-              Set and forget payroll for your team. Automate recurring team
-              payments with confidence. This plugin makes it easy to set,
-              schedule, and manage payroll so you can focus on building while
-              your contributors get paid on time.
-            </Stack>
+            <Stack id="overview">{app.description}</Stack>
             <Divider light />
             <VStack id="features" $style={{ gap: "24px" }}>
               <Stack
@@ -568,10 +589,7 @@ export const AppDetailsPage = () => {
                 {informations.map(({ label, value }, index) => (
                   <HStack
                     key={index}
-                    $style={{
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
+                    $style={{ justifyContent: "space-between" }}
                   >
                     <Stack
                       $style={{
@@ -582,9 +600,15 @@ export const AppDetailsPage = () => {
                     >
                       {label}
                     </Stack>
-                    <Stack $style={{ fontSize: "14px", lineHeight: "18px" }}>
+                    <VStack
+                      $style={{
+                        alignItems: "flex-end",
+                        fontSize: "14px",
+                        lineHeight: "18px",
+                      }}
+                    >
                       {value}
-                    </Stack>
+                    </VStack>
                   </HStack>
                 ))}
               </VStack>

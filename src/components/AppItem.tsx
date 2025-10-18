@@ -41,7 +41,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
       />
       <VStack
         $style={{
-          alignItems: horizontal ? "start" : "normal",
+          alignItems: horizontal ? "flex-start" : "normal",
           flexGrow: "1",
           gap: "20px",
         }}

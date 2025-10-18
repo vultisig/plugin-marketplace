@@ -10,17 +10,17 @@ const isObject = (obj: any): obj is Record<string, any> => {
   return obj === Object(obj) && !isArray(obj) && typeof obj !== "function";
 };
 
-const toCamel = (value: string): string => {
+const toCamel = (value: string) => {
   return value.replace(/([-_][a-z])/gi, ($1) => {
     return $1.toUpperCase().replace("-", "").replace("_", "");
   });
 };
 
-const toKebab = (value: string): string => {
+const toKebab = (value: string) => {
   return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 };
 
-const toSnake = (value: string): string => {
+const toSnake = (value: string) => {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 
@@ -32,11 +32,34 @@ export const camelCaseToTitle = (input: string) => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-export const cssPropertiesToString = (styles: CSSProperties): string => {
+export const cssPropertiesToString = (styles: CSSProperties) => {
   return Object.entries(styles)
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([key, value]) => `${toKebab(key)}: ${value};`)
     .join("\n");
+};
+
+export const formatDuration = (seconds: number): string => {
+  const SECONDS_IN_MINUTE = 60;
+  const SECONDS_IN_HOUR = 60 * SECONDS_IN_MINUTE;
+  const SECONDS_IN_DAY = 24 * SECONDS_IN_HOUR;
+
+  const days = Math.floor(seconds / SECONDS_IN_DAY);
+  const hours = Math.floor((seconds % SECONDS_IN_DAY) / SECONDS_IN_HOUR);
+  const minutes = Math.floor((seconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE);
+  const secs = seconds % SECONDS_IN_MINUTE;
+
+  const parts = [
+    { label: "d", value: days },
+    { label: "h", value: hours },
+    { label: "m", value: minutes },
+    { label: "s", value: secs },
+  ];
+
+  return parts
+    .filter((part) => part.value > 0)
+    .map((part) => `${part.value}${part.label}`)
+    .join(" / ");
 };
 
 export const match = <T extends string | number | symbol, V>(
@@ -56,7 +79,7 @@ export const policyToHexMessage = ({
 }: Pick<
   AppPolicy,
   "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
->): string => {
+>) => {
   const delimiter = "*#*";
 
   const fields = [recipe, publicKey, String(policyVersion), pluginVersion];

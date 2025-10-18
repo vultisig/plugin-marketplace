@@ -1,11 +1,14 @@
-import { Form, FormItemProps } from "antd";
+import {
+  DatePicker,
+  Form,
+  FormItemProps,
+  Input,
+  InputNumber,
+  Select,
+} from "antd";
 import dayjs from "dayjs";
 import { FC, ReactNode } from "react";
 
-import { DatePicker } from "@/toolkits/DatePicker";
-import { Input } from "@/toolkits/Input";
-import { InputNumber } from "@/toolkits/InputNumber";
-import { Select } from "@/toolkits/Select";
 import { camelCaseToTitle } from "@/utils/functions";
 import { FieldProps } from "@/utils/types";
 

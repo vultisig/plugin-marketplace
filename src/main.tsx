@@ -1,5 +1,4 @@
-import "@/styles/normalize.css";
-import "@/styles/brockmann.css";
+import "@/styles/index.scss";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";

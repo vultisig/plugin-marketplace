@@ -168,112 +168,111 @@ export const DefaultLayout = () => {
     <>
       <GlobalStyle />
 
-      <VStack $style={{ minHeight: "100%" }}>
+      <HStack
+        $style={{
+          alignItems: "center",
+          backgroundColor: colors.bgPrimary.toHex(),
+          borderBottomColor: colors.borderLight.toHex(),
+          borderBottomStyle: "solid",
+          borderBottomWidth: "1px",
+          justifyContent: "center",
+          height: "72px",
+          position: "sticky",
+          top: "0",
+          zIndex: "2",
+        }}
+      >
         <HStack
           $style={{
             alignItems: "center",
-            backgroundColor: colors.bgPrimary.toHex(),
-            borderBottomColor: colors.borderLight.toHex(),
-            borderBottomStyle: "solid",
-            borderBottomWidth: "1px",
-            justifyContent: "center",
-            height: "72px",
-            position: "sticky",
-            top: "0",
-            zIndex: "2",
+            justifyContent: "space-between",
+            maxWidth: "1200px",
+            padding: "0 16px",
+            width: "100%",
           }}
         >
           <HStack
+            as={Link}
+            state={true}
+            to={routeTree.root.path}
             $style={{
               alignItems: "center",
-              justifyContent: "space-between",
-              maxWidth: "1200px",
-              padding: "0 16px",
-              width: "100%",
+              color: colors.textPrimary.toHex(),
+              gap: "10px",
             }}
+            $hover={{ color: colors.textSecondary.toHex() }}
           >
-            <HStack
-              as={Link}
-              state={true}
-              to={routeTree.root.path}
-              $style={{
-                alignItems: "center",
-                color: colors.textPrimary.toHex(),
-                gap: "10px",
-              }}
-              $hover={{ color: colors.textSecondary.toHex() }}
-            >
-              <HStack $style={{ position: "relative" }}>
-                <BoxIcon color={colors.accentThree.toHex()} fontSize={40} />
-                <Stack
-                  as={VultisigLogoIcon}
-                  color={colors.bgSecondary.toHex()}
-                  fontSize={24}
-                  $style={{
-                    left: "50%",
-                    position: "absolute",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                />
-              </HStack>
-              <Stack $style={{ fontSize: "22px", lineHeight: "40px" }}>
-                App Store
-              </Stack>
+            <HStack $style={{ position: "relative" }}>
+              <BoxIcon color={colors.accentThree.toHex()} fontSize={40} />
+              <Stack
+                as={VultisigLogoIcon}
+                color={colors.bgSecondary.toHex()}
+                fontSize={24}
+                $style={{
+                  left: "50%",
+                  position: "absolute",
+                  top: "50%",
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
             </HStack>
-            <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
+            <Stack $style={{ fontSize: "22px", lineHeight: "40px" }}>
+              App Store
+            </Stack>
+          </HStack>
+          <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
+            <Stack
+              as={Link}
+              to={routeTree.apps.path}
+              $hover={{ color: colors.accentThree.toHex() }}
+            >
+              Marketplace
+            </Stack>
+            {isConnected && (
               <Stack
                 as={Link}
                 to={routeTree.apps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
-                Marketplace
+                My Apps
               </Stack>
-              {isConnected && (
-                <Stack
-                  as={Link}
-                  to={routeTree.apps.path}
-                  $hover={{ color: colors.accentThree.toHex() }}
-                >
-                  My Apps
-                </Stack>
-              )}
-              <Stack
-                as={Link}
-                to={routeTree.faq.path}
-                $hover={{ color: colors.accentThree.toHex() }}
-              >
-                FAQ
-              </Stack>
-            </HStack>
-            {isConnected && address ? (
-              <HStack $style={{ alignItems: "center", gap: "20px" }}>
-                <Button onClick={copyAddress}>
-                  <MiddleTruncate $style={{ width: "118px" }}>
-                    {address}
-                  </MiddleTruncate>
-                </Button>
-                <Dropdown
-                  menu={{ items: dropdownMenu }}
-                  overlayStyle={{ width: 302 }}
-                >
-                  <Avatar src="/images/avatar.png" size={44} />
-                </Dropdown>
-              </HStack>
-            ) : (
-              <Button onClick={connect}>Connect Wallet</Button>
             )}
+            <Stack
+              as={Link}
+              to={routeTree.faq.path}
+              $hover={{ color: colors.accentThree.toHex() }}
+            >
+              FAQ
+            </Stack>
           </HStack>
+          {isConnected && address ? (
+            <HStack $style={{ alignItems: "center", gap: "20px" }}>
+              <Button onClick={copyAddress}>
+                <MiddleTruncate $style={{ width: "118px" }}>
+                  {address}
+                </MiddleTruncate>
+              </Button>
+              <Dropdown
+                menu={{ items: dropdownMenu }}
+                overlayStyle={{ width: 302 }}
+              >
+                <Avatar src="/images/avatar.png" size={44} />
+              </Dropdown>
+            </HStack>
+          ) : (
+            <Button onClick={connect}>Connect Wallet</Button>
+          )}
         </HStack>
-        <Outlet />
+      </HStack>
 
-        {isConnected && (
-          <>
-            <CurrencyModal />
-            <LanguageModal />
-          </>
-        )}
-      </VStack>
+      <Outlet />
+
+      {isConnected && (
+        <>
+          <CurrencyModal />
+          <LanguageModal />
+        </>
+      )}
     </>
   );
 };
