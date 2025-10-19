@@ -7,7 +7,7 @@ import { useTheme } from "styled-components";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
@@ -20,20 +20,20 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { routeTree } from "@/utils/constants/routes";
+import { modalHash } from "@/utils/constants";
+import { startReshareSession } from "@/utils/extension";
 import {
   pricingText,
   snakeCaseToTitle,
   toNumeralFormat,
 } from "@/utils/functions";
-import { startReshareSession } from "@/utils/services/extension";
 import {
   getApp,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
-} from "@/utils/services/marketplace";
+} from "@/utils/marketplace";
+import { routeTree } from "@/utils/routes";
 import { App, CustomRecipeSchema } from "@/utils/types";
 
 interface InitialState {
@@ -57,7 +57,7 @@ export const AppDetailsPage = () => {
     loading,
     schema,
   } = state;
-  const { connect, isConnected, messageAPI, modalAPI } = useApp();
+  const { connect, isConnected, messageAPI, modalAPI } = useCore();
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();

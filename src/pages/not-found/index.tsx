@@ -4,7 +4,7 @@ import { useTheme } from "styled-components";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Button } from "@/toolkits/Button";
 import { HStack, VStack } from "@/toolkits/Stack";
-import { routeTree } from "@/utils/constants/routes";
+import { routeTree } from "@/utils/routes";
 
 export const NotFoundPage = () => {
   const goBack = useGoBack();

@@ -2,8 +2,11 @@ export const en = {
   // A
   // B
   // C
+  connectWallet: "Connect Wallet",
   currency: "Currency",
   // D
+  dark: "Dark",
+  disconnect: "Disconnect",
   // E
   // F
   // G
@@ -13,6 +16,7 @@ export const en = {
   // K
   // L
   language: "Language",
+  light: "Light",
   // M
   // N
   // O
@@ -20,6 +24,7 @@ export const en = {
   // R
   // S
   // T
+  theme: "Theme",
   // U
   // V
   // W

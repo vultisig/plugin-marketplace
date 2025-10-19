@@ -2,19 +2,16 @@ import { ConfigProvider, theme, ThemeConfig } from "antd";
 import { FC, ReactNode, useMemo } from "react";
 import { useTheme } from "styled-components";
 
-import { Theme } from "@/utils/constants/theme";
-
-type AntdProviderProps = {
-  children?: ReactNode;
-  theme: Theme;
-};
+import { useCore } from "@/hooks/useCore";
+import { Theme } from "@/utils/theme";
 
 const algorithm: Record<Theme, ThemeConfig["algorithm"]> = {
   dark: theme.darkAlgorithm,
   light: theme.defaultAlgorithm,
 } as const;
 
-export const AntdProvider: FC<AntdProviderProps> = ({ children, theme }) => {
+export const AntdProvider: FC<{ children?: ReactNode }> = ({ children }) => {
+  const { theme } = useCore();
   const colors = useTheme();
 
   const themeConfig: ThemeConfig = useMemo(() => {

@@ -5,8 +5,8 @@ import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { routeTree } from "@/utils/constants/routes";
 import { pricingText, toNumeralFormat } from "@/utils/functions";
+import { routeTree } from "@/utils/routes";
 import { App } from "@/utils/types";
 
 export const AppItem: FC<App & { horizontal?: boolean }> = ({

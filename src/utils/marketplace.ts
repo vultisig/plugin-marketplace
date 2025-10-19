@@ -7,9 +7,9 @@ import {
   PolicySuggestSchema,
 } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
-import { PAGE_SIZE } from "@/utils/constants/core";
+import { del, get, post } from "@/utils/api";
+import { PAGE_SIZE } from "@/utils/constants";
 import { toSnakeCase } from "@/utils/functions";
-import { del, get, post } from "@/utils/services/api";
 import {
   App,
   AppFilters,

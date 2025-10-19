@@ -1,44 +1,50 @@
-import { Avatar, Dropdown, MenuProps } from "antd";
+import { Dropdown, MenuProps } from "antd";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useMediaQuery } from "react-responsive";
 import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useTheme } from "styled-components";
+import { createGlobalStyle, useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
-import { GlobalStyle } from "@/components/GlobalStyle";
 import { LanguageModal } from "@/components/LanguageModal";
-import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { BoxIcon } from "@/icons/BoxIcon";
 import { CircleDollarSignIcon } from "@/icons/CircleDollarSignIcon";
+import { EllipsisVerticalIcon } from "@/icons/EllipsisVerticalIcon";
 import { HistoryIcon } from "@/icons/HistoryIcon";
 import { LanguagesIcon } from "@/icons/LanguagesIcon";
 import { LaptopIcon } from "@/icons/LaptopIcon";
+import { LogInIcon } from "@/icons/LogInIcon";
 import { LogOutIcon } from "@/icons/LogOutIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
 import { SunIcon } from "@/icons/SunIcon";
 import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
-import { Button } from "@/toolkits/Button";
+import { ZapIcon } from "@/icons/ZapIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { languageNames } from "@/utils/constants/language";
-import { routeTree } from "@/utils/constants/routes";
-import { getAccount } from "@/utils/services/extension";
+import { modalHash } from "@/utils/constants";
+import { getAccount } from "@/utils/extension";
+import { languageNames } from "@/utils/language";
+import { routeTree } from "@/utils/routes";
+
+const GlobalStyle = createGlobalStyle`
+  body {
+    background-color: ${({ theme }) => theme.bgPrimary.toHex()};
+    color: ${({ theme }) => theme.textPrimary.toHex()};
+  }
+`;
 
 export const DefaultLayout = () => {
   const { t } = useTranslation();
   const {
-    address,
     connect,
     currency,
     disconnect,
     isConnected,
     language,
-    messageAPI,
     setTheme,
     theme,
-  } = useApp();
+    vault,
+  } = useCore();
   const navigate = useNavigate();
   const colors = useTheme();
   const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
@@ -77,38 +83,39 @@ export const DefaultLayout = () => {
     {
       icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
       key: "3",
-      label: `Theme: ${theme === "light" ? "Dark" : "Light"}`,
+      label: `${t("theme")}: ${theme === "light" ? t("dark") : t("light")}`,
       onClick: () => {
         setTheme(theme === "light" ? "dark" : "light");
       },
     },
-    {
-      disabled: true,
-      icon: <HistoryIcon />,
-      key: "4",
-      label: "Transaction history",
-      onClick: () => {
-        navigate(routeTree.transactions.path, { state: true });
-      },
-    },
-    {
-      danger: true,
-      icon: <LogOutIcon />,
-      key: "5",
-      label: "Disconnect",
-      onClick: disconnect,
-    },
+    ...(isConnected
+      ? [
+          {
+            disabled: true,
+            icon: <HistoryIcon />,
+            key: "4",
+            label: "Transaction history",
+            onClick: () => {
+              navigate(routeTree.transactions.path, { state: true });
+            },
+          },
+          {
+            danger: true,
+            icon: <LogOutIcon />,
+            key: "5",
+            label: t("disconnect"),
+            onClick: disconnect,
+          },
+        ]
+      : [
+          {
+            icon: <LogInIcon />,
+            key: "5",
+            label: t("connectWallet"),
+            onClick: connect,
+          },
+        ]),
   ];
-
-  const copyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-
-      messageAPI.success("Address copied to clipboard!");
-    } else {
-      messageAPI.error("No address to copy.");
-    }
-  };
 
   useEffect(() => {
     if (isNotSupport) return;
@@ -245,34 +252,58 @@ export const DefaultLayout = () => {
               FAQ
             </Stack>
           </HStack>
-          {isConnected && address ? (
-            <HStack $style={{ alignItems: "center", gap: "20px" }}>
-              <Button onClick={copyAddress}>
-                <MiddleTruncate $style={{ width: "118px" }}>
-                  {address}
-                </MiddleTruncate>
-              </Button>
-              <Dropdown
-                menu={{ items: dropdownMenu }}
-                overlayStyle={{ width: 302 }}
+          <Dropdown
+            menu={{ items: dropdownMenu }}
+            overlayStyle={{ width: 302 }}
+          >
+            <HStack
+              $style={{
+                alignItems: "center",
+                backgroundColor: colors.bgTertiary.toHex(),
+                border: `solid 1px ${colors.borderLight.toHex()}`,
+                borderRadius: "8px",
+                cursor: "pointer",
+                gap: "8px",
+                height: "32px",
+                justifyContent: "center",
+                overflow: "hidden",
+                paddingRight: "12px",
+              }}
+            >
+              <Stack
+                as={ZapIcon}
+                $style={{
+                  backgroundColor: colors.bgPrimary.toHex(),
+                  border: `solid 1px ${colors.borderLight.toHex()}`,
+                  borderRadius: "50%",
+                  color: colors.warning.toHex(),
+                  fill: "currentcolor",
+                  fontSize: "40px",
+                  marginLeft: "-4px",
+                  padding: "12px",
+                }}
+              />
+              <Stack
+                $style={{
+                  display: "block",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: "110px",
+                }}
               >
-                <Avatar src="/images/avatar.png" size={44} />
-              </Dropdown>
+                {vault?.name || t("connectWallet")}
+              </Stack>
+
+              <EllipsisVerticalIcon />
             </HStack>
-          ) : (
-            <Button onClick={connect}>Connect Wallet</Button>
-          )}
+          </Dropdown>
         </HStack>
       </HStack>
 
       <Outlet />
-
-      {isConnected && (
-        <>
-          <CurrencyModal />
-          <LanguageModal />
-        </>
-      )}
+      <CurrencyModal />
+      <LanguageModal />
     </>
   );
 };

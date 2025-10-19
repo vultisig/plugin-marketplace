@@ -3,19 +3,15 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Stack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import {
-  currencies,
-  Currency,
-  currencySymbols,
-} from "@/utils/constants/currency";
+import { modalHash } from "@/utils/constants";
+import { currencies, Currency, currencySymbols } from "@/utils/currency";
 
 export const CurrencyModal = () => {
   const [visible, setVisible] = useState(false);
-  const { currency, setCurrency } = useApp();
+  const { currency, setCurrency } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
