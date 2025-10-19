@@ -9,7 +9,7 @@ import { useFilterParams } from "@/hooks/useFilterParams";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getApps, getCategories } from "@/utils/marketplace";
+import { getApps, getCategories } from "@/utils/api";
 import { App, AppFilters, Category } from "@/utils/types";
 
 type InitialState = {

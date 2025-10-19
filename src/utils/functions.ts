@@ -1,5 +1,6 @@
 import { Dayjs } from "dayjs";
 
+import { Currency, currencySymbols } from "@/utils/currency";
 import { AppPolicy, AppPricing, CSSProperties } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
@@ -93,14 +94,25 @@ export const policyToHexMessage = ({
   return fields.join(delimiter);
 };
 
-export const pricingText = ({ amount, frequency, type }: AppPricing) => {
+export const pricingText = ({
+  baseValue,
+  currency,
+  amount,
+  frequency,
+  type,
+}: Pick<AppPricing, "amount" | "frequency" | "type"> & {
+  baseValue: number;
+  currency: Currency;
+}) => {
+  const value = toValueFormat((amount / 1e6) * baseValue, currency, 8);
+
   switch (type) {
     case "once":
-      return `$${amount / 1e6} one time installation fee`;
+      return `${value} one time installation fee`;
     case "recurring":
-      return `$${amount / 1e6} ${frequency} recurring fee`;
+      return `${value} ${frequency} recurring fee`;
     case "per-tx":
-      return `$${amount / 1e6} per transaction fee`;
+      return `${value} per transaction fee`;
     default:
       return "Unknown pricing type";
   }
@@ -149,14 +161,17 @@ export const toCamelCase = <T>(obj: T): T => {
 //   return obj;
 // };
 
-export const toNumeralFormat = (value: number) => {
-  const formattedValue = value.toLocaleString("en-US", {
+export const toNumberFormat = (value: number | string, decimal = 20) => {
+  const formatter = new Intl.NumberFormat("en-US", {
     style: "decimal",
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: decimal,
+    useGrouping: true,
   });
 
-  return formattedValue;
+  const num = typeof value === "string" ? Number(value.trim()) : value;
+
+  return isNaN(num) ? value.toString() : formatter.format(num);
 };
 
 export const toSnakeCase = <T>(obj: T): T => {
@@ -184,4 +199,12 @@ export const toTimestamp = (input: Date | Dayjs) => {
     nanos: (millis % 1000) * 1_000_000,
     seconds: BigInt(Math.floor(millis / 1000)),
   };
+};
+
+export const toValueFormat = (
+  value: number | string,
+  currency: Currency,
+  decimal = 2
+): string => {
+  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
 };

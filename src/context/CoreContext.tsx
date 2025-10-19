@@ -13,6 +13,7 @@ import { Vault } from "@/utils/types";
 
 interface CoreContextType {
   address?: string;
+  baseValue: number;
   chain: string;
   connect: () => void;
   currency: Currency;

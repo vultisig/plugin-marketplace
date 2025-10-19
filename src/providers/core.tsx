@@ -1,7 +1,7 @@
 import { message as Message, Modal } from "antd";
 import { randomBytes } from "crypto";
 import { hexlify } from "ethers";
-import { FC, ReactNode, useCallback, useState } from "react";
+import { FC, ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CoreContext } from "@/context/CoreContext";
@@ -20,6 +20,7 @@ import {
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
+import { getAuthToken, getBaseValue } from "@/utils/api";
 import { Chain } from "@/utils/chain";
 import { Currency } from "@/utils/currency";
 import {
@@ -29,12 +30,12 @@ import {
   personalSign,
 } from "@/utils/extension";
 import { Language } from "@/utils/language";
-import { getAuthToken } from "@/utils/marketplace";
 import { Theme } from "@/utils/theme";
 import { Vault } from "@/utils/types";
 
 type InitialState = {
   address?: string;
+  baseValue: number;
   chain: Chain;
   currency: Currency;
   isConnected: boolean;
@@ -47,14 +48,23 @@ type InitialState = {
 export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
+    baseValue: 1,
     chain: getChain(),
     currency: getCurrency(),
     isConnected: false,
     language: getLanguage(),
     theme: getTheme(),
   });
-  const { address, chain, currency, isConnected, language, theme, vault } =
-    state;
+  const {
+    address,
+    baseValue,
+    chain,
+    currency,
+    isConnected,
+    language,
+    theme,
+    vault,
+  } = state;
   const [messageAPI, messageHolder] = Message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
 
@@ -62,13 +72,13 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     disconnectFromExtension().finally(() => {
       delToken(getVaultId());
       delVaultId();
-      setState({
-        chain: getChain(),
-        currency: getCurrency(),
+      setState((prevState) => ({
+        ...prevState,
+        address: undefined,
         isConnected: false,
-        language: getLanguage(),
-        theme: getTheme(),
-      });
+        token: undefined,
+        vault: undefined,
+      }));
     });
   }, []);
 
@@ -191,10 +201,17 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setTheme(getTheme(), true);
   });
 
+  useEffect(() => {
+    getBaseValue(currency).then((baseValue) => {
+      setState((prevState) => ({ ...prevState, baseValue }));
+    });
+  }, [currency]);
+
   return (
     <CoreContext.Provider
       value={{
         address,
+        baseValue,
         chain,
         connect,
         currency,

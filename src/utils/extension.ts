@@ -1,4 +1,4 @@
-import { reshareVault } from "@/utils/marketplace";
+import { reshareVault } from "@/utils/api";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 

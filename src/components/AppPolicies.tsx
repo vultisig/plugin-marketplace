@@ -44,6 +44,13 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import {
+  addPolicy,
+  delPolicy,
+  getPolicies,
+  getRecipeSpecification,
+  getRecipeSuggestion,
+} from "@/utils/api";
 import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import {
@@ -51,16 +58,9 @@ import {
   formatDuration,
   policyToHexMessage,
   snakeCaseToTitle,
-  toNumeralFormat,
+  toNumberFormat,
   toTimestamp,
 } from "@/utils/functions";
-import {
-  addPolicy,
-  delPolicy,
-  getPolicies,
-  getRecipeSpecification,
-  getRecipeSuggestion,
-} from "@/utils/marketplace";
 import {
   App,
   AppPolicy,
@@ -118,7 +118,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       dataIndex: "parsedRecipe",
       key: "maxTxsPerWindow",
       render: ({ maxTxsPerWindow }: Policy) =>
-        maxTxsPerWindow ? toNumeralFormat(maxTxsPerWindow) : "-",
+        maxTxsPerWindow ? toNumberFormat(maxTxsPerWindow) : "-",
       title: t("maxTransactions"),
     },
     {
@@ -126,7 +126,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       dataIndex: "parsedRecipe",
       key: "rateLimitWindow",
       render: ({ rateLimitWindow }: Policy) =>
-        rateLimitWindow ? toNumeralFormat(rateLimitWindow) : "-",
+        rateLimitWindow ? toNumberFormat(rateLimitWindow) : "-",
       title: t("rateLimit"),
     },
     {

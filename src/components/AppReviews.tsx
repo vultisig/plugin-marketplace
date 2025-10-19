@@ -14,8 +14,8 @@ import { Divider } from "@/toolkits/Divider";
 import { Rate } from "@/toolkits/Rate";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { addReview, getReviews } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
-import { addReview, getReviews } from "@/utils/marketplace";
 import { App, Review, ReviewForm } from "@/utils/types";
 
 type InitialState = {
