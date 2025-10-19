@@ -12,6 +12,7 @@ import {
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { FC, Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -90,6 +91,7 @@ type InitialState = {
 };
 
 export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
+  const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
     loading: true,
     policies: [],
@@ -109,7 +111,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       dataIndex: "parsedRecipe",
       key: "name",
       render: ({ name }: Policy) => name,
-      title: "Name",
+      title: t("name"),
     },
     {
       align: "center",
@@ -117,7 +119,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       key: "maxTxsPerWindow",
       render: ({ maxTxsPerWindow }: Policy) =>
         maxTxsPerWindow ? toNumeralFormat(maxTxsPerWindow) : "-",
-      title: "Max Txs",
+      title: t("maxTransactions"),
     },
     {
       align: "center",
@@ -125,7 +127,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       key: "rateLimitWindow",
       render: ({ rateLimitWindow }: Policy) =>
         rateLimitWindow ? toNumeralFormat(rateLimitWindow) : "-",
-      title: "Rate Limit",
+      title: t("rateLimit"),
     },
     {
       align: "center",
@@ -140,7 +142,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
           />
         </HStack>
       ),
-      title: "Action",
+      title: t("Action"),
       width: 80,
     },
   ];
@@ -180,27 +182,28 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
       modalAPI.confirm({
-        title: "Are you sure delete this policy?",
-        okText: "Yes",
+        title: t("confirmPolicyDeletion"),
+        okText: t("yes"),
         okType: "danger",
-        cancelText: "No",
+        cancelText: t("no"),
         onOk() {
           setState((prevState) => ({ ...prevState, loading: true }));
 
           delPolicy(id, signature)
             .then(() => {
-              messageAPI.success("Policy deleted successfully.");
+              messageAPI.success(t("successfulPolicyDeletion"));
 
               fetchPolicies(0);
             })
             .catch(() => {
+              messageAPI.error(t("unsuccessfulPolicyDeletion"));
+
               setState((prevState) => ({ ...prevState, loading: false }));
             });
         },
-        onCancel() {},
       });
     } else {
-      messageAPI.error("Unable to delete policy: signature is missing.");
+      messageAPI.error(t("unsuccessfulPolicyDeletion"));
     }
   };
 
@@ -487,7 +490,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                         as="span"
                         $style={{ fontSize: "12px", lineHeight: "18px" }}
                       >
-                        Description
+                        {t("description")}
                       </Stack>
                       <Stack
                         as="span"
@@ -589,7 +592,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  Target
+                                  {t("target")}
                                 </Stack>
                                 <Stack
                                   as="span"
@@ -609,7 +612,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                   lineHeight: "18px",
                                 }}
                               >
-                                Target
+                                {t("target")}
                               </Stack>
                             )}
                             {typeof target.target.value === "string" &&
@@ -644,7 +647,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                             as="span"
                             $style={{ fontSize: "12px", lineHeight: "18px" }}
                           >
-                            Description
+                            {t("description")}
                           </Stack>
                           <Stack
                             as="span"
@@ -675,7 +678,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             <Stack $style={{ flex: "none", width: "218px" }} />
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
               <Button loading={submitting} onClick={() => form.submit()}>
-                {step < 2 ? "Continue" : "Submit"}
+                {step < 2 ? t("continue") : t("submit")}
               </Button>
             </HStack>
           </>
@@ -705,7 +708,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             >
               <Stack as="span">{title}</Stack>
               <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
-                / Add New Policy
+                {`/ ${t("addPolicy")}`}
               </Stack>
             </HStack>
           </HStack>
@@ -830,7 +833,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                         validator: async (_, rules) => {
                           if (step > 0 && (!rules || rules.length < 1)) {
                             return Promise.reject(
-                              new Error("Please enter at least one rule")
+                              new Error(t("ruleValidationError"))
                             );
                           }
                         },
@@ -851,7 +854,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                               >
                                 <Form.Item
                                   name={[name, "resource"]}
-                                  label="Supported Resource"
+                                  label={t("supportedResource")}
                                   rules={[{ required: step > 0 }]}
                                   {...restField}
                                 >
@@ -915,7 +918,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                         {supportedResource.target ===
                                           TargetType.ADDRESS && (
                                           <Form.Item
-                                            label="Target"
+                                            label={t("target")}
                                             name={[name, "target"]}
                                             rules={[{ required: step > 0 }]}
                                           >
@@ -925,7 +928,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                         <Stack
                                           as={Form.Item}
                                           name={[name, "description"]}
-                                          label="Description"
+                                          label={t("description")}
                                           $style={{ gridColumn: "1 / -1" }}
                                         >
                                           <Input.TextArea />
@@ -1039,7 +1042,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                             onClick={() => add({})}
                             kind="secondary"
                           >
-                            Add rule
+                            {t("addRule")}
                           </Button>
                         </VStack>
                       </VStack>
@@ -1075,9 +1078,11 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {`This plugin can send up to ${maxTxsPerWindow} transactions${
+                          {`${t("policyMaxTxs", { count: maxTxsPerWindow })}${
                             rateLimitWindow
-                              ? ` every ${formatDuration(rateLimitWindow)}`
+                              ? ` ${t("policyRateLimit", {
+                                  duration: formatDuration(rateLimitWindow),
+                                })}`
                               : "."
                           }`}
                         </Stack>
@@ -1086,13 +1091,13 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                   </Form.Item>
                   <Form.Item<FormFieldType>
                     name="maxTxsPerWindow"
-                    label="Max Txs Per Window"
+                    label={t("maxTransactions")}
                   >
                     <InputNumber disabled={isFeesPlugin} min={1} />
                   </Form.Item>
                   <Form.Item<FormFieldType>
                     name="rateLimitWindow"
-                    label="Rate Limit Window (seconds)"
+                    label={`${t("rateLimit")} (${t("seconds")})`}
                   >
                     <InputNumber disabled={isFeesPlugin} min={1} />
                   </Form.Item>
@@ -1100,7 +1105,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                   <Stack
                     as={Form.Item<FormFieldType>}
                     name="description"
-                    label="Description"
+                    label={t("description")}
                     $style={{ gridColumn: "1 / -1" }}
                   >
                     <Input.TextArea />

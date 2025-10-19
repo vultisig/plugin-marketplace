@@ -2,6 +2,7 @@ import { message as Message, Modal } from "antd";
 import { randomBytes } from "crypto";
 import { hexlify } from "ethers";
 import { FC, ReactNode, useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { CoreContext } from "@/context/CoreContext";
 import { i18nInstance } from "@/i18n/config";
@@ -44,6 +45,7 @@ type InitialState = {
 };
 
 export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
     chain: getChain(),
     currency: getCurrency(),
@@ -120,7 +122,7 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
                       vault,
                     }));
 
-                    messageAPI.success("Successfully authenticated!");
+                    messageAPI.success(t("successfulAuthenticated"));
                   })
               );
             }
@@ -133,7 +135,7 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
       .catch((error: Error) => {
         if (error?.message) messageAPI.error(error?.message);
       });
-  }, [clear, messageAPI]);
+  }, [clear, messageAPI, t]);
 
   const disconnect = () => {
     modalAPI.confirm({

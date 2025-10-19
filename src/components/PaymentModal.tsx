@@ -1,5 +1,6 @@
 import { Modal } from "antd";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -11,6 +12,7 @@ import { modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 
 export const PaymentModal = () => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const { hash } = useLocation();
   const goBack = useGoBack();
@@ -46,7 +48,7 @@ export const PaymentModal = () => {
             <HStack $style={{ gap: "12px" }}>
               <Stack
                 as="img"
-                alt="Payment App Required"
+                alt={t("paymentModal.title")}
                 src="/media/payment.png"
                 $style={{ width: "56px" }}
               />
@@ -58,7 +60,7 @@ export const PaymentModal = () => {
                     lineHeight: "20px",
                   }}
                 >
-                  Payment App Required
+                  {t("paymentModal.title")}
                 </Stack>
                 <Stack
                   as="span"
@@ -68,7 +70,7 @@ export const PaymentModal = () => {
                     lineHeight: "16px",
                   }}
                 >
-                  Required Standard App
+                  {t("paymentModal.subtitle")}
                 </Stack>
               </VStack>
             </HStack>
@@ -80,8 +82,7 @@ export const PaymentModal = () => {
                 lineHeight: "18px",
               }}
             >
-              This plugin handles payments securely using your wallet, with full
-              control over fees and visibility. This is a one-time setup.
+              {t("paymentModal.description")}
             </Stack>
           </VStack>
           <Button
@@ -90,7 +91,7 @@ export const PaymentModal = () => {
               startReshareSession(import.meta.env.VITE_FEE_PLUGIN_ID)
             }
           >
-            Add to vault
+            {t("paymentModal.action")}
           </Button>
         </VStack>
       </HStack>
