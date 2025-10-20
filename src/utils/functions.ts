@@ -25,6 +25,14 @@ const toSnake = (value: string) => {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 
+const toValueFormat = (
+  value: number | string,
+  currency: Currency,
+  decimal = 2
+): string => {
+  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
+};
+
 export const camelCaseToTitle = (input: string) => {
   if (!input) return input;
 
@@ -199,12 +207,4 @@ export const toTimestamp = (input: Date | Dayjs) => {
     nanos: (millis % 1000) * 1_000_000,
     seconds: BigInt(Math.floor(millis / 1000)),
   };
-};
-
-export const toValueFormat = (
-  value: number | string,
-  currency: Currency,
-  decimal = 2
-): string => {
-  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
 };
