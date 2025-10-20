@@ -414,30 +414,34 @@ export const AppDetailsPage = () => {
                       )}
                     </VStack>
                   </HStack>
-                  <VStack
-                    as="span"
-                    $style={{
-                      alignItems: "center",
-                      color: colors.textSecondary.toHex(),
-                      flexGrow: "1",
-                    }}
-                  >
-                    {app.pricing.length ? (
-                      app.pricing.map(({ amount, frequency, type }, index) => (
-                        <Stack as="span" key={index}>
-                          {pricingText({
-                            amount,
-                            baseValue,
-                            currency,
-                            frequency,
-                            type,
-                          })}
-                        </Stack>
-                      ))
-                    ) : (
-                      <Stack as="span">{t("isFreeApp")}</Stack>
-                    )}
-                  </VStack>
+                  {!isFeeApp && (
+                    <VStack
+                      as="span"
+                      $style={{
+                        alignItems: "center",
+                        color: colors.textSecondary.toHex(),
+                        flexGrow: "1",
+                      }}
+                    >
+                      {app.pricing.length ? (
+                        app.pricing.map(
+                          ({ amount, frequency, type }, index) => (
+                            <Stack as="span" key={index}>
+                              {pricingText({
+                                amount,
+                                baseValue,
+                                currency,
+                                frequency,
+                                type,
+                              })}
+                            </Stack>
+                          )
+                        )
+                      ) : (
+                        <Stack as="span">{t("isFreeApp")}</Stack>
+                      )}
+                    </VStack>
+                  )}
                 </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[

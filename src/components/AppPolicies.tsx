@@ -224,233 +224,229 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     rules,
     ...values
   }) => {
-    switch (step) {
-      case 0: {
-        getRecipeSuggestion(id, {
-          maxTxsPerWindow,
-          rateLimitWindow,
-          rules,
-        }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
-          const formRules = rules.map(
-            ({ parameterConstraints, resource, target }) => {
-              const params: RuleFieldType = { resource };
-
-              if (target?.target?.value) {
-                params.target = target.target.value as string;
-              }
-
-              parameterConstraints.forEach(({ constraint, parameterName }) => {
-                if (constraint?.value?.value) {
-                  params[parameterName] = constraint.value.value as string;
-                }
-              });
-
-              return params;
-            }
-          );
-
-          form.setFieldValue("maxTxsPerWindow", maxTxsPerWindow);
-          form.setFieldValue("rateLimitWindow", rateLimitWindow);
-          form.setFieldValue("rules", formRules);
-
-          setState((prevState) => ({ ...prevState, step: 1 }));
-        });
-
-        break;
-      }
-      case 1: {
-        setState((prevState) => ({ ...prevState, step: 2 }));
-
-        break;
-      }
-      default: {
-        if (address && schema) {
+    if (!submitting) {
+      switch (step) {
+        case 0: {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          const jsonData = create(PolicySchema, {
-            author: "",
-            ...() => {
-              if (properties) {
-                const configuration: Record<string, any> = {};
+          getRecipeSuggestion(id, {
+            maxTxsPerWindow,
+            rateLimitWindow,
+            rules,
+          }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
+            const formRules = rules.map(
+              ({ parameterConstraints, resource, target }) => {
+                const params: RuleFieldType = { resource };
 
-                Object.entries(properties).forEach(([key, field]) => {
-                  if (values[key]) {
-                    switch (field.format) {
-                      case "date-time": {
-                        configuration[key] = (values[key] as Dayjs)
-                          .utc()
-                          .format();
-                        break;
-                      }
-                      default: {
-                        configuration[key] = values[key];
-                        break;
-                      }
+                if (target?.target?.value) {
+                  params.target = target.target.value as string;
+                }
+
+                parameterConstraints.forEach(
+                  ({ constraint, parameterName }) => {
+                    if (constraint?.value?.value) {
+                      params[parameterName] = constraint.value.value as string;
                     }
                   }
-                });
+                );
 
-                return { configuration };
-              } else {
-                return {};
+                return params;
               }
-            },
-            description,
-            feePolicies: pricing.map((price) => {
-              let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
-              let type = FeeType.FEE_TYPE_UNSPECIFIED;
+            );
 
-              switch (price.frequency) {
-                case "daily":
-                  frequency = BillingFrequency.DAILY;
-                  break;
-                case "weekly":
-                  frequency = BillingFrequency.WEEKLY;
-                  break;
-                case "biweekly":
-                  frequency = BillingFrequency.BIWEEKLY;
-                  break;
-                case "monthly":
-                  frequency = BillingFrequency.MONTHLY;
-                  break;
-              }
+            form.setFieldValue("maxTxsPerWindow", maxTxsPerWindow);
+            form.setFieldValue("rateLimitWindow", rateLimitWindow);
+            form.setFieldValue("rules", formRules);
 
-              switch (price.type) {
-                case "once":
-                  type = FeeType.ONCE;
-                  break;
-                case "recurring":
-                  type = FeeType.RECURRING;
-                  break;
-                case "per-tx":
-                  type = FeeType.TRANSACTION;
-                  break;
-              }
-
-              return create(FeePolicySchema, {
-                amount: BigInt(price.amount),
-                description: "",
-                frequency,
-                id: uuidv4(),
-                startDate: create(TimestampSchema, toTimestamp(dayjs())),
-                type,
-              });
-            }),
-            id: schema.pluginId,
-            maxTxsPerWindow,
-            name: schema.pluginName,
-            rules: rules
-              .filter(
-                ({ resource }) =>
-                  schema.supportedResources.findIndex(
-                    ({ resourcePath }) => resourcePath?.full === resource
-                  ) >= 0
-              )
-              .map(({ description = "", resource, target, ...params }) => {
-                const {
-                  parameterCapabilities,
-                  resourcePath,
-                  target: targetType,
-                } = schema.supportedResources.find(
-                  ({ resourcePath }) => resourcePath?.full === resource
-                )!;
-
-                return create(RuleSchema, {
-                  constraints: {},
-                  description,
-                  effect: Effect.ALLOW,
-                  id: "",
-                  parameterConstraints: parameterCapabilities.map(
-                    ({ parameterName, required, supportedTypes }) =>
-                      create(ParameterConstraintSchema, {
-                        constraint: create(ConstraintSchema, {
-                          denominatedIn:
-                            resourcePath?.chainId.toLowerCase() === "ethereum"
-                              ? "wei"
-                              : "",
-                          period: "",
-                          required,
-                          type: supportedTypes,
-                          value: {
-                            case: "fixedValue",
-                            value: params[parameterName] as string,
-                          },
-                        }),
-                        parameterName,
-                      })
-                  ),
-                  resource,
-                  target: create(TargetSchema, {
-                    targetType,
-                    target:
-                      targetType === TargetType.ADDRESS
-                        ? { case: "address", value: target as string }
-                        : targetType === TargetType.MAGIC_CONSTANT
-                        ? {
-                            case: "magicConstant",
-                            value: MagicConstant.VULTISIG_TREASURY,
-                          }
-                        : { case: undefined, value: undefined },
-                  }),
-                });
-              }),
-            rateLimitWindow,
-            version: schema.pluginVersion,
+            setState((prevState) => ({
+              ...prevState,
+              submitting: false,
+              step: 1,
+            }));
           });
 
-          const binary = toBinary(PolicySchema, jsonData);
-
-          const recipe = Buffer.from(binary).toString("base64");
-
-          const policy: AppPolicy = {
-            active: true,
-            id: uuidv4(),
-            pluginId: id,
-            pluginVersion: String(schema.pluginVersion),
-            policyVersion: 0,
-            publicKey: getVaultId(),
-            recipe,
-          };
-
-          const message = policyToHexMessage(policy);
-
-          personalSign(address, message, "policy")
-            .then((signature) => {
-              addPolicy({ ...policy, signature })
-                .then(() => {
-                  setState((prevState) => ({
-                    ...prevState,
-                    submitting: false,
-                  }));
-
-                  form.resetFields();
-
-                  fetchPolicies(0);
-                  goBack();
-                })
-                .catch((error: Error) => {
-                  messageAPI.error(error.message);
-
-                  setState((prevState) => ({
-                    ...prevState,
-                    submitting: false,
-                  }));
-                });
-            })
-            .catch((error: Error) => {
-              messageAPI.error(error.message);
-
-              setState((prevState) => ({ ...prevState, submitting: false }));
-            });
+          break;
         }
+        case 1: {
+          setState((prevState) => ({ ...prevState, step: 2 }));
 
-        break;
+          break;
+        }
+        default: {
+          if (address && schema) {
+            setState((prevState) => ({ ...prevState, submitting: true }));
+
+            const jsonData = create(PolicySchema, {
+              author: "",
+              configuration: properties
+                ? Object.fromEntries(
+                    Object.entries(properties).flatMap(([key, field]) => {
+                      const v = (values as Record<string, any>)[key];
+                      if (v === undefined) return [];
+                      if (field.format === "date-time") {
+                        return [[key, (v as Dayjs).utc().format()]];
+                      }
+                      return [[key, v]];
+                    })
+                  )
+                : undefined,
+              description,
+              feePolicies: pricing.map((price) => {
+                let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
+                let type = FeeType.FEE_TYPE_UNSPECIFIED;
+
+                switch (price.frequency) {
+                  case "daily":
+                    frequency = BillingFrequency.DAILY;
+                    break;
+                  case "weekly":
+                    frequency = BillingFrequency.WEEKLY;
+                    break;
+                  case "biweekly":
+                    frequency = BillingFrequency.BIWEEKLY;
+                    break;
+                  case "monthly":
+                    frequency = BillingFrequency.MONTHLY;
+                    break;
+                }
+
+                switch (price.type) {
+                  case "once":
+                    type = FeeType.ONCE;
+                    break;
+                  case "recurring":
+                    type = FeeType.RECURRING;
+                    break;
+                  case "per-tx":
+                    type = FeeType.TRANSACTION;
+                    break;
+                }
+
+                return create(FeePolicySchema, {
+                  amount: BigInt(price.amount),
+                  description: "",
+                  frequency,
+                  id: uuidv4(),
+                  startDate: create(TimestampSchema, toTimestamp(dayjs())),
+                  type,
+                });
+              }),
+              id: schema.pluginId,
+              maxTxsPerWindow,
+              name: schema.pluginName,
+              rules: rules
+                .filter(
+                  ({ resource }) =>
+                    schema.supportedResources.findIndex(
+                      ({ resourcePath }) => resourcePath?.full === resource
+                    ) >= 0
+                )
+                .map(({ description = "", resource, target, ...params }) => {
+                  const {
+                    parameterCapabilities,
+                    resourcePath,
+                    target: targetType,
+                  } = schema.supportedResources.find(
+                    ({ resourcePath }) => resourcePath?.full === resource
+                  )!;
+
+                  return create(RuleSchema, {
+                    constraints: {},
+                    description,
+                    effect: Effect.ALLOW,
+                    id: "",
+                    parameterConstraints: parameterCapabilities.map(
+                      ({ parameterName, required, supportedTypes }) =>
+                        create(ParameterConstraintSchema, {
+                          constraint: create(ConstraintSchema, {
+                            denominatedIn:
+                              resourcePath?.chainId.toLowerCase() === "ethereum"
+                                ? "wei"
+                                : "",
+                            period: "",
+                            required,
+                            type: supportedTypes,
+                            value: {
+                              case: "fixedValue",
+                              value: params[parameterName] as string,
+                            },
+                          }),
+                          parameterName,
+                        })
+                    ),
+                    resource,
+                    target: create(TargetSchema, {
+                      targetType,
+                      target:
+                        targetType === TargetType.ADDRESS
+                          ? { case: "address", value: target as string }
+                          : targetType === TargetType.MAGIC_CONSTANT
+                          ? {
+                              case: "magicConstant",
+                              value: MagicConstant.VULTISIG_TREASURY,
+                            }
+                          : { case: undefined, value: undefined },
+                    }),
+                  });
+                }),
+              rateLimitWindow,
+              version: schema.pluginVersion,
+            });
+
+            const binary = toBinary(PolicySchema, jsonData);
+
+            const recipe = Buffer.from(binary).toString("base64");
+
+            const policy: AppPolicy = {
+              active: true,
+              id: uuidv4(),
+              pluginId: id,
+              pluginVersion: String(schema.pluginVersion),
+              policyVersion: 0,
+              publicKey: getVaultId(),
+              recipe,
+            };
+
+            const message = policyToHexMessage(policy);
+
+            personalSign(address, message, "policy")
+              .then((signature) => {
+                addPolicy({ ...policy, signature })
+                  .then(() => {
+                    setState((prevState) => ({
+                      ...prevState,
+                      submitting: false,
+                    }));
+
+                    form.resetFields();
+
+                    fetchPolicies(0);
+                    goBack();
+                  })
+                  .catch((error: Error) => {
+                    messageAPI.error(error.message);
+
+                    setState((prevState) => ({
+                      ...prevState,
+                      submitting: false,
+                    }));
+                  });
+              })
+              .catch((error: Error) => {
+                messageAPI.error(error.message);
+
+                setState((prevState) => ({ ...prevState, submitting: false }));
+              });
+          }
+
+          break;
+        }
       }
     }
   };
 
   useEffect(() => {
-    if (!visible) {
+    if (visible) {
       setState((prevState) => ({ ...prevState, step: 0 }));
 
       form.resetFields();
