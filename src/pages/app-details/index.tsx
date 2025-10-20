@@ -21,19 +21,19 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants";
-import { startReshareSession } from "@/utils/extension";
-import {
-  pricingText,
-  snakeCaseToTitle,
-  toNumeralFormat,
-} from "@/utils/functions";
 import {
   getApp,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
-} from "@/utils/marketplace";
+} from "@/utils/api";
+import { modalHash } from "@/utils/constants";
+import { startReshareSession } from "@/utils/extension";
+import {
+  pricingText,
+  snakeCaseToTitle,
+  toNumberFormat,
+} from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App, CustomRecipeSchema } from "@/utils/types";
 
@@ -59,7 +59,8 @@ export const AppDetailsPage = () => {
     loading,
     schema,
   } = state;
-  const { connect, isConnected, messageAPI, modalAPI } = useCore();
+  const { baseValue, connect, currency, isConnected, messageAPI, modalAPI } =
+    useCore();
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();
@@ -95,9 +96,15 @@ export const AppDetailsPage = () => {
       value: (
         <>
           {app?.pricing.length
-            ? app.pricing.map((price, index) => (
+            ? app.pricing.map(({ amount, frequency, type }, index) => (
                 <Stack as="span" key={index}>
-                  {pricingText(price)}
+                  {pricingText({
+                    amount,
+                    baseValue,
+                    currency,
+                    frequency,
+                    type,
+                  })}
                 </Stack>
               ))
             : t("isFreeApp")}
@@ -329,7 +336,7 @@ export const AppDetailsPage = () => {
                                 lineHeight: "20px",
                               }}
                             >
-                              {toNumeralFormat(1258)}
+                              {toNumberFormat(1258)}
                             </Stack>
                           </HStack>
                           <Stack
@@ -407,24 +414,34 @@ export const AppDetailsPage = () => {
                       )}
                     </VStack>
                   </HStack>
-                  <VStack
-                    as="span"
-                    $style={{
-                      alignItems: "center",
-                      color: colors.textSecondary.toHex(),
-                      flexGrow: "1",
-                    }}
-                  >
-                    {app.pricing.length ? (
-                      app.pricing.map((price, index) => (
-                        <Stack as="span" key={index}>
-                          {pricingText(price)}
-                        </Stack>
-                      ))
-                    ) : (
-                      <Stack as="span">{t("isFreeApp")}</Stack>
-                    )}
-                  </VStack>
+                  {!isFeeApp && (
+                    <VStack
+                      as="span"
+                      $style={{
+                        alignItems: "center",
+                        color: colors.textSecondary.toHex(),
+                        flexGrow: "1",
+                      }}
+                    >
+                      {app.pricing.length ? (
+                        app.pricing.map(
+                          ({ amount, frequency, type }, index) => (
+                            <Stack as="span" key={index}>
+                              {pricingText({
+                                amount,
+                                baseValue,
+                                currency,
+                                frequency,
+                                type,
+                              })}
+                            </Stack>
+                          )
+                        )
+                      ) : (
+                        <Stack as="span">{t("isFreeApp")}</Stack>
+                      )}
+                    </VStack>
+                  )}
                 </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[

@@ -2,11 +2,12 @@ import { FC } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
+import { useCore } from "@/hooks/useCore";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { pricingText, toNumeralFormat } from "@/utils/functions";
+import { pricingText, toNumberFormat } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App } from "@/utils/types";
 
@@ -18,6 +19,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
   title,
 }) => {
   const { t } = useTranslation();
+  const { baseValue, currency } = useCore();
   const colors = useTheme();
 
   return (
@@ -87,7 +89,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     lineHeight: "16px",
                   }}
                 >
-                  {toNumeralFormat(1258)}
+                  {toNumberFormat(1258)}
                 </Stack>
               </HStack>
               <Stack
@@ -131,9 +133,15 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
             }}
           >
             {pricing.length ? (
-              pricing.map((price, index) => (
+              pricing.map(({ amount, frequency, type }, index) => (
                 <Stack as="span" key={index}>
-                  {pricingText(price)}
+                  {pricingText({
+                    amount,
+                    baseValue,
+                    currency,
+                    frequency,
+                    type,
+                  })}
                 </Stack>
               ))
             ) : (
