@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { CheckIcon } from "@/icons/CheckIcon";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
@@ -43,7 +43,8 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
+import { modalHash } from "@/utils/constants";
+import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
   formatDuration,
@@ -52,14 +53,13 @@ import {
   toNumeralFormat,
   toTimestamp,
 } from "@/utils/functions";
-import { personalSign } from "@/utils/services/extension";
 import {
   addPolicy,
   delPolicy,
   getPolicies,
   getRecipeSpecification,
   getRecipeSuggestion,
-} from "@/utils/services/marketplace";
+} from "@/utils/marketplace";
 import {
   App,
   AppPolicy,
@@ -97,7 +97,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     totalCount: 0,
   });
   const { loading, policies, schema, step, submitting } = state;
-  const { address, messageAPI, modalAPI } = useApp();
+  const { address, messageAPI, modalAPI } = useCore();
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
@@ -163,7 +163,6 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
 
       getPolicies(id, { skip })
         .then(({ policies, totalCount }) => {
-          console.log("policies", policies);
           setState((prevState) => ({
             ...prevState,
             loading: false,

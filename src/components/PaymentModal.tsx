@@ -7,8 +7,8 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { startReshareSession } from "@/utils/services/extension";
+import { modalHash } from "@/utils/constants";
+import { startReshareSession } from "@/utils/extension";
 
 export const PaymentModal = () => {
   const [visible, setVisible] = useState(false);

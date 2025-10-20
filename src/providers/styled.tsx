@@ -1,17 +1,11 @@
 import { FC, ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 
-import { themes } from "@/utils/constants/styled";
-import { Theme } from "@/utils/constants/theme";
+import { useCore } from "@/hooks/useCore";
+import { themes } from "@/utils/styled";
 
-type StyledProviderProps = {
-  children?: ReactNode;
-  theme: Theme;
-};
+export const StyledProvider: FC<{ children?: ReactNode }> = ({ children }) => {
+  const { theme } = useCore();
 
-export const StyledProvider: FC<StyledProviderProps> = ({
-  children,
-  theme,
-}) => {
   return <ThemeProvider theme={themes[theme]}>{children}</ThemeProvider>;
 };

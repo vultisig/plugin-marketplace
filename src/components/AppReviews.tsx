@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { StarIcon } from "@/icons/StarIcon";
 import { Button } from "@/toolkits/Button";
@@ -13,8 +13,8 @@ import { Divider } from "@/toolkits/Divider";
 import { Rate } from "@/toolkits/Rate";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { addReview, getReviews } from "@/utils/services/marketplace";
+import { modalHash } from "@/utils/constants";
+import { addReview, getReviews } from "@/utils/marketplace";
 import { App, Review, ReviewForm } from "@/utils/types";
 
 type InitialState = {
@@ -32,7 +32,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
     totalCount: 0,
   });
   const { loading, reviews, submitting, visible } = state;
-  const { address, connect, isConnected } = useApp();
+  const { address, connect, isConnected } = useCore();
   const { hash } = useLocation();
   const [form] = Form.useForm<ReviewForm>();
   const goBack = useGoBack();

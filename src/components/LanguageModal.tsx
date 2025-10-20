@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { useApp } from "@/hooks/useApp";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Stack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants/core";
-import { Language, languageNames, languages } from "@/utils/constants/language";
+import { modalHash } from "@/utils/constants";
+import { Language, languageNames, languages } from "@/utils/language";
 
 export const LanguageModal = () => {
   const [visible, setVisible] = useState(false);
-  const { language, setLanguage } = useApp();
+  const { language, setLanguage } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();

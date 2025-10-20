@@ -1,6 +1,6 @@
 import { DefaultTheme } from "styled-components";
 
-import { Theme } from "@/utils/constants/theme";
+import { Theme } from "@/utils/theme";
 
 export class ColorToken {
   constructor(

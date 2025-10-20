@@ -6,11 +6,12 @@ import { setChain } from "@/storage/chain";
 import { setCurrency } from "@/storage/currency";
 import { setLanguage } from "@/storage/language";
 import { setTheme } from "@/storage/theme";
-import { Currency } from "@/utils/constants/currency";
-import { Language } from "@/utils/constants/language";
-import { Theme } from "@/utils/constants/theme";
+import { Currency } from "@/utils/currency";
+import { Language } from "@/utils/language";
+import { Theme } from "@/utils/theme";
+import { Vault } from "@/utils/types";
 
-interface AppContextType {
+interface CoreContextType {
   address?: string;
   chain: string;
   connect: () => void;
@@ -25,7 +26,9 @@ interface AppContextType {
   setLanguage: typeof setLanguage;
   setTheme: typeof setTheme;
   theme: Theme;
-  vaultId?: string;
+  vault?: Vault;
 }
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+export const CoreContext = createContext<CoreContextType | undefined>(
+  undefined
+);
