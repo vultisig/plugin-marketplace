@@ -1,6 +1,7 @@
 import { Anchor, Collapse, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -47,6 +48,7 @@ interface InitialState {
 }
 
 export const AppDetailsPage = () => {
+  const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({});
   const {
     app,
@@ -89,7 +91,7 @@ export const AppDetailsPage = () => {
 
   const informations = [
     {
-      label: "Fee Structure",
+      label: t("feeStructure"),
       value: (
         <>
           {app?.pricing.length
@@ -98,12 +100,12 @@ export const AppDetailsPage = () => {
                   {pricingText(price)}
                 </Stack>
               ))
-            : "This plugin is free"}
+            : t("isFreeApp")}
         </>
       ),
     },
-    { label: "Downloads", value: "1,294" },
-    { label: "Support", value: "24/7" },
+    { label: t("downloads"), value: "1,294" },
+    { label: t("support"), value: "24/7" },
   ];
 
   const checkStatus = useCallback(() => {
@@ -146,10 +148,10 @@ export const AppDetailsPage = () => {
 
   const handleUninstall = () => {
     modalAPI.confirm({
-      title: "Are you sure uninstall this plugin?",
-      okText: "Yes",
+      title: t("confirmAppUninstallation"),
+      okText: t("yes"),
       okType: "danger",
-      cancelText: "No",
+      cancelText: t("no"),
       onOk() {
         setState((prevState) => ({ ...prevState, loading: true }));
 
@@ -163,7 +165,7 @@ export const AppDetailsPage = () => {
 
             messageAPI.open({
               type: "success",
-              content: "Plugin uninstalled successfully.",
+              content: t("successfulAppUninstallation"),
             });
           })
           .catch(() => {
@@ -171,11 +173,10 @@ export const AppDetailsPage = () => {
 
             messageAPI.open({
               type: "error",
-              content: "Failed to uninstall app.",
+              content: t("unsuccessfulAppUninstallation"),
             });
           });
       },
-      onCancel() {},
     });
   };
 
@@ -272,7 +273,7 @@ export const AppDetailsPage = () => {
                 onClick={() => goBack(routeTree.apps.path)}
               >
                 <ChevronLeftIcon fontSize={16} />
-                Go back
+                {t("goBack")}
               </HStack>
               <VStack
                 $style={{
@@ -356,7 +357,7 @@ export const AppDetailsPage = () => {
                             >
                               {app.rating.count
                                 ? `${app.rating.rate}/5 (${app.rating.count})`
-                                : "No Rating yet"}
+                                : t("noRating")}
                             </Stack>
                           </HStack>
                         </HStack>
@@ -367,7 +368,7 @@ export const AppDetailsPage = () => {
                         isInstalled === undefined ||
                         isFeeAppInstalled === undefined ? (
                           <Button disabled loading>
-                            Checking
+                            {t("checking")}
                           </Button>
                         ) : !isFree && !isFeeAppInstalled ? (
                           <Button
@@ -376,7 +377,7 @@ export const AppDetailsPage = () => {
                               navigate(modalHash.payment, { state: true })
                             }
                           >
-                            Install
+                            {t("install")}
                           </Button>
                         ) : isInstalled ? (
                           <>
@@ -385,7 +386,7 @@ export const AppDetailsPage = () => {
                                 disabled={loading || !schema}
                                 href={modalHash.policy}
                               >
-                                Add policy
+                                {t("addPolicy")}
                               </Button>
                             )}
                             <Button
@@ -393,16 +394,16 @@ export const AppDetailsPage = () => {
                               onClick={handleUninstall}
                               kind="danger"
                             >
-                              Uninstall
+                              {t("uninstall")}
                             </Button>
                           </>
                         ) : (
                           <Button loading={loading} onClick={handleInstall}>
-                            Install
+                            {t("install")}
                           </Button>
                         )
                       ) : (
-                        <Button onClick={connect}>Connect</Button>
+                        <Button onClick={connect}>{t("connect")}</Button>
                       )}
                     </VStack>
                   </HStack>
@@ -421,7 +422,7 @@ export const AppDetailsPage = () => {
                         </Stack>
                       ))
                     ) : (
-                      <Stack as="span">This plugin is free</Stack>
+                      <Stack as="span">{t("isFreeApp")}</Stack>
                     )}
                   </VStack>
                 </VStack>
@@ -429,13 +430,13 @@ export const AppDetailsPage = () => {
                   {[
                     {
                       href: `${routeTree.apps.path}?categoryId=${app.categoryId}`,
-                      lable: "Category",
+                      lable: t("category"),
                       value: snakeCaseToTitle(app.categoryId),
                     },
-                    { lable: "Created By", value: "Vultisig" },
-                    { lable: "Version", value: "2.1.0" },
+                    { lable: t("createdBy"), value: "Vultisig" },
+                    { lable: t("version"), value: "2.1.0" },
                     {
-                      lable: "Last Update",
+                      lable: t("lastUpdate"),
                       value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                     },
                   ].map(({ href, lable, value }, index) => (
@@ -485,13 +486,13 @@ export const AppDetailsPage = () => {
               direction="horizontal"
               items={[
                 ...(isInstalled && !isFeeApp
-                  ? [{ key: "#policies", label: "Policies" }]
+                  ? [{ key: "#policies", label: t("policies") }]
                   : []),
-                { key: "#overview", label: "Overview" },
-                { key: "#features", label: "Features" },
-                { key: "#faqs", label: "FAQs" },
-                { key: "#informations", label: "Usage Info" },
-                { key: "#reviews", label: "Reviews & Ratings" },
+                { key: "#overview", label: t("overview") },
+                { key: "#features", label: t("features") },
+                { key: "#faq", label: t("faq") },
+                { key: "#informations", label: t("usageInfo") },
+                { key: "#reviews", label: `${t("reviews")} & ${t("ratings")}` },
               ].map(({ key, label }) => ({
                 key,
                 href: key,
@@ -527,7 +528,7 @@ export const AppDetailsPage = () => {
                 as="span"
                 $style={{ fontSize: "18px", lineHeight: "28px" }}
               >
-                Features
+                {t("features")}
               </Stack>
               <VStack $style={{ gap: "8px" }}>
                 {[
@@ -556,12 +557,12 @@ export const AppDetailsPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <VStack id="faqs" $style={{ gap: "24px" }}>
+            <VStack id="faq" $style={{ gap: "24px" }}>
               <Stack
                 as="span"
                 $style={{ fontSize: "18px", lineHeight: "28px" }}
               >
-                FAQs
+                {t("faq")}
               </Stack>
               <VStack $style={{ gap: "16px" }}>
                 {faqs.map(({ answer, question }, index) => (
@@ -583,7 +584,7 @@ export const AppDetailsPage = () => {
                 as="span"
                 $style={{ fontSize: "18px", lineHeight: "28px" }}
               >
-                Usage Info
+                {t("usageInfo")}
               </Stack>
               <VStack $style={{ gap: "16px" }}>
                 {informations.map(({ label, value }, index) => (
@@ -654,7 +655,7 @@ export const AppDetailsPage = () => {
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  App Permissions
+                  {t("appPermissions")}
                 </Stack>
                 {[
                   "Access to transaction signing",
@@ -697,7 +698,7 @@ export const AppDetailsPage = () => {
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  Audit
+                  {t("audit")}
                 </Stack>
                 {["Fully audited, check the certificate"].map((item, index) => (
                   <HStack key={index} $style={{ gap: "8px" }}>

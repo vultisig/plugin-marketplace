@@ -1,5 +1,6 @@
 import { List, Modal } from "antd";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -10,6 +11,7 @@ import { modalHash } from "@/utils/constants";
 import { currencies, Currency, currencySymbols } from "@/utils/currency";
 
 export const CurrencyModal = () => {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const { currency, setCurrency } = useCore();
   const { hash } = useLocation();
@@ -32,7 +34,7 @@ export const CurrencyModal = () => {
       onCancel={() => goBack()}
       open={visible}
       styles={{ footer: { display: "none" } }}
-      title="Change Currency"
+      title={t("changeCurrency")}
       width={360}
     >
       <List

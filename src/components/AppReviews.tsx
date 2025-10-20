@@ -1,6 +1,7 @@
 import { Form, FormProps, Input, Modal } from "antd";
 import dayjs from "dayjs";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -26,6 +27,7 @@ type InitialState = {
 };
 
 export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
+  const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
     loading: true,
     reviews: [],
@@ -97,7 +99,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
       <VStack id="reviews" $style={{ gap: "32px" }}>
         <VStack $style={{ gap: "12px" }}>
           <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
-            Reviews
+            {t("reviews")}
           </Stack>
           <HStack
             $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -115,14 +117,14 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  {`${rating.count} Reviews`}
+                  {`${rating.count} ${t("reviews")}`}
                 </Stack>
               </VStack>
             </HStack>
             {isConnected ? (
-              <Button href={modalHash.review}>Write a review</Button>
+              <Button href={modalHash.review}>{t("writeReview")}</Button>
             ) : (
-              <Button onClick={connect}>Connect</Button>
+              <Button onClick={connect}>{t("connect")}</Button>
             )}
           </HStack>
           <HStack $style={{ gap: "24px" }}>
@@ -253,7 +255,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
         centered={true}
         footer={
           <Button loading={submitting} onClick={form.submit}>
-            Post review
+            {t("postReview")}
           </Button>
         }
         maskClosable={false}
@@ -269,7 +271,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
           footer: { display: "flex", justifyContent: "center", margin: 0 },
           header: { margin: 0 },
         }}
-        title="Write review"
+        title={t("writeReview")}
         width={768}
       >
         <Form
@@ -284,7 +286,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                 as="span"
                 $style={{ fontSize: "12px", lineHeight: "16px" }}
               >
-                Rating
+                {t("rating")}
               </Stack>
               <Form.Item<ReviewForm>
                 name="rating"
@@ -310,7 +312,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                   lineHeight: "16px",
                 }}
               >
-                Write your review
+                {t("writeReview")}
               </Stack>
               <Form.Item<ReviewForm>
                 name="comment"
@@ -319,7 +321,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
               >
                 <Input.TextArea
                   rows={4}
-                  placeholder="How do you feel about this app? "
+                  placeholder={t("writeReviewPlaceholder")}
                 />
               </Form.Item>
             </VStack>

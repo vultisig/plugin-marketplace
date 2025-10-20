@@ -1,6 +1,7 @@
 import { Empty, Select } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { AppItem } from "@/components/AppItem";
@@ -18,6 +19,7 @@ type InitialState = {
 };
 
 export const AppsPage = () => {
+  const { t } = useTranslation();
   const initialState: InitialState = {
     categories: [],
     loading: true,
@@ -82,7 +84,7 @@ export const AppsPage = () => {
         <VStack $style={{ flexGrow: "1", gap: "32px" }}>
           <VStack $style={{ gap: "24px" }}>
             <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
-              Discover Apps
+              {t("discoverApps")}
             </Stack>
             <Divider light />
             <HStack $style={{ gap: "12px" }}>
@@ -129,7 +131,7 @@ export const AppsPage = () => {
                 }}
               >
                 <Stack as="span" $style={{ whiteSpace: "nowrap" }}>
-                  Sort By
+                  {t("sortBy")}
                 </Stack>
                 <Select
                   options={[
@@ -155,7 +157,7 @@ export const AppsPage = () => {
                       as="span"
                       $style={{ fontSize: "17px", lineHeight: "20px" }}
                     >
-                      New
+                      {t("new")}
                     </Stack>
                     <AppItem {...newPlugin} horizontal />
                   </VStack>
@@ -169,7 +171,7 @@ export const AppsPage = () => {
                   as="span"
                   $style={{ fontSize: "17px", lineHeight: "20px" }}
                 >
-                  All Apps
+                  {t("allApps")}
                 </Stack>
                 <Stack
                   $style={{

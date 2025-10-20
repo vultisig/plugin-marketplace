@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
@@ -16,6 +17,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
   pricing,
   title,
 }) => {
+  const { t } = useTranslation();
   const colors = useTheme();
 
   return (
@@ -135,10 +137,12 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                 </Stack>
               ))
             ) : (
-              <Stack as="span">This plugin is free</Stack>
+              <Stack as="span">{t("isFreeApp")}</Stack>
             )}
           </VStack>
-          <Button href={routeTree.appDetails.link(id)}>See Details</Button>
+          <Button href={routeTree.appDetails.link(id)}>
+            {t("seeDetails")}
+          </Button>
         </VStack>
       </VStack>
     </Stack>

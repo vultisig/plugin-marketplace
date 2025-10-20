@@ -157,18 +157,7 @@ export const DefaultLayout = () => {
           width: "264px",
         }}
       >
-        The Vultisig App Store is currently only available on desktop.
-      </Stack>
-      <Stack
-        as="span"
-        $style={{
-          fontSize: "15px",
-          lineHeight: "18px",
-          opacity: "0.8",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Make sure to extension is installed
+        {t("unsupportedMedia")}
       </Stack>
     </VStack>
   ) : (
@@ -224,7 +213,7 @@ export const DefaultLayout = () => {
               />
             </HStack>
             <Stack $style={{ fontSize: "22px", lineHeight: "40px" }}>
-              App Store
+              {t("appStore")}
             </Stack>
           </HStack>
           <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
@@ -233,7 +222,7 @@ export const DefaultLayout = () => {
               to={routeTree.apps.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
-              Marketplace
+              {t("marketplace")}
             </Stack>
             {isConnected && (
               <Stack
@@ -241,7 +230,7 @@ export const DefaultLayout = () => {
                 to={routeTree.apps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
-                My Apps
+                {t("myApps")}
               </Stack>
             )}
             <Stack
@@ -249,12 +238,13 @@ export const DefaultLayout = () => {
               to={routeTree.faq.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
-              FAQ
+              {t("faq")}
             </Stack>
           </HStack>
           <Dropdown
             menu={{ items: dropdownMenu }}
             overlayStyle={{ width: 302 }}
+            placement="bottomRight"
           >
             <HStack
               $style={{
