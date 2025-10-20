@@ -134,7 +134,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                     color: colors.warning.toHex(),
                     fontSize: "16px",
                     gap: "2px",
-                    justifyContent: "end",
+                    justifyContent: "flex-end",
                   }}
                 >
                   {Array.from({ length: rating }, (_, i) => (
@@ -279,7 +279,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
           onFinish={onFinishSuccess}
         >
           <VStack $style={{ gap: "16px" }}>
-            <VStack $style={{ alignItems: "start", gap: "8px" }}>
+            <VStack $style={{ alignItems: "flex-start", gap: "8px" }}>
               <Stack
                 as="span"
                 $style={{ fontSize: "12px", lineHeight: "16px" }}

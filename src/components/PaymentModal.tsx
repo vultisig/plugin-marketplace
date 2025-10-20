@@ -41,7 +41,7 @@ export const PaymentModal = () => {
             width: "346px",
           }}
         />
-        <VStack $style={{ alignItems: "start", gap: "24px" }}>
+        <VStack $style={{ alignItems: "flex-start", gap: "24px" }}>
           <VStack $style={{ gap: "20px" }}>
             <HStack $style={{ gap: "12px" }}>
               <Stack

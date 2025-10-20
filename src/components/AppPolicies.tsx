@@ -1,6 +1,15 @@
 import { create, toBinary } from "@bufbuild/protobuf";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { Form, FormProps, Modal, Table, TableProps } from "antd";
+import {
+  Form,
+  FormProps,
+  Input,
+  InputNumber,
+  Modal,
+  Select,
+  Table,
+  TableProps,
+} from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { FC, Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -32,14 +41,12 @@ import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
-import { Input } from "@/toolkits/Input";
-import { InputNumber } from "@/toolkits/InputNumber";
-import { Select } from "@/toolkits/Select";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants/core";
 import {
   camelCaseToTitle,
+  formatDuration,
   policyToHexMessage,
   snakeCaseToTitle,
   toNumeralFormat,
@@ -61,11 +68,13 @@ import {
 } from "@/utils/types";
 
 type RuleFieldType = {
+  description?: string;
   resource: string;
   target?: string;
 } & Record<string, string>;
 
 type FormFieldType = {
+  description?: string;
   maxTxsPerWindow: number;
   rateLimitWindow: number;
   rules: RuleFieldType[];
@@ -78,7 +87,6 @@ type InitialState = {
   step: number;
   submitting?: boolean;
   totalCount: number;
-  visible?: boolean;
 };
 
 export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
@@ -88,7 +96,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     step: 0,
     totalCount: 0,
   });
-  const { loading, policies, schema, step, submitting, visible } = state;
+  const { loading, policies, schema, step, submitting } = state;
   const { address, messageAPI, modalAPI } = useApp();
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
@@ -96,13 +104,6 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   const colors = useTheme();
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
-    {
-      align: "center",
-      key: "row",
-      render: (_, __, index) => index + 1,
-      title: "Row",
-      width: 20,
-    },
     Table.EXPAND_COLUMN,
     {
       dataIndex: "parsedRecipe",
@@ -152,12 +153,17 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     return schema?.configuration?.properties;
   }, [schema]);
 
+  const visible = useMemo(() => {
+    return hash === modalHash.policy;
+  }, [hash]);
+
   const fetchPolicies = useCallback(
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
       getPolicies(id, { skip })
         .then(({ policies, totalCount }) => {
+          console.log("policies", policies);
           setState((prevState) => ({
             ...prevState,
             loading: false,
@@ -209,45 +215,44 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     }
   };
 
-  const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = (values) => {
+  const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
+    description = "",
+    maxTxsPerWindow,
+    rateLimitWindow,
+    rules,
+    ...values
+  }) => {
     switch (step) {
       case 0: {
-        const configuration = Object.fromEntries(
-          Object.entries(values).filter(
-            ([key]) =>
-              !["rules", "maxTxsPerWindow", "rateLimitWindow"].includes(key)
-          )
-        ) as Record<string, string>;
+        getRecipeSuggestion(id, {
+          maxTxsPerWindow,
+          rateLimitWindow,
+          rules,
+        }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
+          const formRules = rules.map(
+            ({ parameterConstraints, resource, target }) => {
+              const params: RuleFieldType = { resource };
 
-        getRecipeSuggestion(id, configuration).then(
-          ({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
-            const formRules = rules.map(
-              ({ parameterConstraints, resource, target }) => {
-                const params: RuleFieldType = { resource };
-
-                if (target?.target?.value) {
-                  params.target = target.target.value as string;
-                }
-
-                parameterConstraints.forEach(
-                  ({ constraint, parameterName }) => {
-                    if (constraint?.value?.value) {
-                      params[parameterName] = constraint.value.value as string;
-                    }
-                  }
-                );
-
-                return params;
+              if (target?.target?.value) {
+                params.target = target.target.value as string;
               }
-            );
 
-            form.setFieldValue("maxTxsPerWindow", maxTxsPerWindow);
-            form.setFieldValue("rateLimitWindow", rateLimitWindow);
-            form.setFieldValue("rules", formRules);
+              parameterConstraints.forEach(({ constraint, parameterName }) => {
+                if (constraint?.value?.value) {
+                  params[parameterName] = constraint.value.value as string;
+                }
+              });
 
-            setState((prevState) => ({ ...prevState, step: 1 }));
-          }
-        );
+              return params;
+            }
+          );
+
+          form.setFieldValue("maxTxsPerWindow", maxTxsPerWindow);
+          form.setFieldValue("rateLimitWindow", rateLimitWindow);
+          form.setFieldValue("rules", formRules);
+
+          setState((prevState) => ({ ...prevState, step: 1 }));
+        });
 
         break;
       }
@@ -260,145 +265,134 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         if (address && schema) {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          const rules = values.rules
-            .filter(
-              ({ resource }) =>
-                schema.supportedResources.findIndex(
-                  ({ resourcePath }) => resourcePath?.full === resource
-                ) >= 0
-            )
-            .map(({ resource, target, ...params }) => {
-              const {
-                parameterCapabilities,
-                resourcePath,
-                target: targetType,
-              } = schema.supportedResources.find(
-                ({ resourcePath }) => resourcePath?.full === resource
-              )!;
-
-              const parameterConstraints = parameterCapabilities.map(
-                ({ parameterName, required, supportedTypes }) => {
-                  const constraint = create(ConstraintSchema, {
-                    denominatedIn:
-                      resourcePath?.chainId.toLowerCase() === "ethereum"
-                        ? "wei"
-                        : "",
-                    period: "",
-                    required,
-                    type: supportedTypes,
-                    value: {
-                      case: "fixedValue",
-                      value: params[parameterName] as string,
-                    },
-                  });
-
-                  return create(ParameterConstraintSchema, {
-                    constraint,
-                    parameterName,
-                  });
-                }
-              );
-
-              return create(RuleSchema, {
-                constraints: {},
-                description: "",
-                effect: Effect.ALLOW,
-                id: "",
-                parameterConstraints,
-                resource,
-                target: create(TargetSchema, {
-                  targetType,
-                  target:
-                    targetType === TargetType.ADDRESS
-                      ? { case: "address", value: target as string }
-                      : targetType === TargetType.MAGIC_CONSTANT
-                      ? {
-                          case: "magicConstant",
-                          value: MagicConstant.VULTISIG_TREASURY,
-                        }
-                      : { case: undefined, value: undefined },
-                }),
-              });
-            });
-
-          const feePolicies = pricing.map((price) => {
-            let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
-            let type = FeeType.FEE_TYPE_UNSPECIFIED;
-
-            switch (price.frequency) {
-              case "daily":
-                frequency = BillingFrequency.DAILY;
-                break;
-              case "weekly":
-                frequency = BillingFrequency.WEEKLY;
-                break;
-              case "biweekly":
-                frequency = BillingFrequency.BIWEEKLY;
-                break;
-              case "monthly":
-                frequency = BillingFrequency.MONTHLY;
-                break;
-            }
-
-            switch (price.type) {
-              case "once":
-                type = FeeType.ONCE;
-                break;
-              case "recurring":
-                type = FeeType.RECURRING;
-                break;
-              case "per-tx":
-                type = FeeType.TRANSACTION;
-                break;
-            }
-
-            return create(FeePolicySchema, {
-              amount: BigInt(price.amount),
-              description: "",
-              frequency,
-              id: uuidv4(),
-              startDate: create(TimestampSchema, toTimestamp(dayjs())),
-              type,
-            });
-          });
-
-          const configuration = () => {
-            if (properties) {
-              const configuration: Record<string, any> = {};
-
-              Object.entries(properties).forEach(([key, field]) => {
-                if (values[key]) {
-                  switch (field.format) {
-                    case "date-time": {
-                      configuration[key] = (values[key] as Dayjs)
-                        .utc()
-                        .format();
-                      break;
-                    }
-                    default: {
-                      configuration[key] = values[key];
-                      break;
-                    }
-                  }
-                }
-              });
-
-              return { configuration };
-            } else {
-              return {};
-            }
-          };
-
           const jsonData = create(PolicySchema, {
             author: "",
-            ...configuration(),
-            description: "",
-            feePolicies,
+            ...() => {
+              if (properties) {
+                const configuration: Record<string, any> = {};
+
+                Object.entries(properties).forEach(([key, field]) => {
+                  if (values[key]) {
+                    switch (field.format) {
+                      case "date-time": {
+                        configuration[key] = (values[key] as Dayjs)
+                          .utc()
+                          .format();
+                        break;
+                      }
+                      default: {
+                        configuration[key] = values[key];
+                        break;
+                      }
+                    }
+                  }
+                });
+
+                return { configuration };
+              } else {
+                return {};
+              }
+            },
+            description,
+            feePolicies: pricing.map((price) => {
+              let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
+              let type = FeeType.FEE_TYPE_UNSPECIFIED;
+
+              switch (price.frequency) {
+                case "daily":
+                  frequency = BillingFrequency.DAILY;
+                  break;
+                case "weekly":
+                  frequency = BillingFrequency.WEEKLY;
+                  break;
+                case "biweekly":
+                  frequency = BillingFrequency.BIWEEKLY;
+                  break;
+                case "monthly":
+                  frequency = BillingFrequency.MONTHLY;
+                  break;
+              }
+
+              switch (price.type) {
+                case "once":
+                  type = FeeType.ONCE;
+                  break;
+                case "recurring":
+                  type = FeeType.RECURRING;
+                  break;
+                case "per-tx":
+                  type = FeeType.TRANSACTION;
+                  break;
+              }
+
+              return create(FeePolicySchema, {
+                amount: BigInt(price.amount),
+                description: "",
+                frequency,
+                id: uuidv4(),
+                startDate: create(TimestampSchema, toTimestamp(dayjs())),
+                type,
+              });
+            }),
             id: schema.pluginId,
-            maxTxsPerWindow: values.maxTxsPerWindow,
+            maxTxsPerWindow,
             name: schema.pluginName,
-            rules,
-            rateLimitWindow: values.rateLimitWindow,
+            rules: rules
+              .filter(
+                ({ resource }) =>
+                  schema.supportedResources.findIndex(
+                    ({ resourcePath }) => resourcePath?.full === resource
+                  ) >= 0
+              )
+              .map(({ description = "", resource, target, ...params }) => {
+                const {
+                  parameterCapabilities,
+                  resourcePath,
+                  target: targetType,
+                } = schema.supportedResources.find(
+                  ({ resourcePath }) => resourcePath?.full === resource
+                )!;
+
+                return create(RuleSchema, {
+                  constraints: {},
+                  description,
+                  effect: Effect.ALLOW,
+                  id: "",
+                  parameterConstraints: parameterCapabilities.map(
+                    ({ parameterName, required, supportedTypes }) =>
+                      create(ParameterConstraintSchema, {
+                        constraint: create(ConstraintSchema, {
+                          denominatedIn:
+                            resourcePath?.chainId.toLowerCase() === "ethereum"
+                              ? "wei"
+                              : "",
+                          period: "",
+                          required,
+                          type: supportedTypes,
+                          value: {
+                            case: "fixedValue",
+                            value: params[parameterName] as string,
+                          },
+                        }),
+                        parameterName,
+                      })
+                  ),
+                  resource,
+                  target: create(TargetSchema, {
+                    targetType,
+                    target:
+                      targetType === TargetType.ADDRESS
+                        ? { case: "address", value: target as string }
+                        : targetType === TargetType.MAGIC_CONSTANT
+                        ? {
+                            case: "magicConstant",
+                            value: MagicConstant.VULTISIG_TREASURY,
+                          }
+                        : { case: undefined, value: undefined },
+                  }),
+                });
+              }),
+            rateLimitWindow,
             version: schema.pluginVersion,
           });
 
@@ -454,14 +448,12 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   };
 
   useEffect(() => {
-    if (hash === modalHash.policy) {
-      setState((prevState) => ({ ...prevState, visible: true }));
-    } else if (visible) {
-      setState((prevState) => ({ ...prevState, step: 0, visible: false }));
+    if (!visible) {
+      setState((prevState) => ({ ...prevState, step: 0 }));
 
       form.resetFields();
     }
-  }, [form, hash, visible]);
+  }, [form, visible]);
 
   useEffect(() => {
     fetchPolicies(0);
@@ -483,30 +475,49 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         columns={columns}
         dataSource={policies}
         expandable={{
-          expandedRowRender: ({ parsedRecipe: { rules } }) => {
+          expandedRowRender: (
+            { parsedRecipe: { description, rules } },
+            index
+          ) => {
             return (
-              <VStack $style={{ gap: "8px" }}>
-                {rules.map(({ id, parameterConstraints, target }, index) => (
-                  <Fragment key={id}>
-                    {index > 0 && <Divider light />}
-                    <Stack
-                      key={id}
-                      $style={{
-                        display: "grid",
-                        gap: "8px",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                      }}
-                      $media={{
-                        xl: {
-                          $style: { gridTemplateColumns: "repeat(2, 1fr)" },
-                        },
-                      }}
-                    >
-                      {parameterConstraints.map(
-                        ({ constraint, parameterName }) => {
-                          const value = String(constraint?.value.value || "");
-
-                          return (
+              <VStack key={index} $style={{ gap: "8px" }}>
+                {description && (
+                  <>
+                    <VStack>
+                      <Stack
+                        as="span"
+                        $style={{ fontSize: "12px", lineHeight: "18px" }}
+                      >
+                        Description
+                      </Stack>
+                      <Stack
+                        as="span"
+                        $style={{ fontSize: "12px", lineHeight: "18px" }}
+                      >
+                        {description}
+                      </Stack>
+                    </VStack>
+                    <Divider light />
+                  </>
+                )}
+                {rules.map(
+                  ({ description, parameterConstraints, target }, index) => (
+                    <Fragment key={index}>
+                      {index > 0 && <Divider light />}
+                      <Stack
+                        $style={{
+                          display: "grid",
+                          gap: "8px",
+                          gridTemplateColumns: "repeat(3, 1fr)",
+                        }}
+                        $media={{
+                          xl: {
+                            $style: { gridTemplateColumns: "repeat(2, 1fr)" },
+                          },
+                        }}
+                      >
+                        {parameterConstraints.map(
+                          ({ constraint, parameterName }) => (
                             <VStack key={parameterName}>
                               {constraint?.value.case ? (
                                 <HStack
@@ -519,7 +530,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                       lineHeight: "18px",
                                     }}
                                   >
-                                    {camelCaseToTitle(parameterName)}
+                                    {snakeCaseToTitle(parameterName)}
                                   </Stack>
                                   <Stack
                                     as="span"
@@ -527,7 +538,9 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                       fontSize: "10px",
                                       lineHeight: "18px",
                                     }}
-                                  >{`(${constraint.value.case})`}</Stack>
+                                  >{`(${camelCaseToTitle(
+                                    constraint.value.case
+                                  )})`}</Stack>
                                 </HStack>
                               ) : (
                                 <Stack
@@ -537,11 +550,19 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  {camelCaseToTitle(parameterName)}
+                                  {snakeCaseToTitle(parameterName)}
                                 </Stack>
                               )}
-                              {value.startsWith("0x") ? (
-                                <MiddleTruncate>{value}</MiddleTruncate>
+                              {typeof constraint?.value.value === "string" &&
+                              constraint.value.value.startsWith("0x") ? (
+                                <MiddleTruncate
+                                  $style={{
+                                    fontSize: "12px",
+                                    lineHeight: "18px",
+                                  }}
+                                >
+                                  {constraint.value.value}
+                                </MiddleTruncate>
                               ) : (
                                 <Stack
                                   as="span"
@@ -550,50 +571,93 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  {value}
+                                  {constraint?.value.value || "-"}
                                 </Stack>
                               )}
                             </VStack>
-                          );
-                        }
-                      )}
-
-                      {target ? (
+                          )
+                        )}
+                        {target ? (
+                          <VStack>
+                            {target.target.case ? (
+                              <HStack
+                                $style={{ alignItems: "center", gap: "4px" }}
+                              >
+                                <Stack
+                                  as="span"
+                                  $style={{
+                                    fontSize: "12px",
+                                    lineHeight: "18px",
+                                  }}
+                                >
+                                  Target
+                                </Stack>
+                                <Stack
+                                  as="span"
+                                  $style={{
+                                    fontSize: "10px",
+                                    lineHeight: "18px",
+                                  }}
+                                >{`(${camelCaseToTitle(
+                                  target.target.case
+                                )})`}</Stack>
+                              </HStack>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                Target
+                              </Stack>
+                            )}
+                            {typeof target.target.value === "string" &&
+                            target.target.value.startsWith("0x") ? (
+                              <MiddleTruncate
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {target.target.value}
+                              </MiddleTruncate>
+                            ) : (
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {target.target.value || "-"}
+                              </Stack>
+                            )}
+                          </VStack>
+                        ) : (
+                          <></>
+                        )}
+                      </Stack>
+                      {description && (
                         <VStack>
-                          <HStack $style={{ gap: "4px" }}>
-                            <Stack
-                              as="span"
-                              $style={{
-                                fontSize: "12px",
-                                lineHeight: "18px",
-                              }}
-                            >
-                              Target
-                            </Stack>
-                            <Stack
-                              as="span"
-                              $style={{
-                                fontSize: "10px",
-                                lineHeight: "18px",
-                              }}
-                            >{`(${target.target.case})`}</Stack>
-                          </HStack>
                           <Stack
                             as="span"
-                            $style={{
-                              fontSize: "12px",
-                              lineHeight: "18px",
-                            }}
+                            $style={{ fontSize: "12px", lineHeight: "18px" }}
                           >
-                            {target.target.value || "-"}
+                            Description
+                          </Stack>
+                          <Stack
+                            as="span"
+                            $style={{ fontSize: "12px", lineHeight: "18px" }}
+                          >
+                            {description}
                           </Stack>
                         </VStack>
-                      ) : (
-                        <></>
                       )}
-                    </Stack>
-                  </Fragment>
-                ))}
+                    </Fragment>
+                  )
+                )}
               </VStack>
             );
           },
@@ -859,6 +923,14 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                                             <Input disabled={isFeesPlugin} />
                                           </Form.Item>
                                         )}
+                                        <Stack
+                                          as={Form.Item}
+                                          name={[name, "description"]}
+                                          label="Description"
+                                          $style={{ gridColumn: "1 / -1" }}
+                                        >
+                                          <Input.TextArea />
+                                        </Stack>
                                       </>
                                     );
                                   }}
@@ -983,6 +1055,37 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                   }}
                 >
                   <Form.Item<FormFieldType>
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.maxTxsPerWindow !==
+                        currentValues.maxTxsPerWindow ||
+                      prevValues.rateLimitWindow !==
+                        currentValues.rateLimitWindow
+                    }
+                    noStyle
+                  >
+                    {({ getFieldsValue }) => {
+                      const { maxTxsPerWindow, rateLimitWindow } =
+                        getFieldsValue();
+
+                      return (
+                        <Stack
+                          $style={{
+                            gridColumn: "1 / -1",
+                            marginBottom: "24px",
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {`This plugin can send up to ${maxTxsPerWindow} transactions${
+                            rateLimitWindow
+                              ? ` every ${formatDuration(rateLimitWindow)}`
+                              : "."
+                          }`}
+                        </Stack>
+                      );
+                    }}
+                  </Form.Item>
+                  <Form.Item<FormFieldType>
                     name="maxTxsPerWindow"
                     label="Max Txs Per Window"
                   >
@@ -994,6 +1097,15 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                   >
                     <InputNumber disabled={isFeesPlugin} min={1} />
                   </Form.Item>
+
+                  <Stack
+                    as={Form.Item<FormFieldType>}
+                    name="description"
+                    label="Description"
+                    $style={{ gridColumn: "1 / -1" }}
+                  >
+                    <Input.TextArea />
+                  </Stack>
                 </Stack>
               </>
             ) : (

@@ -1,6 +1,6 @@
+import { Collapse } from "antd";
 import { Fragment } from "react";
 
-import { Collapse } from "@/toolkits/Collapse";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 
