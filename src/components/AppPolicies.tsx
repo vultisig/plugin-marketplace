@@ -1,4 +1,5 @@
 import { create, toBinary } from "@bufbuild/protobuf";
+import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import {
   Form,
@@ -395,7 +396,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
 
             const binary = toBinary(PolicySchema, jsonData);
 
-            const recipe = Buffer.from(binary).toString("base64");
+            const recipe = base64Encode(binary);
 
             const policy: AppPolicy = {
               active: true,
