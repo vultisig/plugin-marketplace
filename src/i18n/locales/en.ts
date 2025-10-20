@@ -79,7 +79,7 @@ export const en = {
   seeDetails: "See Details",
   sortBy: "Sort By",
   submit: "Submit",
-  successfulAppUninstallation: "Policy successfully uninstallation",
+  successfulAppUninstallation: "App successfully uninstalled",
   successfulAuthenticated: "Successfully authenticated!",
   successfulPolicyDeletion: "Policy successfully deleted",
   support: "Support",
