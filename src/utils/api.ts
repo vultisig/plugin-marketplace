@@ -136,8 +136,8 @@ const post = async <T>(
 //     .put<T>(url, data, config)
 //     .then(({ data }) => toCamelCase(data));
 
-const storeUrl = import.meta.env.VITE_MARKETPLACE_URL;
-const vultisigUrl = import.meta.env.VITE_VULTISIG_SERVER;
+const coreUrl = import.meta.env.VITE_CORE_URL;
+const storeUrl = import.meta.env.VITE_STORE_URL;
 
 export const addPolicy = async (data: AppPolicy) =>
   post<AppPolicy>(`${storeUrl}/plugin/policy`, toSnakeCase(data));
@@ -203,7 +203,7 @@ export const getBaseValue = async (currency: Currency) => {
       [id: string]: { quote: { [currency: string]: { price: number } } };
     };
   }>(
-    `${vultisigUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
+    `${coreUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
   )
     .then(({ data }) => {
       if (data && data[825]?.quote && data[825].quote[modifiedCurrency]) {

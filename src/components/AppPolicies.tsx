@@ -149,7 +149,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   ];
 
   const isFeesPlugin = useMemo(() => {
-    return id === import.meta.env.VITE_FEE_PLUGIN_ID;
+    return id === import.meta.env.VITE_FEE_APP_ID;
   }, [id]);
 
   const properties = useMemo(() => {
@@ -209,12 +209,14 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   };
 
   const handleStepBack = (step: number) => {
-    if (step > 1) {
-      setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (properties && step > 0) {
-      setState((prevState) => ({ ...prevState, step: 0 }));
-    } else {
-      goBack();
+    if (!submitting) {
+      if (step > 1) {
+        setState((prevState) => ({ ...prevState, step: 1 }));
+      } else if (properties && step > 0) {
+        setState((prevState) => ({ ...prevState, step: 0 }));
+      } else {
+        goBack();
+      }
     }
   };
 
@@ -448,7 +450,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
 
   useEffect(() => {
     if (visible) {
-      setState((prevState) => ({ ...prevState, step: 0 }));
+      setState((prevState) => ({ ...prevState, step: 0, submitting: false }));
 
       form.resetFields();
     }
@@ -669,7 +671,15 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
       />
       <Modal
         centered={true}
-        closeIcon={step > 0 ? <ChevronLeftIcon /> : <CrossIcon />}
+        closeIcon={
+          submitting ? (
+            <Spin size="small" />
+          ) : step > 0 ? (
+            <ChevronLeftIcon />
+          ) : (
+            <CrossIcon />
+          )
+        }
         footer={
           <>
             <Stack $style={{ flex: "none", width: "218px" }} />
@@ -1098,7 +1108,6 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                   >
                     <InputNumber disabled={isFeesPlugin} min={1} />
                   </Form.Item>
-
                   <Stack
                     as={Form.Item<FormFieldType>}
                     name="description"

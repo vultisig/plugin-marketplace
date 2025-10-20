@@ -76,6 +76,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
           form.resetFields();
 
           fetchReviews(0);
+          goBack();
         })
         .catch(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));

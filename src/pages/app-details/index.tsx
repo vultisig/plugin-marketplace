@@ -134,7 +134,7 @@ export const AppDetailsPage = () => {
         }
       });
     } else {
-      isAppInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+      isAppInstalled(import.meta.env.VITE_FEE_APP_ID).then(
         (isFeeAppInstalled) => {
           setState((prevState) => ({
             ...prevState,
@@ -207,7 +207,7 @@ export const AppDetailsPage = () => {
 
     getApp(id)
       .then((app) => {
-        const isFeeApp = app.id === import.meta.env.VITE_FEE_PLUGIN_ID;
+        const isFeeApp = app.id === import.meta.env.VITE_FEE_APP_ID;
         const isFree = !app.pricing.length || isFeeApp;
 
         if (isFree) {
@@ -219,7 +219,7 @@ export const AppDetailsPage = () => {
             isFeeAppInstalled: true,
           }));
         } else {
-          isAppInstalled(import.meta.env.VITE_FEE_PLUGIN_ID).then(
+          isAppInstalled(import.meta.env.VITE_FEE_APP_ID).then(
             (isFeeAppInstalled) => {
               setState((prevState) => ({
                 ...prevState,

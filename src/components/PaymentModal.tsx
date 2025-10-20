@@ -87,9 +87,7 @@ export const PaymentModal = () => {
           </VStack>
           <Button
             icon={<CirclePlusIcon fontSize={16} />}
-            onClick={() =>
-              startReshareSession(import.meta.env.VITE_FEE_PLUGIN_ID)
-            }
+            onClick={() => startReshareSession(import.meta.env.VITE_FEE_APP_ID)}
           >
             {t("paymentModal.action")}
           </Button>
