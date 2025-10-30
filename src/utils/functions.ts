@@ -1,7 +1,13 @@
 import { Dayjs } from "dayjs";
 
 import { Currency, currencySymbols } from "@/utils/currency";
-import { AppPolicy, AppPricing, CSSProperties } from "@/utils/types";
+import {
+  AppPolicy,
+  AppPricing,
+  CSSProperties,
+  FieldProps,
+  RecipeSchema,
+} from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -69,6 +75,17 @@ export const formatDuration = (seconds: number): string => {
     .filter((part) => part.value > 0)
     .map((part) => `${part.value}${part.label}`)
     .join(" / ");
+};
+
+export const getSchemaRef = (
+  field: FieldProps,
+  definitions: RecipeSchema["configuration"]["definitions"]
+) => {
+  const key = field.$ref?.replace("#/definitions/", "");
+
+  if (!key || !definitions[key]) return;
+
+  return definitions[key];
 };
 
 export const match = <T extends string | number | symbol, V>(

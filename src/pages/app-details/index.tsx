@@ -35,7 +35,7 @@ import {
   toNumberFormat,
 } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
-import { App, CustomRecipeSchema } from "@/utils/types";
+import { App, RecipeSchema } from "@/utils/types";
 
 interface InitialState {
   app?: App;
@@ -44,7 +44,7 @@ interface InitialState {
   isFree?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
-  schema?: CustomRecipeSchema;
+  schema?: RecipeSchema;
 }
 
 export const AppDetailsPage = () => {
@@ -532,9 +532,9 @@ export const AppDetailsPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            {isInstalled && !isFeeApp && (
+            {isInstalled && !isFeeApp && !!schema && (
               <>
-                <AppPolicies {...app} />
+                <AppPolicies app={app} schema={schema} />
                 <Divider light />
               </>
             )}

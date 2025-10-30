@@ -49,7 +49,6 @@ import {
   addPolicy,
   delPolicy,
   getPolicies,
-  getRecipeSpecification,
   getRecipeSuggestion,
 } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
@@ -57,6 +56,7 @@ import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
   formatDuration,
+  getSchemaRef,
   policyToHexMessage,
   snakeCaseToTitle,
   toNumberFormat,
@@ -66,7 +66,8 @@ import {
   App,
   AppPolicy,
   CustomAppPolicy,
-  CustomRecipeSchema,
+  FieldProps,
+  RecipeSchema,
 } from "@/utils/types";
 
 type RuleFieldType = {
@@ -85,13 +86,15 @@ type FormFieldType = {
 type InitialState = {
   loading: boolean;
   policies: CustomAppPolicy[];
-  schema?: CustomRecipeSchema;
   step: number;
   submitting?: boolean;
   totalCount: number;
 };
 
-export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
+export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
+  app,
+  schema,
+}) => {
   const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
     loading: true,
@@ -99,8 +102,9 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     step: 0,
     totalCount: 0,
   });
-  const { loading, policies, schema, step, submitting } = state;
+  const { loading, policies, step, submitting } = state;
   const { address, messageAPI, modalAPI } = useCore();
+  const { id, pricing, title } = app;
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
@@ -153,7 +157,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   }, [id]);
 
   const properties = useMemo(() => {
-    return schema?.configuration?.properties;
+    return schema.configuration?.properties;
   }, [schema]);
 
   const visible = useMemo(() => {
@@ -454,19 +458,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     }
   }, [form, visible]);
 
-  useEffect(() => {
-    fetchPolicies(0);
-
-    getRecipeSpecification(id)
-      .then((schema) => {
-        setState((prevState) => ({
-          ...prevState,
-          schema,
-          step: schema?.configuration?.properties ? 0 : 1,
-        }));
-      })
-      .catch(() => {});
-  }, [id, fetchPolicies]);
+  useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
 
   return (
     <>
@@ -804,21 +796,54 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                         gridTemplateColumns: "repeat(2, 1fr)",
                       }}
                     >
-                      {Object.entries(properties).map(([key, field]) => (
-                        <DynamicFormItem
-                          disabled={isFeesPlugin}
-                          key={key}
-                          label={camelCaseToTitle(key)}
-                          name={key}
-                          rules={[
-                            {
-                              required:
-                                schema.configuration?.required.includes(key),
-                            },
-                          ]}
-                          {...field}
-                        />
-                      ))}
+                      {Object.entries(properties).map(([key, field]) => {
+                        const ref = getSchemaRef(
+                          field,
+                          schema.configuration.definitions
+                        );
+
+                        return ref ? (
+                          <Stack
+                            key={key}
+                            $style={{
+                              columnGap: "24px",
+                              display: "grid",
+                              gridTemplateColumns: "repeat(2, 1fr)",
+                            }}
+                          >
+                            {Object.entries(ref.properties).map(
+                              ([childKey, field]) => (
+                                <DynamicFormItem
+                                  disabled={isFeesPlugin}
+                                  key={childKey}
+                                  label={camelCaseToTitle(childKey)}
+                                  name={[key, childKey]}
+                                  rules={[
+                                    {
+                                      required: ref.required.includes(childKey),
+                                    },
+                                  ]}
+                                  {...field}
+                                />
+                              )
+                            )}
+                          </Stack>
+                        ) : (
+                          <DynamicFormItem
+                            disabled={isFeesPlugin}
+                            key={key}
+                            label={camelCaseToTitle(key)}
+                            name={key}
+                            rules={[
+                              {
+                                required:
+                                  schema.configuration?.required.includes(key),
+                              },
+                            ]}
+                            {...field}
+                          />
+                        );
+                      })}
                     </Stack>
                   </Stack>
                 )}

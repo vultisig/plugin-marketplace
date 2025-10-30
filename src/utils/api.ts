@@ -20,8 +20,8 @@ import {
   AuthTokenForm,
   Category,
   CustomAppPolicy,
-  CustomRecipeSchema,
   ListFilters,
+  RecipeSchema,
   ReshareForm,
   Review,
   ReviewForm,
@@ -237,9 +237,9 @@ export const getPolicies = (
   });
 
 export const getRecipeSpecification = (appId: string) =>
-  get<CustomRecipeSchema>(
-    `${storeUrl}/plugins/${appId}/recipe-specification`
-  ).catch(() => undefined);
+  get<RecipeSchema>(`${storeUrl}/plugins/${appId}/recipe-specification`).catch(
+    () => undefined
+  );
 
 export const getRecipeSuggestion = (
   appId: string,
