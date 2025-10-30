@@ -68,6 +68,7 @@ import {
   AppPolicy,
   CustomAppPolicy,
   CustomRecipeSchema,
+  FieldProps,
 } from "@/utils/types";
 
 type RuleFieldType = {
@@ -106,6 +107,56 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
   const colors = useTheme();
+
+  const serializeConfiguration = (
+    values: Record<string, any>,
+    properties: Record<string, FieldProps>,
+    currentSchema?: CustomRecipeSchema
+  ): Record<string, any> => {
+    return Object.fromEntries(
+      Object.entries(properties).flatMap(([key, field]) => {
+        const v = values[key];
+        if (v === undefined) return [];
+
+        const resolvedField = resolveFieldProps(field, currentSchema);
+
+        if (resolvedField.format === "date-time") {
+          return [[key, (v as Dayjs).utc().format()]];
+        }
+
+        if (resolvedField.type === "object" && resolvedField.properties) {
+          if (typeof v !== "object" || v === null) {
+            return [];
+          }
+
+          const nestedObject: Record<string, any> = {};
+          Object.entries(resolvedField.properties).forEach(
+            ([nestedKey, nestedField]) => {
+              const resolvedNestedField = resolveFieldProps(nestedField, currentSchema);
+              const nestedValue = v[nestedKey];
+              if (nestedValue !== undefined) {
+                if (resolvedNestedField.format === "date-time") {
+                  nestedObject[nestedKey] = (
+                    nestedValue as Dayjs
+                  ).utc().format();
+                } else {
+                  nestedObject[nestedKey] = nestedValue;
+                }
+              }
+            }
+          );
+
+          if (Object.keys(nestedObject).length === 0) {
+            return [];
+          }
+
+          return [[key, nestedObject]];
+        }
+
+        return [[key, v]];
+      })
+    );
+  };
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
     Table.EXPAND_COLUMN,
@@ -231,10 +282,15 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         case 0: {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
+          const pluginConfig = properties && schema
+            ? serializeConfiguration(values as Record<string, any>, properties, schema)
+            : {};
+
           getRecipeSuggestion(id, {
             maxTxsPerWindow,
             rateLimitWindow,
             rules,
+            ...pluginConfig,
           }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
@@ -281,39 +337,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             const jsonData = create(PolicySchema, {
               author: "",
               configuration: properties
-                ? Object.fromEntries(
-                    Object.entries(properties).flatMap(([key, field]) => {
-                      const v = (values as Record<string, any>)[key];
-                      if (v === undefined) return [];
-
-                      const resolvedField = resolveFieldProps(field, schema);
-
-                      if (resolvedField.format === "date-time") {
-                        return [[key, (v as Dayjs).utc().format()]];
-                      }
-
-                      if (resolvedField.type === "object" && resolvedField.properties) {
-                        const nestedObject: Record<string, any> = {};
-                        Object.entries(resolvedField.properties).forEach(
-                          ([nestedKey, nestedField]) => {
-                            const nestedValue = v[nestedKey];
-                            if (nestedValue !== undefined) {
-                              if (nestedField.format === "date-time") {
-                                nestedObject[nestedKey] = (
-                                  nestedValue as Dayjs
-                                ).utc().format();
-                              } else {
-                                nestedObject[nestedKey] = nestedValue;
-                              }
-                            }
-                          }
-                        );
-                        return [[key, nestedObject]];
-                      }
-
-                      return [[key, v]];
-                    })
-                  )
+                ? serializeConfiguration(values as Record<string, any>, properties, schema)
                 : undefined,
               description,
               feePolicies: pricing.map((price) => {
@@ -854,7 +878,8 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                               </Stack>
                               {Object.entries(resolvedField.properties).map(
                                 ([nestedKey, nestedField]) => {
-                                  const { enum: enumField, format, type, $ref } = nestedField;
+                                  const resolvedNestedField = resolveFieldProps(nestedField, schema);
+                                  const { enum: enumField, format, type, $ref } = resolvedNestedField;
                                   return (
                                     <DynamicFormItem
                                       disabled={isFeesPlugin}
