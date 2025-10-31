@@ -19,16 +19,26 @@ export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
   configuration?: {
+    definitions?: Record<string, FieldPropsWithDefinition>;
     properties: Record<string, FieldProps>;
     required: string[];
     type: "object";
   };
 };
 
-export type FieldProps = {
-  enum: string[];
-  format: string;
+type FieldPropsWithDefinition = {
+  properties?: Record<string, FieldProps>;
+  required?: string[];
   type: string;
+};
+
+export type FieldProps = {
+  $ref?: string;
+  enum?: string[];
+  format?: string;
+  properties?: Record<string, FieldProps>;
+  required?: string[];
+  type?: string;
 };
 
 export type ListFilters = {

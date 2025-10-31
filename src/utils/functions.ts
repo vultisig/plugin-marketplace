@@ -1,7 +1,13 @@
 import { Dayjs } from "dayjs";
 
 import { Currency, currencySymbols } from "@/utils/currency";
-import { AppPolicy, AppPricing, CSSProperties } from "@/utils/types";
+import {
+  AppPolicy,
+  AppPricing,
+  CSSProperties,
+  CustomRecipeSchema,
+  FieldProps,
+} from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -207,4 +213,29 @@ export const toTimestamp = (input: Date | Dayjs) => {
     nanos: (millis % 1000) * 1_000_000,
     seconds: BigInt(Math.floor(millis / 1000)),
   };
+};
+
+const resolveRef = (
+  ref: string,
+  definitions?: Record<string, any>
+): FieldProps | undefined => {
+  if (!definitions || !ref.startsWith("#/definitions/")) {
+    return undefined;
+  }
+
+  const definitionKey = ref.replace("#/definitions/", "");
+  return definitions[definitionKey];
+};
+
+export const resolveFieldProps = (
+  field: FieldProps,
+  schema?: CustomRecipeSchema
+): FieldProps => {
+  if (field.$ref) {
+    const resolved = resolveRef(field.$ref, schema?.configuration?.definitions);
+    if (resolved) {
+      return resolved;
+    }
+  }
+  return field;
 };

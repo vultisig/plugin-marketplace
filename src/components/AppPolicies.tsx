@@ -58,6 +58,7 @@ import {
   camelCaseToTitle,
   formatDuration,
   policyToHexMessage,
+  resolveFieldProps,
   snakeCaseToTitle,
   toNumberFormat,
   toTimestamp,
@@ -67,6 +68,7 @@ import {
   AppPolicy,
   CustomAppPolicy,
   CustomRecipeSchema,
+  FieldProps,
 } from "@/utils/types";
 
 type RuleFieldType = {
@@ -105,6 +107,56 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
   const colors = useTheme();
+
+  const serializeConfiguration = (
+    values: Record<string, any>,
+    properties: Record<string, FieldProps>,
+    currentSchema?: CustomRecipeSchema
+  ): Record<string, any> => {
+    return Object.fromEntries(
+      Object.entries(properties).flatMap(([key, field]) => {
+        const v = values[key];
+        if (v === undefined) return [];
+
+        const resolvedField = resolveFieldProps(field, currentSchema);
+
+        if (resolvedField.format === "date-time") {
+          return [[key, (v as Dayjs).utc().format()]];
+        }
+
+        if (resolvedField.type === "object" && resolvedField.properties) {
+          if (typeof v !== "object" || v === null) {
+            return [];
+          }
+
+          const nestedObject: Record<string, any> = {};
+          Object.entries(resolvedField.properties).forEach(
+            ([nestedKey, nestedField]) => {
+              const resolvedNestedField = resolveFieldProps(nestedField, currentSchema);
+              const nestedValue = v[nestedKey];
+              if (nestedValue !== undefined) {
+                if (resolvedNestedField.format === "date-time") {
+                  nestedObject[nestedKey] = (
+                    nestedValue as Dayjs
+                  ).utc().format();
+                } else {
+                  nestedObject[nestedKey] = nestedValue;
+                }
+              }
+            }
+          );
+
+          if (Object.keys(nestedObject).length === 0) {
+            return [];
+          }
+
+          return [[key, nestedObject]];
+        }
+
+        return [[key, v]];
+      })
+    );
+  };
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
     Table.EXPAND_COLUMN,
@@ -230,10 +282,15 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         case 0: {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
+          const pluginConfig = properties && schema
+            ? serializeConfiguration(values as Record<string, any>, properties, schema)
+            : {};
+
           getRecipeSuggestion(id, {
             maxTxsPerWindow,
             rateLimitWindow,
             rules,
+            ...pluginConfig,
           }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
@@ -280,16 +337,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
             const jsonData = create(PolicySchema, {
               author: "",
               configuration: properties
-                ? Object.fromEntries(
-                    Object.entries(properties).flatMap(([key, field]) => {
-                      const v = (values as Record<string, any>)[key];
-                      if (v === undefined) return [];
-                      if (field.format === "date-time") {
-                        return [[key, (v as Dayjs).utc().format()]];
-                      }
-                      return [[key, v]];
-                    })
-                  )
+                ? serializeConfiguration(values as Record<string, any>, properties, schema)
                 : undefined,
               description,
               feePolicies: pricing.map((price) => {
@@ -804,21 +852,79 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
                         gridTemplateColumns: "repeat(2, 1fr)",
                       }}
                     >
-                      {Object.entries(properties).map(([key, field]) => (
-                        <DynamicFormItem
-                          disabled={isFeesPlugin}
-                          key={key}
-                          label={camelCaseToTitle(key)}
-                          name={key}
-                          rules={[
-                            {
-                              required:
-                                schema.configuration?.required.includes(key),
-                            },
-                          ]}
-                          {...field}
-                        />
-                      ))}
+                      {Object.entries(properties).map(([key, field]) => {
+                        const resolvedField = resolveFieldProps(field, schema);
+
+                        if (resolvedField.type === "object" && resolvedField.properties) {
+                          return (
+                            <Stack
+                              key={key}
+                              $style={{
+                                gridColumn: "1 / -1",
+                                display: "grid",
+                                columnGap: "24px",
+                                gridTemplateColumns: "repeat(2, 1fr)",
+                              }}
+                            >
+                              <Stack
+                                $style={{
+                                  gridColumn: "1 / -1",
+                                  fontSize: "14px",
+                                  fontWeight: "600",
+                                  marginBottom: "8px",
+                                }}
+                              >
+                                {camelCaseToTitle(key)}
+                              </Stack>
+                              {Object.entries(resolvedField.properties).map(
+                                ([nestedKey, nestedField]) => {
+                                  const resolvedNestedField = resolveFieldProps(nestedField, schema);
+                                  const { enum: enumField, format, type, $ref } = resolvedNestedField;
+                                  return (
+                                    <DynamicFormItem
+                                      disabled={isFeesPlugin}
+                                      key={`${key}.${nestedKey}`}
+                                      label={camelCaseToTitle(nestedKey)}
+                                      name={[key, nestedKey]}
+                                      rules={[
+                                        {
+                                          required: resolvedField.required?.includes(
+                                            nestedKey
+                                          ),
+                                        },
+                                      ]}
+                                      enum={enumField}
+                                      format={format}
+                                      type={type}
+                                      $ref={$ref}
+                                    />
+                                  );
+                                }
+                              )}
+                            </Stack>
+                          );
+                        }
+
+                        const { enum: enumField, format, type, $ref } = resolvedField;
+                        return (
+                          <DynamicFormItem
+                            disabled={isFeesPlugin}
+                            key={key}
+                            label={camelCaseToTitle(key)}
+                            name={key}
+                            rules={[
+                              {
+                                required:
+                                  schema.configuration?.required.includes(key),
+                              },
+                            ]}
+                            enum={enumField}
+                            format={format}
+                            type={type}
+                            $ref={$ref}
+                          />
+                        );
+                      })}
                     </Stack>
                   </Stack>
                 )}
