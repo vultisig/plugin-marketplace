@@ -215,7 +215,7 @@ export const toTimestamp = (input: Date | Dayjs) => {
   };
 };
 
-/*export const resolveRef = (
+const resolveRef = (
   ref: string,
   definitions?: Record<string, any>
 ): FieldProps | undefined => {
@@ -225,7 +225,7 @@ export const toTimestamp = (input: Date | Dayjs) => {
 
   const definitionKey = ref.replace("#/definitions/", "");
   return definitions[definitionKey];
-};*/
+};
 
 export const resolveFieldProps = (
   field: FieldProps,

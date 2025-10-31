@@ -26,11 +26,11 @@ export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
   };
 };
 
-/*export type FieldPropsWithDefinition = {
+type FieldPropsWithDefinition = {
   properties?: Record<string, FieldProps>;
   required?: string[];
   type: string;
-};*/
+};
 
 export type FieldProps = {
   $ref?: string;
