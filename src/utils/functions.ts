@@ -1,7 +1,13 @@
 import { Dayjs } from "dayjs";
 
 import { Currency, currencySymbols } from "@/utils/currency";
-import { AppPolicy, AppPricing, CSSProperties, CustomRecipeSchema,FieldProps } from "@/utils/types";
+import {
+  AppPolicy,
+  AppPricing,
+  CSSProperties,
+  CustomRecipeSchema,
+  FieldProps,
+} from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
@@ -209,7 +215,7 @@ export const toTimestamp = (input: Date | Dayjs) => {
   };
 };
 
-export const resolveRef = (
+/*export const resolveRef = (
   ref: string,
   definitions?: Record<string, any>
 ): FieldProps | undefined => {
@@ -219,7 +225,7 @@ export const resolveRef = (
 
   const definitionKey = ref.replace("#/definitions/", "");
   return definitions[definitionKey];
-};
+};*/
 
 export const resolveFieldProps = (
   field: FieldProps,
