@@ -1,7 +1,7 @@
 import { Dayjs } from "dayjs";
 
 import { Currency, currencySymbols } from "@/utils/currency";
-import { AppPolicy, AppPricing, CSSProperties, FieldProps, CustomRecipeSchema } from "@/utils/types";
+import { AppPolicy, AppPricing, CSSProperties, CustomRecipeSchema,FieldProps } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
   return Array.isArray(arr);
