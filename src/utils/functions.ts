@@ -5,7 +5,7 @@ import {
   AppPolicy,
   AppPricing,
   CSSProperties,
-  CustomRecipeSchema,
+  Definitions,
   FieldProps,
 } from "@/utils/types";
 
@@ -75,6 +75,16 @@ export const formatDuration = (seconds: number): string => {
     .filter((part) => part.value > 0)
     .map((part) => `${part.value}${part.label}`)
     .join(" / ");
+};
+
+export const getFieldRef = (field: FieldProps, definitions?: Definitions) => {
+  if (!definitions) return;
+
+  const key = field.$ref?.replace("#/definitions/", "");
+
+  if (!key || !definitions[key]) return;
+
+  return definitions[key];
 };
 
 export const match = <T extends string | number | symbol, V>(
@@ -213,29 +223,4 @@ export const toTimestamp = (input: Date | Dayjs) => {
     nanos: (millis % 1000) * 1_000_000,
     seconds: BigInt(Math.floor(millis / 1000)),
   };
-};
-
-const resolveRef = (
-  ref: string,
-  definitions?: Record<string, any>
-): FieldProps | undefined => {
-  if (!definitions || !ref.startsWith("#/definitions/")) {
-    return undefined;
-  }
-
-  const definitionKey = ref.replace("#/definitions/", "");
-  return definitions[definitionKey];
-};
-
-export const resolveFieldProps = (
-  field: FieldProps,
-  schema?: CustomRecipeSchema
-): FieldProps => {
-  if (field.$ref) {
-    const resolved = resolveRef(field.$ref, schema?.configuration?.definitions);
-    if (resolved) {
-      return resolved;
-    }
-  }
-  return field;
 };

@@ -1,4 +1,4 @@
-import { create, toBinary } from "@bufbuild/protobuf";
+import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import {
@@ -49,7 +49,6 @@ import {
   addPolicy,
   delPolicy,
   getPolicies,
-  getRecipeSpecification,
   getRecipeSuggestion,
 } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
@@ -57,8 +56,8 @@ import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
   formatDuration,
+  getFieldRef,
   policyToHexMessage,
-  resolveFieldProps,
   snakeCaseToTitle,
   toNumberFormat,
   toTimestamp,
@@ -66,9 +65,9 @@ import {
 import {
   App,
   AppPolicy,
+  Configuration,
   CustomAppPolicy,
-  CustomRecipeSchema,
-  FieldProps,
+  RecipeSchema,
 } from "@/utils/types";
 
 type RuleFieldType = {
@@ -82,18 +81,20 @@ type FormFieldType = {
   maxTxsPerWindow: number;
   rateLimitWindow: number;
   rules: RuleFieldType[];
-} & Record<string, number | string | Dayjs>;
+} & JsonObject;
 
 type InitialState = {
   loading: boolean;
   policies: CustomAppPolicy[];
-  schema?: CustomRecipeSchema;
   step: number;
   submitting?: boolean;
   totalCount: number;
 };
 
-export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
+export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
+  app,
+  schema,
+}) => {
   const { t } = useTranslation();
   const [state, setState] = useState<InitialState>({
     loading: true,
@@ -101,62 +102,13 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     step: 0,
     totalCount: 0,
   });
-  const { loading, policies, schema, step, submitting } = state;
+  const { loading, policies, step, submitting } = state;
   const { address, messageAPI, modalAPI } = useCore();
+  const { id, pricing, title } = app;
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
   const goBack = useGoBack();
   const colors = useTheme();
-
-  const serializeConfiguration = (
-    values: Record<string, any>,
-    properties: Record<string, FieldProps>,
-    currentSchema?: CustomRecipeSchema
-  ): Record<string, any> => {
-    return Object.fromEntries(
-      Object.entries(properties).flatMap(([key, field]) => {
-        const v = values[key];
-        if (v === undefined) return [];
-
-        const resolvedField = resolveFieldProps(field, currentSchema);
-
-        if (resolvedField.format === "date-time") {
-          return [[key, (v as Dayjs).utc().format()]];
-        }
-
-        if (resolvedField.type === "object" && resolvedField.properties) {
-          if (typeof v !== "object" || v === null) {
-            return [];
-          }
-
-          const nestedObject: Record<string, any> = {};
-          Object.entries(resolvedField.properties).forEach(
-            ([nestedKey, nestedField]) => {
-              const resolvedNestedField = resolveFieldProps(nestedField, currentSchema);
-              const nestedValue = v[nestedKey];
-              if (nestedValue !== undefined) {
-                if (resolvedNestedField.format === "date-time") {
-                  nestedObject[nestedKey] = (
-                    nestedValue as Dayjs
-                  ).utc().format();
-                } else {
-                  nestedObject[nestedKey] = nestedValue;
-                }
-              }
-            }
-          );
-
-          if (Object.keys(nestedObject).length === 0) {
-            return [];
-          }
-
-          return [[key, nestedObject]];
-        }
-
-        return [[key, v]];
-      })
-    );
-  };
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
     Table.EXPAND_COLUMN,
@@ -204,10 +156,6 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     return id === import.meta.env.VITE_FEE_PLUGIN_ID;
   }, [id]);
 
-  const properties = useMemo(() => {
-    return schema?.configuration?.properties;
-  }, [schema]);
-
   const visible = useMemo(() => {
     return hash === modalHash.policy;
   }, [hash]);
@@ -231,6 +179,35 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     },
     [id]
   );
+
+  const getConfiguration = (
+    configuration: Configuration,
+    values: JsonObject
+  ): JsonObject => {
+    return Object.fromEntries(
+      Object.entries(configuration.properties).flatMap(([key, field]) => {
+        const value = values[key];
+        if (value === undefined) return [];
+
+        if (field.$ref) {
+          const fieldRef = getFieldRef(
+            field,
+            schema.configuration?.definitions
+          );
+
+          if (!fieldRef) return [];
+
+          return [[key, getConfiguration(fieldRef, value as JsonObject)]];
+        }
+
+        if (field.format === "date-time") {
+          return [[key, (value as any as Dayjs).utc().format()]];
+        }
+
+        return [[key, value]];
+      })
+    );
+  };
 
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
@@ -263,7 +240,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
   const handleStepBack = (step: number) => {
     if (step > 1) {
       setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (properties && step > 0) {
+    } else if (schema.configuration?.properties && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
     } else {
       goBack();
@@ -274,7 +251,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     description = "",
     maxTxsPerWindow,
     rateLimitWindow,
-    rules,
+    rules = [],
     ...values
   }) => {
     if (!submitting) {
@@ -282,16 +259,12 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
         case 0: {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          const pluginConfig = properties && schema
-            ? serializeConfiguration(values as Record<string, any>, properties, schema)
-            : {};
-
-          getRecipeSuggestion(id, {
-            maxTxsPerWindow,
-            rateLimitWindow,
-            rules,
-            ...pluginConfig,
-          }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
+          getRecipeSuggestion(
+            id,
+            schema.configuration
+              ? getConfiguration(schema.configuration, values)
+              : {}
+          ).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
                 const params: RuleFieldType = { resource };
@@ -336,8 +309,8 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
 
             const jsonData = create(PolicySchema, {
               author: "",
-              configuration: properties
-                ? serializeConfiguration(values as Record<string, any>, properties, schema)
+              configuration: schema.configuration
+                ? getConfiguration(schema.configuration, values)
                 : undefined,
               description,
               feePolicies: pricing.map((price) => {
@@ -494,6 +467,44 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     }
   };
 
+  const renderConfiguration = (
+    configuration: Configuration,
+    parentKey: string[] = []
+  ) => {
+    return Object.entries(configuration.properties).map(([key, field]) => {
+      const fieldRef = getFieldRef(field, schema.configuration?.definitions);
+      const fullKey = [...parentKey, key];
+
+      if (fieldRef) {
+        return (
+          <VStack key={key} $style={{ gap: "16px", gridColumn: "1 / -1" }}>
+            <Divider text={camelCaseToTitle(key)} />
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
+            >
+              {renderConfiguration(fieldRef, fullKey)}
+            </Stack>
+          </VStack>
+        );
+      }
+
+      return (
+        <DynamicFormItem
+          disabled={isFeesPlugin}
+          key={key}
+          label={camelCaseToTitle(key)}
+          name={fullKey}
+          rules={[{ required: configuration.required.includes(key) }]}
+          {...field}
+        />
+      );
+    });
+  };
+
   useEffect(() => {
     if (visible) {
       setState((prevState) => ({ ...prevState, step: 0 }));
@@ -502,19 +513,7 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
     }
   }, [form, visible]);
 
-  useEffect(() => {
-    fetchPolicies(0);
-
-    getRecipeSpecification(id)
-      .then((schema) => {
-        setState((prevState) => ({
-          ...prevState,
-          schema,
-          step: schema?.configuration?.properties ? 0 : 1,
-        }));
-      })
-      .catch(() => {});
-  }, [id, fetchPolicies]);
+  useEffect(() => fetchPolicies(0), [id, fetchPolicies]);
 
   return (
     <>
@@ -843,89 +842,15 @@ export const AppPolicies: FC<App> = ({ id, pricing, title }) => {
           >
             {schema ? (
               <>
-                {properties && (
-                  <Stack $style={{ display: step === 0 ? "block" : "none" }}>
-                    <Stack
-                      $style={{
-                        columnGap: "24px",
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                      }}
-                    >
-                      {Object.entries(properties).map(([key, field]) => {
-                        const resolvedField = resolveFieldProps(field, schema);
-
-                        if (resolvedField.type === "object" && resolvedField.properties) {
-                          return (
-                            <Stack
-                              key={key}
-                              $style={{
-                                gridColumn: "1 / -1",
-                                display: "grid",
-                                columnGap: "24px",
-                                gridTemplateColumns: "repeat(2, 1fr)",
-                              }}
-                            >
-                              <Stack
-                                $style={{
-                                  gridColumn: "1 / -1",
-                                  fontSize: "14px",
-                                  fontWeight: "600",
-                                  marginBottom: "8px",
-                                }}
-                              >
-                                {camelCaseToTitle(key)}
-                              </Stack>
-                              {Object.entries(resolvedField.properties).map(
-                                ([nestedKey, nestedField]) => {
-                                  const resolvedNestedField = resolveFieldProps(nestedField, schema);
-                                  const { enum: enumField, format, type, $ref } = resolvedNestedField;
-                                  return (
-                                    <DynamicFormItem
-                                      disabled={isFeesPlugin}
-                                      key={`${key}.${nestedKey}`}
-                                      label={camelCaseToTitle(nestedKey)}
-                                      name={[key, nestedKey]}
-                                      rules={[
-                                        {
-                                          required: resolvedField.required?.includes(
-                                            nestedKey
-                                          ),
-                                        },
-                                      ]}
-                                      enum={enumField}
-                                      format={format}
-                                      type={type}
-                                      $ref={$ref}
-                                    />
-                                  );
-                                }
-                              )}
-                            </Stack>
-                          );
-                        }
-
-                        const { enum: enumField, format, type, $ref } = resolvedField;
-                        return (
-                          <DynamicFormItem
-                            disabled={isFeesPlugin}
-                            key={key}
-                            label={camelCaseToTitle(key)}
-                            name={key}
-                            rules={[
-                              {
-                                required:
-                                  schema.configuration?.required.includes(key),
-                              },
-                            ]}
-                            enum={enumField}
-                            format={format}
-                            type={type}
-                            $ref={$ref}
-                          />
-                        );
-                      })}
-                    </Stack>
+                {schema.configuration && (
+                  <Stack
+                    $style={{
+                      columnGap: "24px",
+                      display: step === 0 ? "grid" : "none",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                    }}
+                  >
+                    {renderConfiguration(schema.configuration)}
                   </Stack>
                 )}
                 <Stack $style={{ display: step === 1 ? "block" : "none" }}>
