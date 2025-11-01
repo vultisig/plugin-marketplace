@@ -1,4 +1,4 @@
-import { create, toBinary } from "@bufbuild/protobuf";
+import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import {
@@ -56,7 +56,7 @@ import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
   formatDuration,
-  getSchemaRef,
+  getFieldRef,
   policyToHexMessage,
   snakeCaseToTitle,
   toNumberFormat,
@@ -65,8 +65,8 @@ import {
 import {
   App,
   AppPolicy,
+  Configuration,
   CustomAppPolicy,
-  FieldProps,
   RecipeSchema,
 } from "@/utils/types";
 
@@ -81,7 +81,7 @@ type FormFieldType = {
   maxTxsPerWindow: number;
   rateLimitWindow: number;
   rules: RuleFieldType[];
-} & Record<string, number | string | Dayjs>;
+} & JsonObject;
 
 type InitialState = {
   loading: boolean;
@@ -156,10 +156,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     return id === import.meta.env.VITE_FEE_PLUGIN_ID;
   }, [id]);
 
-  const properties = useMemo(() => {
-    return schema.configuration?.properties;
-  }, [schema]);
-
   const visible = useMemo(() => {
     return hash === modalHash.policy;
   }, [hash]);
@@ -183,6 +179,35 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     },
     [id]
   );
+
+  const getConfiguration = (
+    configuration: Configuration,
+    values: JsonObject
+  ): JsonObject => {
+    return Object.fromEntries(
+      Object.entries(configuration.properties).flatMap(([key, field]) => {
+        const value = values[key];
+        if (value === undefined) return [];
+
+        if (field.$ref) {
+          const fieldRef = getFieldRef(
+            field,
+            schema.configuration?.definitions
+          );
+
+          if (!fieldRef) return [];
+
+          return [[key, getConfiguration(fieldRef, value as JsonObject)]];
+        }
+
+        if (field.format === "date-time") {
+          return [[key, (value as any as Dayjs).utc().format()]];
+        }
+
+        return [[key, value]];
+      })
+    );
+  };
 
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
@@ -215,7 +240,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   const handleStepBack = (step: number) => {
     if (step > 1) {
       setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (properties && step > 0) {
+    } else if (schema.configuration?.properties && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
     } else {
       goBack();
@@ -226,7 +251,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     description = "",
     maxTxsPerWindow,
     rateLimitWindow,
-    rules,
+    rules = [],
     ...values
   }) => {
     if (!submitting) {
@@ -234,11 +259,12 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
         case 0: {
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          getRecipeSuggestion(id, {
-            maxTxsPerWindow,
-            rateLimitWindow,
-            rules,
-          }).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
+          getRecipeSuggestion(
+            id,
+            schema.configuration
+              ? getConfiguration(schema.configuration, values)
+              : {}
+          ).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
                 const params: RuleFieldType = { resource };
@@ -283,17 +309,8 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
 
             const jsonData = create(PolicySchema, {
               author: "",
-              configuration: properties
-                ? Object.fromEntries(
-                    Object.entries(properties).flatMap(([key, field]) => {
-                      const v = (values as Record<string, any>)[key];
-                      if (v === undefined) return [];
-                      if (field.format === "date-time") {
-                        return [[key, (v as Dayjs).utc().format()]];
-                      }
-                      return [[key, v]];
-                    })
-                  )
+              configuration: schema.configuration
+                ? getConfiguration(schema.configuration, values)
                 : undefined,
               description,
               feePolicies: pricing.map((price) => {
@@ -448,6 +465,44 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
         }
       }
     }
+  };
+
+  const renderConfiguration = (
+    configuration: Configuration,
+    parentKey: string[] = []
+  ) => {
+    return Object.entries(configuration.properties).map(([key, field]) => {
+      const fieldRef = getFieldRef(field, schema.configuration?.definitions);
+      const fullKey = [...parentKey, key];
+
+      if (fieldRef) {
+        return (
+          <VStack key={key} $style={{ gap: "16px", gridColumn: "1 / -1" }}>
+            <Divider text={camelCaseToTitle(key)} />
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
+            >
+              {renderConfiguration(fieldRef, fullKey)}
+            </Stack>
+          </VStack>
+        );
+      }
+
+      return (
+        <DynamicFormItem
+          disabled={isFeesPlugin}
+          key={key}
+          label={camelCaseToTitle(key)}
+          name={fullKey}
+          rules={[{ required: configuration.required.includes(key) }]}
+          {...field}
+        />
+      );
+    });
   };
 
   useEffect(() => {
@@ -787,64 +842,15 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
           >
             {schema ? (
               <>
-                {properties && (
-                  <Stack $style={{ display: step === 0 ? "block" : "none" }}>
-                    <Stack
-                      $style={{
-                        columnGap: "24px",
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)",
-                      }}
-                    >
-                      {Object.entries(properties).map(([key, field]) => {
-                        const ref = getSchemaRef(
-                          field,
-                          schema.configuration.definitions
-                        );
-
-                        return ref ? (
-                          <Stack
-                            key={key}
-                            $style={{
-                              columnGap: "24px",
-                              display: "grid",
-                              gridTemplateColumns: "repeat(2, 1fr)",
-                            }}
-                          >
-                            {Object.entries(ref.properties).map(
-                              ([childKey, field]) => (
-                                <DynamicFormItem
-                                  disabled={isFeesPlugin}
-                                  key={childKey}
-                                  label={camelCaseToTitle(childKey)}
-                                  name={[key, childKey]}
-                                  rules={[
-                                    {
-                                      required: ref.required.includes(childKey),
-                                    },
-                                  ]}
-                                  {...field}
-                                />
-                              )
-                            )}
-                          </Stack>
-                        ) : (
-                          <DynamicFormItem
-                            disabled={isFeesPlugin}
-                            key={key}
-                            label={camelCaseToTitle(key)}
-                            name={key}
-                            rules={[
-                              {
-                                required:
-                                  schema.configuration?.required.includes(key),
-                              },
-                            ]}
-                            {...field}
-                          />
-                        );
-                      })}
-                    </Stack>
+                {schema.configuration && (
+                  <Stack
+                    $style={{
+                      columnGap: "24px",
+                      display: step === 0 ? "grid" : "none",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                    }}
+                  >
+                    {renderConfiguration(schema.configuration)}
                   </Stack>
                 )}
                 <Stack $style={{ display: step === 1 ? "block" : "none" }}>

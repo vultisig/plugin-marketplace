@@ -5,8 +5,8 @@ import {
   AppPolicy,
   AppPricing,
   CSSProperties,
+  Definitions,
   FieldProps,
-  RecipeSchema,
 } from "@/utils/types";
 
 const isArray = (arr: any): arr is any[] => {
@@ -77,10 +77,9 @@ export const formatDuration = (seconds: number): string => {
     .join(" / ");
 };
 
-export const getSchemaRef = (
-  field: FieldProps,
-  definitions: RecipeSchema["configuration"]["definitions"]
-) => {
+export const getFieldRef = (field: FieldProps, definitions?: Definitions) => {
+  if (!definitions) return;
+
   const key = field.$ref?.replace("#/definitions/", "");
 
   if (!key || !definitions[key]) return;

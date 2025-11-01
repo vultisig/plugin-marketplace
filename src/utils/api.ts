@@ -1,4 +1,4 @@
-import { fromBinary, fromJson } from "@bufbuild/protobuf";
+import { fromBinary, fromJson, JsonObject } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
 import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -241,10 +241,7 @@ export const getRecipeSpecification = (appId: string) =>
     () => undefined
   );
 
-export const getRecipeSuggestion = (
-  appId: string,
-  configuration: Record<string, any>
-) =>
+export const getRecipeSuggestion = (appId: string, configuration: JsonObject) =>
   post<PolicySuggestJson>(
     `${storeUrl}/plugins/${appId}/recipe-specification/suggest`,
     { configuration }

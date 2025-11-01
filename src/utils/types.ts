@@ -15,7 +15,7 @@ export type Category = {
   name: string;
 };
 
-type Configuration = {
+export type Configuration = {
   properties: Record<string, FieldProps>;
   required: string[];
   title: string;
@@ -23,17 +23,17 @@ type Configuration = {
 
 export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
+export type Definitions = Record<string, Configuration>;
+
 export type RecipeSchema = Omit<ProtoRecipeSchema, "configuration"> & {
-  configuration: Configuration & {
-    definitions: Record<string, Configuration>;
-  };
+  configuration?: Configuration & { definitions: Definitions };
 };
 
 export type FieldProps = {
   enum: string[];
   format: string;
   type: string;
-  $ref: string;
+  $ref?: string;
 };
 
 export type ListFilters = {
