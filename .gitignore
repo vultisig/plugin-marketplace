@@ -18,7 +18,9 @@
 .envrc
 
 ./IMPLEMENTATION_PLAN.md
+CLAUDE.md
 .idea
+.serena
 
 .devenv/
 .DS_Store
