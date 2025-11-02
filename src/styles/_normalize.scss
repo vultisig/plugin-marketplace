@@ -2,27 +2,49 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+ol,
+ul,
+dl {
+  margin: 0;
 }
 
 a {
-  color: currentColor;
-  text-decoration: none;
+  cursor: pointer;
+  outline: none !important;
+  text-decoration: none !important;
 }
 
-img {
-  border: none;
+p {
+  margin: 0;
 }
 
 li {
   list-style-type: none;
 }
 
-html {
-  font-family: "Brockmann", sans-serif;
-  font-size: 14px;
-  font-weight: 500;
+img {
+  border: none;
+  display: block;
 }
 
-@-ms-viewport {
-  width: device-width;
+svg {
+  display: block;
+}
+
+video {
+  display: block;
 }

@@ -10,24 +10,27 @@ import {
 } from "@/proto/policy_pb";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
+import { EvmChain, evmChainIds } from "@/utils/chain";
 import { PAGE_SIZE } from "@/utils/constants";
+import { Currency } from "@/utils/currency";
 import { toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
 import {
   App,
   AppFilters,
   AppPolicy,
-  AuthTokenForm,
+  AuthToken,
   Category,
   CustomAppPolicy,
+  JupiterToken,
   ListFilters,
+  OneInchToken,
   RecipeSchema,
   ReshareForm,
   Review,
   ReviewForm,
+  Token,
 } from "@/utils/types";
-
-import { Currency } from "./currency";
 
 type JwtPayload = {
   exp: number;
@@ -39,7 +42,7 @@ type JwtPayload = {
 const refreshAuthToken = async (oldToken: string) => {
   return axios
     .post<{ token: string }>(
-      `${import.meta.env.VITE_MARKETPLACE_URL}/auth/refresh`,
+      `${import.meta.env.VITE_APP_STORE_URL}/auth/refresh`,
       { token: oldToken },
       {
         headers: {
@@ -136,25 +139,32 @@ const post = async <T>(
 //     .put<T>(url, data, config)
 //     .then(({ data }) => toCamelCase(data));
 
-const storeUrl = import.meta.env.VITE_MARKETPLACE_URL;
+const storeUrl = import.meta.env.VITE_APP_STORE_URL;
 const vultisigUrl = import.meta.env.VITE_VULTISIG_SERVER;
 
-export const addPolicy = async (data: AppPolicy) =>
-  post<AppPolicy>(`${storeUrl}/plugin/policy`, toSnakeCase(data));
+export const addPolicy = async (data: AppPolicy) => {
+  return post<AppPolicy>(`${storeUrl}/plugin/policy`, toSnakeCase(data));
+};
 
-export const addReview = async (appId: string, data: ReviewForm) =>
-  post<Review>(`${storeUrl}/plugins/${appId}/reviews`, toSnakeCase(data));
+export const addReview = async (appId: string, data: ReviewForm) => {
+  return post<Review>(
+    `${storeUrl}/plugins/${appId}/reviews`,
+    toSnakeCase(data)
+  );
+};
 
-export const delPolicy = (id: string, signature: string) =>
-  del(`${storeUrl}/plugin/policy/${id}`, { data: { signature } });
+export const delPolicy = async (id: string, signature: string) => {
+  return del(`${storeUrl}/plugin/policy/${id}`, { data: { signature } });
+};
 
-export const getAuthToken = async (data: AuthTokenForm) =>
-  post<{ token: string }>(`${storeUrl}/auth`, toSnakeCase(data)).then(
+export const getAuthToken = async (data: AuthToken) => {
+  return post<{ token: string }>(`${storeUrl}/auth`, toSnakeCase(data)).then(
     ({ token }) => token
   );
+};
 
-export const getApp = async (id: string) =>
-  get<App>(`${storeUrl}/plugins/${id}`).then((plugin) => {
+export const getApp = async (id: string) => {
+  return get<App>(`${storeUrl}/plugins/${id}`).then((plugin) => {
     const count =
       plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
     const average = count
@@ -173,15 +183,16 @@ export const getApp = async (id: string) =>
       ratings: plugin.ratings || [],
     };
   });
+};
 
-export const getApps = ({
+export const getApps = async ({
   categoryId,
   skip,
   sort = "-created_at",
   take = PAGE_SIZE,
   term,
-}: ListFilters & AppFilters) =>
-  get<{ plugins: App[]; totalCount: number }>(`${storeUrl}/plugins`, {
+}: ListFilters & AppFilters) => {
+  return get<{ plugins: App[]; totalCount: number }>(`${storeUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
   }).then(({ plugins, totalCount }) => {
     const modifiedPlugins: App[] =
@@ -192,6 +203,7 @@ export const getApps = ({
 
     return { apps: modifiedPlugins, totalCount };
   });
+};
 
 export const getBaseValue = async (currency: Currency) => {
   if (currency === "usd") return Promise.resolve(1);
@@ -215,13 +227,40 @@ export const getBaseValue = async (currency: Currency) => {
     .catch(() => 0);
 };
 
-export const getCategories = () => get<Category[]>(`${storeUrl}/categories`);
+export const getCategories = async () => {
+  return get<Category[]>(`${storeUrl}/categories`);
+};
 
-export const getPolicies = (
+export const getOneInchTokens = async (chain: EvmChain) => {
+  const tokens: Token[] = [];
+  const chainId = evmChainIds[chain as EvmChain];
+
+  return get<{ tokens: Record<string, OneInchToken> }>(
+    `${vultisigUrl}/1inch/swap/v6.0/${chainId}/tokens`
+  )
+    .then(({ tokens: oneInchTokens }) => {
+      Object.values(oneInchTokens).forEach((token) => {
+        if (token.logoURI) {
+          tokens.push({
+            chain,
+            decimals: token.decimals,
+            id: token.address,
+            logo: token.logoURI,
+            ticker: token.symbol,
+          });
+        }
+      });
+
+      return tokens;
+    })
+    .catch(() => tokens);
+};
+
+export const getPolicies = async (
   appId: string,
   { skip, take = PAGE_SIZE }: ListFilters
-) =>
-  get<{ policies: AppPolicy[]; totalCount: number }>(
+) => {
+  return get<{ policies: AppPolicy[]; totalCount: number }>(
     `${storeUrl}/plugin/policies/${appId}`,
     { params: toSnakeCase({ skip, take }) }
   ).then(({ policies, totalCount }) => {
@@ -235,36 +274,68 @@ export const getPolicies = (
 
     return { policies: modifiedPolicies, totalCount };
   });
+};
 
-export const getRecipeSpecification = (appId: string) =>
-  get<RecipeSchema>(`${storeUrl}/plugins/${appId}/recipe-specification`).catch(
-    () => undefined
-  );
+export const getRecipeSpecification = async (appId: string) => {
+  return get<RecipeSchema>(
+    `${storeUrl}/plugins/${appId}/recipe-specification`
+  ).catch(() => undefined);
+};
 
-export const getRecipeSuggestion = (appId: string, configuration: JsonObject) =>
-  post<PolicySuggestJson>(
+export const getRecipeSuggestion = async (
+  appId: string,
+  configuration: JsonObject
+) => {
+  return post<PolicySuggestJson>(
     `${storeUrl}/plugins/${appId}/recipe-specification/suggest`,
     { configuration }
   )
     .then((suggest) => fromJson(PolicySuggestSchema, suggest))
     .catch(() => fromJson(PolicySuggestSchema, {}));
+};
 
-export const getReviews = (
+export const getReviews = async (
   appId: string,
   { skip, take = PAGE_SIZE }: ListFilters
-) =>
-  get<{ reviews: Review[]; totalCount: number }>(
+) => {
+  return get<{ reviews: Review[]; totalCount: number }>(
     `${storeUrl}/plugins/${appId}/reviews`,
     { params: toSnakeCase({ skip, take }) }
   ).then(({ reviews, totalCount }) => ({ reviews: reviews || [], totalCount }));
+};
 
-export const isAppInstalled = (id: string) =>
-  get(`${storeUrl}/vault/exist/${id}/${getVaultId()}`)
+export const getJupiterTokens = async () => {
+  const tokens: Token[] = [];
+
+  return get<JupiterToken[]>(`${vultisigUrl}/jup/tokens/v2/tag?query=verified`)
+    .then((jupiterTokens) => {
+      jupiterTokens.forEach((token) => {
+        if (token.icon) {
+          tokens.push({
+            chain: "Solana",
+            decimals: token.decimals,
+            id: token.id,
+            logo: token.icon,
+            ticker: token.symbol,
+          });
+        }
+      });
+
+      return tokens;
+    })
+    .catch(() => tokens);
+};
+
+export const isAppInstalled = async (id: string) => {
+  return get(`${storeUrl}/vault/exist/${id}/${getVaultId()}`)
     .then(() => true)
     .catch(() => false);
+};
 
-export const reshareVault = (data: ReshareForm) =>
-  post(`${storeUrl}/vault/reshare`, toSnakeCase(data));
+export const reshareVault = async (data: ReshareForm) => {
+  return post(`${storeUrl}/vault/reshare`, toSnakeCase(data));
+};
 
-export const uninstallApp = (appId: string) =>
-  del(`${storeUrl}/plugin/${appId}`);
+export const uninstallApp = async (appId: string) => {
+  return del(`${storeUrl}/plugin/${appId}`);
+};

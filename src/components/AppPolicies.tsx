@@ -69,6 +69,7 @@ import {
   CustomAppPolicy,
   RecipeSchema,
 } from "@/utils/types";
+import { AssetWidget } from "@/widgets/Asset";
 
 type RuleFieldType = {
   description?: string;
@@ -152,9 +153,17 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     },
   ];
 
+  const definitions = useMemo(() => {
+    return schema.configuration?.definitions;
+  }, [schema]);
+
   const isFeesPlugin = useMemo(() => {
-    return id === import.meta.env.VITE_FEE_PLUGIN_ID;
+    return id === import.meta.env.VITE_FEE_APP_ID;
   }, [id]);
+
+  const properties = useMemo(() => {
+    return schema.configuration?.properties;
+  }, [schema]);
 
   const visible = useMemo(() => {
     return hash === modalHash.policy;
@@ -187,13 +196,11 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     return Object.fromEntries(
       Object.entries(configuration.properties).flatMap(([key, field]) => {
         const value = values[key];
+
         if (value === undefined) return [];
 
         if (field.$ref) {
-          const fieldRef = getFieldRef(
-            field,
-            schema.configuration?.definitions
-          );
+          const fieldRef = getFieldRef(field, definitions);
 
           if (!fieldRef) return [];
 
@@ -240,7 +247,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   const handleStepBack = (step: number) => {
     if (step > 1) {
       setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (schema.configuration?.properties && step > 0) {
+    } else if (properties && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
     } else {
       goBack();
@@ -468,28 +475,41 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   };
 
   const renderConfiguration = (
-    configuration: Configuration,
+    { properties, required }: Configuration,
     parentKey: string[] = []
   ) => {
-    return Object.entries(configuration.properties).map(([key, field]) => {
-      const fieldRef = getFieldRef(field, schema.configuration?.definitions);
+    return Object.entries(properties).map(([key, field]) => {
       const fullKey = [...parentKey, key];
+      const fieldRef = getFieldRef(field, definitions);
 
       if (fieldRef) {
-        return (
-          <VStack key={key} $style={{ gap: "16px", gridColumn: "1 / -1" }}>
-            <Divider text={camelCaseToTitle(key)} />
-            <Stack
-              $style={{
-                columnGap: "24px",
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-              }}
-            >
-              {renderConfiguration(fieldRef, fullKey)}
-            </Stack>
-          </VStack>
-        );
+        switch (field.$ref) {
+          case "#/definitions/asset": {
+            return (
+              <AssetWidget
+                configuration={fieldRef}
+                fullKey={fullKey}
+                key={key}
+              />
+            );
+          }
+          default: {
+            return (
+              <VStack key={key} $style={{ gap: "16px", gridColumn: "1 / -1" }}>
+                <Divider text={camelCaseToTitle(key)} />
+                <Stack
+                  $style={{
+                    columnGap: "24px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                  }}
+                >
+                  {renderConfiguration(fieldRef, fullKey)}
+                </Stack>
+              </VStack>
+            );
+          }
+        }
       }
 
       return (
@@ -498,7 +518,8 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
           key={key}
           label={camelCaseToTitle(key)}
           name={fullKey}
-          rules={[{ required: configuration.required.includes(key) }]}
+          rules={[{ required: required.includes(key) }]}
+          tooltip={properties[key]?.description}
           {...field}
         />
       );
@@ -897,9 +918,9 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                   />
                                 </Form.Item>
                                 <Form.Item<FormFieldType>
-                                  shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.rules[name]?.resource !==
-                                    currentValues.rules[name]?.resource
+                                  shouldUpdate={(prev, current) =>
+                                    prev.rules[name]?.resource !==
+                                    current.rules[name]?.resource
                                   }
                                   noStyle
                                 >
@@ -983,9 +1004,9 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                   />
                                 )}
                                 <Form.Item<FormFieldType>
-                                  shouldUpdate={(prevValues, currentValues) =>
-                                    prevValues.rules[name]?.resource !==
-                                    currentValues.rules[name]?.resource
+                                  shouldUpdate={(prev, current) =>
+                                    prev.rules[name]?.resource !==
+                                    current.rules[name]?.resource
                                   }
                                   noStyle
                                 >
@@ -1085,11 +1106,9 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                   }}
                 >
                   <Form.Item<FormFieldType>
-                    shouldUpdate={(prevValues, currentValues) =>
-                      prevValues.maxTxsPerWindow !==
-                        currentValues.maxTxsPerWindow ||
-                      prevValues.rateLimitWindow !==
-                        currentValues.rateLimitWindow
+                    shouldUpdate={(prev, current) =>
+                      prev.maxTxsPerWindow !== current.maxTxsPerWindow ||
+                      prev.rateLimitWindow !== current.rateLimitWindow
                     }
                     noStyle
                   >

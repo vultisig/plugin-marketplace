@@ -23,7 +23,6 @@ type InitialState = {
   reviews: Review[];
   submitting?: boolean;
   totalCount: number;
-  visible?: boolean;
 };
 
 export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
@@ -33,7 +32,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
     reviews: [],
     totalCount: 0,
   });
-  const { loading, reviews, submitting, visible } = state;
+  const { loading, reviews, submitting } = state;
   const { address, connect, isConnected } = useCore();
   const { hash } = useLocation();
   const [form] = Form.useForm<ReviewForm>();
@@ -44,6 +43,8 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
     () => [...ratings].sort((a, b) => b.rating - a.rating),
     [ratings]
   );
+
+  const visible = useMemo(() => hash === modalHash.review, [hash]);
 
   const fetchReviews = useCallback(
     (skip: number) => {
@@ -84,15 +85,6 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
   };
 
   useEffect(() => fetchReviews(0), [id, fetchReviews]);
-
-  useEffect(
-    () =>
-      setState((prevState) => ({
-        ...prevState,
-        visible: hash === modalHash.review,
-      })),
-    [hash]
-  );
 
   return (
     <>

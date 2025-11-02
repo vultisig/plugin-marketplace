@@ -3,7 +3,7 @@ import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CoreContext } from "@/context/CoreContext";
+import { CoreContext } from "@/context/Core";
 import { i18nInstance } from "@/i18n/config";
 import { getChain, setChain as setChainStorage } from "@/storage/chain";
 import { storageKeys } from "@/storage/constants";
