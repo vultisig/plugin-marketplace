@@ -1,13 +1,16 @@
 import { Form, Input, Select } from "antd";
-import { FC, useMemo } from "react";
+import { get } from "lodash-es";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { useChainAssets } from "@/hooks/useChainAssets";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { chains } from "@/utils/chain";
+import { Chain, chains } from "@/utils/chain";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Configuration } from "@/utils/types";
+import { useWalletCore } from "@/hooks/useWalletCore";
+import { useTokenMetadata } from "@/utils/queries";
 
 type AssetWidgetProps = {
   configuration: Configuration;
@@ -18,20 +21,35 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
   fullKey,
 }) => {
+  const [search, setSearch] = useState("");
   const { assets, chain, loading, setChain } = useChainAssets();
+  const { isValidAddress } = useWalletCore();
   const key = fullKey[fullKey.length - 1];
+  const chainField = [...fullKey, "chain"];
   const colors = useTheme();
 
   const disabled = useMemo(() => !chain, [chain]);
 
   const tokens = useMemo(() => {
-    return assets.map((token) => ({
-      label: token.ticker,
-      logo: token.logo,
-      name: token.name,
-      value: token.id,
-    }));
-  }, [assets]);
+    return assets
+      .filter(({ id, name, ticker }) => {
+        const trim = search.trim().toLowerCase();
+
+        if (!trim) return true;
+
+        return (
+          ticker.toLowerCase().includes(trim) ||
+          name.toLowerCase().includes(trim) ||
+          id.toLowerCase().includes(trim)
+        );
+      })
+      .map((token) => ({
+        label: token.ticker,
+        logo: token.logo,
+        name: token.name,
+        value: token.id,
+      }));
+  }, [assets, search]);
 
   return (
     <VStack $style={{ gap: "16px", gridColumn: "1 / -1" }}>
@@ -64,21 +82,8 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           <Select
             disabled={disabled}
             loading={loading}
-            filterOption={(input, option) => {
-              if (option === undefined) return false;
-
-              const label = option.label.toLowerCase();
-              const name = option.name.toLowerCase();
-              const value = option.value.toLowerCase();
-              const search = input.toLowerCase();
-
-              return (
-                label.includes(search) ||
-                name.includes(search) ||
-                value.includes(search)
-              );
-            }}
             options={tokens}
+            filterOption={false}
             optionRender={({ data }) => (
               <HStack $style={{ alignItems: "center", gap: "8px" }}>
                 <Stack
@@ -104,8 +109,8 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                   <Stack
                     as="span"
                     $style={{
-                      fontSize: "12px",
                       color: colors.textTertiary.toHex(),
+                      fontSize: "12px",
                       lineHeight: "12px",
                     }}
                   >
@@ -114,6 +119,12 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </VStack>
               </HStack>
             )}
+            onSearch={setSearch}
+            notFoundContent={
+              chain && isValidAddress(chain, search) ? (
+                <CustomToken chain={chain} id={search} />
+              ) : undefined
+            }
             allowClear
             showSearch
           />
@@ -126,7 +137,68 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
         >
           <Input disabled={disabled} />
         </Form.Item>
+        <Form.Item
+          shouldUpdate={(prev, current) =>
+            get(prev, chainField) !== get(current, chainField)
+          }
+          noStyle
+        >
+          {({ setFieldValue }) => {
+            setFieldValue([...fullKey, "address"], undefined);
+            setFieldValue([...fullKey, "token"], undefined);
+
+            return null;
+          }}
+        </Form.Item>
       </Stack>
     </VStack>
+  );
+};
+
+const CustomToken: FC<{ chain: Chain; id: string }> = ({ chain, id }) => {
+  const { data, refetch } = useTokenMetadata({ chain, id });
+  const colors = useTheme();
+
+  useEffect(() => {
+    refetch();
+  }, [chain, id]);
+
+  if (!data) return undefined;
+
+  return (
+    <HStack $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}>
+      <Stack
+        as="img"
+        alt={data.ticker}
+        src={data.logo}
+        $style={{
+          borderRadius: "50%",
+          height: "20px",
+          width: "20px",
+        }}
+      />
+      <VStack $style={{ gap: "4px" }}>
+        <Stack
+          as="span"
+          $style={{
+            color: colors.textPrimary.toHex(),
+            fontSize: "12px",
+            lineHeight: "12px",
+          }}
+        >
+          {data.name}
+        </Stack>
+        <Stack
+          as="span"
+          $style={{
+            color: colors.textTertiary.toHex(),
+            fontSize: "12px",
+            lineHeight: "12px",
+          }}
+        >
+          {data.ticker}
+        </Stack>
+      </VStack>
+    </HStack>
   );
 };
