@@ -57,7 +57,6 @@ jobs:
 
   build-preview:
     needs: [setup, lint]
-    if: github.ref == 'refs/heads/main'
     environment: preview
     runs-on: ubuntu-22.04
     steps:
