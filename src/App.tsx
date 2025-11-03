@@ -9,36 +9,39 @@ import { FaqPage } from "@/pages/FAQ";
 import { NotFoundPage } from "@/pages/NotFound";
 import { AntdProvider } from "@/providers/Antd";
 import { CoreProvider } from "@/providers/Core";
+import { QueryProvider } from "@/providers/Query";
 import { StyledProvider } from "@/providers/Styled";
 import { routeTree } from "@/utils/routes";
 
 export const App = () => (
   <I18nextProvider i18n={i18nInstance}>
-    <CoreProvider>
-      <StyledProvider>
-        <AntdProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path={routeTree.root.path} element={<DefaultLayout />}>
+    <QueryProvider>
+      <CoreProvider>
+        <StyledProvider>
+          <AntdProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path={routeTree.root.path} element={<DefaultLayout />}>
+                  <Route
+                    element={<Navigate to={routeTree.apps.path} replace />}
+                    index
+                  />
+                  <Route element={<AppsPage />} path={routeTree.apps.path} />
+                  <Route
+                    element={<AppDetailsPage />}
+                    path={routeTree.appDetails.path}
+                  />
+                  <Route element={<FaqPage />} path={routeTree.faq.path} />
+                </Route>
                 <Route
-                  element={<Navigate to={routeTree.apps.path} replace />}
-                  index
+                  path={routeTree.notFound.path}
+                  element={<NotFoundPage />}
                 />
-                <Route element={<AppsPage />} path={routeTree.apps.path} />
-                <Route
-                  element={<AppDetailsPage />}
-                  path={routeTree.appDetails.path}
-                />
-                <Route element={<FaqPage />} path={routeTree.faq.path} />
-              </Route>
-              <Route
-                path={routeTree.notFound.path}
-                element={<NotFoundPage />}
-              />
-            </Routes>
-          </BrowserRouter>
-        </AntdProvider>
-      </StyledProvider>
-    </CoreProvider>
+              </Routes>
+            </BrowserRouter>
+          </AntdProvider>
+        </StyledProvider>
+      </CoreProvider>
+    </QueryProvider>
   </I18nextProvider>
 );

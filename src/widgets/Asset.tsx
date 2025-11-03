@@ -1,71 +1,37 @@
-import { JsonObject } from "@bufbuild/protobuf";
-import { Form, Input, Select, SelectProps } from "antd";
-import { get } from "lodash-es";
-import { FC, useState } from "react";
+import { Form, Input, Select } from "antd";
+import { FC, useMemo } from "react";
+import { useTheme } from "styled-components";
 
+import { useChainAssets } from "@/hooks/useChainAssets";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getJupiterTokens, getOneInchTokens } from "@/utils/api";
-import { Chain, chains, EvmChain, evmChains } from "@/utils/chain";
+import { chains } from "@/utils/chain";
 import { camelCaseToTitle } from "@/utils/functions";
-import { Configuration, Token } from "@/utils/types";
+import { Configuration } from "@/utils/types";
 
 type AssetWidgetProps = {
   configuration: Configuration;
   fullKey: string[];
 };
 
-type StateProps = {
-  chainAssets: Record<Chain, Token[]>;
-  loading?: boolean;
-};
-
 export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
   fullKey,
 }) => {
-  const [state, setState] = useState<StateProps>({
-    chainAssets: {
-      Arbitrum: [],
-      Avalanche: [],
-      Base: [],
-      Blast: [],
-      BSC: [],
-      Ethereum: [],
-      Optimism: [],
-      Polygon: [],
-      Bitcoin: [],
-      Ripple: [],
-      Solana: [],
-    },
-  });
-  const { chainAssets, loading } = state;
+  const { assets, chain, loading, setChain } = useChainAssets();
   const key = fullKey[fullKey.length - 1];
-  const addressName = [...fullKey, "address"];
-  const chainName = [...fullKey, "chain"];
-  const tokenName = [...fullKey, "token"];
+  const colors = useTheme();
 
-  const handleChange: SelectProps<Chain>["onChange"] = async (chain) => {
-    const tokens = state.chainAssets[chain];
+  const disabled = useMemo(() => !chain, [chain]);
 
-    if (!tokens.length) {
-      setState((prev) => ({ ...prev, loading: true }));
-
-      let newTokens: Token[] = [];
-
-      if (chain === "Solana") {
-        newTokens = await getJupiterTokens();
-      } else if (evmChains.includes(chain as EvmChain)) {
-        newTokens = await getOneInchTokens(chain as EvmChain);
-      }
-
-      setState((prev) => ({
-        ...prev,
-        chainAssets: { ...prev.chainAssets, [chain]: newTokens },
-        loading: false,
-      }));
-    }
-  };
+  const tokens = useMemo(() => {
+    return assets.map((token) => ({
+      label: token.ticker,
+      logo: token.logo,
+      name: token.name,
+      value: token.id,
+    }));
+  }, [assets]);
 
   return (
     <VStack $style={{ gap: "16px", gridColumn: "1 / -1" }}>
@@ -79,85 +45,86 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
       >
         <Form.Item
           label="Chain"
-          name={chainName}
+          name={[...fullKey, "chain"]}
           rules={[{ required: required.includes("chain") }]}
           tooltip={properties.chain?.description}
         >
           <Select
-            onChange={handleChange}
+            onChange={setChain}
             options={chains.map((chain) => ({ value: chain, label: chain }))}
             showSearch
           />
         </Form.Item>
-        <Form.Item<JsonObject>
-          shouldUpdate={(prev, current) =>
-            get(prev, chainName) !== get(current, chainName)
-          }
-          noStyle
+        <Form.Item
+          label="Token"
+          name={[...fullKey, "token"]}
+          rules={[{ required: required.includes("token") }]}
+          tooltip={properties.token?.description}
         >
-          {({ getFieldsValue }) => {
-            const values = getFieldsValue();
-            const chain: Chain = get(values, chainName);
-            const disabled = !chain;
-            const tokens = chain
-              ? chainAssets[chain].map((token) => ({
-                  value: token.id,
-                  label: token.ticker,
-                  logo: token.logo,
-                }))
-              : [];
+          <Select
+            disabled={disabled}
+            loading={loading}
+            filterOption={(input, option) => {
+              if (option === undefined) return false;
 
-            return (
-              <>
-                <Form.Item
-                  label="Token"
-                  name={tokenName}
-                  rules={[{ required: required.includes("token") }]}
-                  tooltip={properties.token?.description}
-                >
-                  <Select
-                    disabled={disabled}
-                    loading={loading}
-                    filterOption={(input, option) => {
-                      if (option === undefined) return false;
+              const label = option.label.toLowerCase();
+              const name = option.name.toLowerCase();
+              const value = option.value.toLowerCase();
+              const search = input.toLowerCase();
 
-                      const label = option.label.toLowerCase();
-                      const value = option.value.toLowerCase();
-                      const search = input.toLowerCase();
-
-                      return label.includes(search) || value.includes(search);
+              return (
+                label.includes(search) ||
+                name.includes(search) ||
+                value.includes(search)
+              );
+            }}
+            options={tokens}
+            optionRender={({ data }) => (
+              <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                <Stack
+                  as="img"
+                  alt={data.label}
+                  src={data.logo}
+                  $style={{
+                    borderRadius: "50%",
+                    height: "20px",
+                    width: "20px",
+                  }}
+                />
+                <VStack $style={{ gap: "4px" }}>
+                  <Stack
+                    as="span"
+                    $style={{
+                      fontSize: "12px",
+                      lineHeight: "12px",
                     }}
-                    options={tokens}
-                    optionRender={({ data }) => (
-                      <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                        <Stack
-                          as="img"
-                          alt={data.label}
-                          src={data.logo}
-                          $style={{
-                            borderRadius: "50%",
-                            height: "16px",
-                            width: "16px",
-                          }}
-                        />
-                        {data.label}
-                      </HStack>
-                    )}
-                    allowClear
-                    showSearch
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Address"
-                  name={addressName}
-                  rules={[{ required: required.includes("address") }]}
-                  tooltip={properties.address?.description}
-                >
-                  <Input disabled={disabled} />
-                </Form.Item>
-              </>
-            );
-          }}
+                  >
+                    {data.name}
+                  </Stack>
+                  <Stack
+                    as="span"
+                    $style={{
+                      fontSize: "12px",
+                      color: colors.textTertiary.toHex(),
+                      lineHeight: "12px",
+                    }}
+                  >
+                    {data.label}
+                  </Stack>
+                </VStack>
+              </HStack>
+            )}
+            allowClear
+            showSearch
+          />
+        </Form.Item>
+        <Form.Item
+          label="Address"
+          name={[...fullKey, "address"]}
+          rules={[{ required: required.includes("address") }]}
+          tooltip={properties.address?.description}
+        >
+          <Input disabled={disabled} />
         </Form.Item>
       </Stack>
     </VStack>

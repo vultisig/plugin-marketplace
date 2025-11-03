@@ -80,6 +80,7 @@ export type OneInchToken = {
   symbol: string;
   decimals: number;
   logoURI?: string;
+  name: string;
 };
 
 export type JupiterToken = {
@@ -87,6 +88,7 @@ export type JupiterToken = {
   symbol: string;
   decimals: number;
   icon?: string;
+  name: string;
 };
 
 export type ListFilters = {
@@ -130,6 +132,7 @@ export type Token = {
   decimals: number;
   id: string;
   logo: string;
+  name: string;
   ticker: string;
 };
 

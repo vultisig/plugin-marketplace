@@ -246,6 +246,7 @@ export const getOneInchTokens = async (chain: EvmChain) => {
             decimals: token.decimals,
             id: token.address,
             logo: token.logoURI,
+            name: token.name,
             ticker: token.symbol,
           });
         }
@@ -316,6 +317,7 @@ export const getJupiterTokens = async () => {
             decimals: token.decimals,
             id: token.id,
             logo: token.icon,
+            name: token.name,
             ticker: token.symbol,
           });
         }
