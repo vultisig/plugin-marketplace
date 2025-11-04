@@ -488,6 +488,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
             return (
               <AssetWidget
                 configuration={fieldRef}
+                form={form}
                 fullKey={fullKey}
                 key={key}
               />

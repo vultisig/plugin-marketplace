@@ -2,7 +2,6 @@ import { fromBinary, fromJson, JsonObject } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
 import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
-import { Address, createPublicClient, erc20Abi, http } from "viem";
 
 import {
   PolicySchema,
@@ -11,7 +10,7 @@ import {
 } from "@/proto/policy_pb";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
-import { EvmChain, evmChainIds, evmChainInfo } from "@/utils/chain";
+import { EvmChain, evmChainIds } from "@/utils/chain";
 import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import { toCamelCase } from "@/utils/functions";
@@ -238,16 +237,14 @@ export const getOneInchTokens = async (chain: EvmChain) => {
   )
     .then(({ tokens: oneInchTokens }) => {
       Object.values(oneInchTokens).forEach((token) => {
-        if (token.logoURI) {
-          tokens.push({
-            chain,
-            decimals: token.decimals,
-            id: token.address,
-            logo: token.logoURI,
-            name: token.name,
-            ticker: token.symbol,
-          });
-        }
+        tokens.push({
+          chain,
+          decimals: token.decimals,
+          id: token.address,
+          logo: token.logoURI || "",
+          name: token.name,
+          ticker: token.symbol,
+        });
       });
 
       return tokens;
@@ -328,66 +325,19 @@ export const getJupiterTokens = async () => {
   return get<JupiterToken[]>(`${vultiApiUrl}/jup/tokens/v2/tag?query=verified`)
     .then((jupiterTokens) => {
       jupiterTokens.forEach((token) => {
-        if (token.icon) {
-          tokens.push({
-            chain: "Solana",
-            decimals: token.decimals,
-            id: token.id,
-            logo: token.icon,
-            name: token.name,
-            ticker: token.symbol,
-          });
-        }
+        tokens.push({
+          chain: "Solana",
+          decimals: token.decimals,
+          id: token.id,
+          logo: token.icon || "",
+          name: token.name,
+          ticker: token.symbol,
+        });
       });
 
       return tokens;
     })
     .catch(() => tokens);
-};
-
-export const getTokenMetadata = async ({
-  chain,
-  id,
-}: Pick<Token, "chain" | "id">) => {
-  if (evmChainInfo[chain as EvmChain]) {
-    const client = createPublicClient({
-      chain: evmChainInfo[chain as EvmChain],
-      transport: http(),
-    });
-
-    const [decimals, name, ticker] = await Promise.all([
-      client.readContract({
-        address: id as Address,
-        abi: erc20Abi,
-        functionName: "decimals",
-      }),
-      client.readContract({
-        address: id as Address,
-        abi: erc20Abi,
-        functionName: "name",
-      }),
-      client.readContract({
-        address: id as Address,
-        abi: erc20Abi,
-        functionName: "symbol",
-      }),
-    ]);
-
-    const token: Token = {
-      chain,
-      decimals,
-      id,
-      logo: "",
-      name,
-      ticker,
-    };
-
-    return token;
-  } else if (chain === "Solana") {
-    return getJupiterToken(id);
-  } else {
-    return undefined;
-  }
 };
 
 export const isAppInstalled = async (id: string) => {
