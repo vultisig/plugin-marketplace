@@ -1,15 +1,15 @@
-import { Form, FormInstance, Input, Select } from "antd";
-import { FC, useEffect, useMemo, useState } from "react";
+import { Form, FormInstance, Input, Select, SelectProps } from "antd";
+import { FC, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { TokenImage } from "@/components/TokenImage";
+import { useQueries } from "@/hooks/useQueries";
 import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { Chain, chains } from "@/utils/chain";
 import { camelCaseToTitle } from "@/utils/functions";
-import { useTokenData, useTokenList } from "@/utils/queries";
 import { Configuration, Token } from "@/utils/types";
 
 type AssetWidgetProps = {
@@ -18,77 +18,62 @@ type AssetWidgetProps = {
   fullKey: string[];
 };
 
+type StateProps = {
+  loading?: boolean;
+  tokens: Token[];
+};
+
 export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
   form,
   fullKey,
 }) => {
-  const [chainAssets, setChainAssets] = useState<Record<Chain, Token[]>>({
-    Arbitrum: [],
-    Avalanche: [],
-    Base: [],
-    Blast: [],
-    BSC: [],
-    Ethereum: [],
-    Optimism: [],
-    Polygon: [],
-    Bitcoin: [],
-    Ripple: [],
-    Solana: [],
-  });
-  const [search, setSearch] = useState<string>("");
+  const [state, setState] = useState<StateProps>({ tokens: [] });
+  const { loading, tokens } = state;
+  const { getTokenData, getTokenList } = useQueries();
+  const { isValidAddress } = useWalletCore();
+  const colors = useTheme();
   const key = fullKey[fullKey.length - 1];
   const addressField = [...fullKey, "address"];
   const chainField = [...fullKey, "chain"];
   const tokenField = [...fullKey, "token"];
   const chain: Chain = Form.useWatch(chainField, form);
-  const { refetch: getTokenData, isFetching: dataLoading } = useTokenData({
-    chain,
-    id: search,
-  });
-  const { refetch: getTokenList, isFetching: listLoading } =
-    useTokenList(chain);
-  const { isValidAddress } = useWalletCore();
-  const colors = useTheme();
 
-  const assets = useMemo(() => {
-    if (!chain) return [];
-    if (!search) return chainAssets[chain];
-
-    return chainAssets[chain].filter(({ id, name, ticker }) => {
-      return (
-        ticker.toLowerCase().includes(search) ||
-        name.toLowerCase().includes(search) ||
-        id.toLowerCase().includes(search)
-      );
-    });
-  }, [chain, chainAssets, search]);
-
-  useEffect(() => {
+  const handleSearch: SelectProps["onSearch"] = (address) => {
     if (
       !chain ||
-      !search ||
-      assets.length > 0 ||
-      !isValidAddress(chain, search)
+      !address ||
+      !isValidAddress(chain, address) ||
+      tokens.some(({ id }) => id === address)
     )
       return;
 
-    getTokenData().then(({ data }) => {
-      if (data) {
-        setChainAssets((prev) => ({
+    setState((prev) => ({ ...prev, loading: true }));
+
+    getTokenData(chain, address).then((token) => {
+      if (token) {
+        setState((prev) => ({
           ...prev,
-          [chain]: [...prev[chain], data],
+          loading: false,
+          tokens: [...prev.tokens, token],
         }));
+      } else {
+        setState((prev) => ({ ...prev, loading: false }));
       }
     });
-  }, [assets, chain, search]);
+  };
 
   useEffect(() => {
-    if (!chain) return;
+    if (chain) {
+      setState((prev) => ({ ...prev, loading: true }));
 
-    getTokenList().then(({ data = [] }) => {
-      setChainAssets((prev) => ({ ...prev, [chain]: data }));
-    });
+      getTokenList(chain).then((tokens) => {
+        setState((prev) => ({ ...prev, loading: false, tokens }));
+      });
+    } else {
+      form.setFieldValue(addressField, undefined);
+      form.setFieldValue(tokenField, undefined);
+    }
   }, [chain]);
 
   return (
@@ -108,10 +93,29 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           tooltip={properties.chain?.description}
         >
           <Select
-            onChange={() => {
-              form.setFieldValue(addressField, undefined);
-              form.setFieldValue(tokenField, undefined);
-            }}
+            optionRender={({ data: { label, value } }) => (
+              <HStack
+                $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
+              >
+                <TokenImage
+                  src={`/tokens/${value.toLowerCase()}.svg`}
+                  alt={label}
+                  borderRadius="50%"
+                  height="24px"
+                  width="24px"
+                />
+                <Stack
+                  as="span"
+                  $style={{
+                    color: colors.textPrimary.toHex(),
+                    fontSize: "12px",
+                    lineHeight: "12px",
+                  }}
+                >
+                  {label}
+                </Stack>
+              </HStack>
+            )}
             options={chains.map((chain) => ({ value: chain, label: chain }))}
             showSearch
           />
@@ -124,21 +128,32 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
         >
           <Select
             disabled={!chain}
-            loading={dataLoading || listLoading}
-            options={assets.map((token) => ({
-              label: token.ticker,
-              logo: token.logo,
-              name: token.name,
-              value: token.id,
-            }))}
-            filterOption={false}
+            filterOption={(input, option) => {
+              if (option === undefined) return false;
+
+              const label = option.label.toLowerCase();
+              const name = option.name.toLowerCase();
+              const value = option.value.toLowerCase();
+              const search = input.toLowerCase();
+
+              return (
+                label.includes(search) ||
+                name.includes(search) ||
+                value.includes(search)
+              );
+            }}
+            loading={loading}
             notFoundContent={
-              dataLoading || listLoading ? (
+              loading ? (
                 <HStack $style={{ justifyContent: "center", padding: "12px" }}>
                   <Spin />
                 </HStack>
               ) : undefined
             }
+            onSearch={handleSearch}
+            onSelect={(value) => {
+              form.setFieldValue(addressField, value);
+            }}
             optionRender={({ data: { label, logo, name } }) => (
               <HStack
                 $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
@@ -174,20 +189,26 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </VStack>
               </HStack>
             )}
-            onSearch={(value) => setSearch(value?.trim().toLowerCase())}
-            onSelect={() => setSearch("")}
+            options={tokens.map((token) => ({
+              label: token.ticker,
+              logo: token.logo,
+              name: token.name,
+              value: token.id,
+            }))}
             allowClear
             showSearch
           />
         </Form.Item>
-        <Form.Item
+        <Stack
+          as={Form.Item}
           label="Address"
           name={addressField}
           rules={[{ required: required.includes("address") }]}
           tooltip={properties.address?.description}
+          $style={{ gridColumn: "1 / -1" }}
         >
           <Input disabled={!chain} />
-        </Form.Item>
+        </Stack>
       </Stack>
     </VStack>
   );

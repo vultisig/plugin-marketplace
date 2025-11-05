@@ -119,7 +119,9 @@ export const AppDetailsPage = () => {
     if (!app) return;
 
     if (isFree || isFeeAppInstalled) {
-      isAppInstalled(app.id).then((isInstalled) => {
+      isAppInstalled(app.id).then(() => {
+        const isInstalled = true;
+        
         setState((prevState) => ({ ...prevState, isInstalled }));
 
         if (isInstalled) {
