@@ -10,9 +10,7 @@ import {
   polygon,
 } from "viem/chains";
 
-//import { vultiApiUrl } from "@/utils/constants";
-
-const vultiApiUrl = "https://eth.llamarpc.com";
+import { vultiApiUrl } from "@/utils/constants";
 
 export const evmChains = [
   "Arbitrum",

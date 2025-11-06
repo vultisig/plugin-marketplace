@@ -305,6 +305,8 @@ export const getJupiterToken = async (id: string) => {
     .then((jupiterTokens) => {
       const [jupiterToken] = jupiterTokens;
 
+      if (!jupiterToken) return undefined;
+
       const token: Token = {
         chain: "Solana",
         decimals: jupiterToken.decimals,

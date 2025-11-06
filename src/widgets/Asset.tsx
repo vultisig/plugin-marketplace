@@ -151,9 +151,6 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
               ) : undefined
             }
             onSearch={handleSearch}
-            onSelect={(value) => {
-              form.setFieldValue(addressField, value);
-            }}
             optionRender={({ data: { label, logo, name } }) => (
               <HStack
                 $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
