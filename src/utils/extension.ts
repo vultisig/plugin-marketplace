@@ -1,4 +1,5 @@
 import { reshareVault } from "@/utils/api";
+import { Chain, EvmChain, evmChainInfo } from "@/utils/chain";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
@@ -30,17 +31,56 @@ export const disconnect = async () => {
   });
 };
 
-export const getAccount = async () => {
+export const getAccount = async (chain: Chain) => {
   await isAvailable();
 
-  try {
-    const [account]: string[] = await window.vultisig.ethereum.request({
-      method: "eth_accounts",
-    });
+  if (evmChainInfo[chain as EvmChain]) {
+    try {
+      const [account]: string[] = await window.vultisig.ethereum.request({
+        method: "eth_accounts",
+      });
+      return account;
+    } catch {
+      return undefined;
+    }
+  } else {
+    const method = "get_accounts";
 
-    return account;
-  } catch {
-    return undefined;
+    switch (chain) {
+      case "Bitcoin": {
+        try {
+          const [account]: string[] = await window.vultisig.bitcoin.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      case "Solana": {
+        try {
+          const [account]: string[] = await window.vultisig.solana.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      case "Ripple": {
+        try {
+          const [account]: string[] = await window.vultisig.ripple.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      default: {
+        return undefined;
+      }
+    }
   }
 };
 
