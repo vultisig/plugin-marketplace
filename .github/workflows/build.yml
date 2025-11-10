@@ -3,6 +3,7 @@ name: Marketplace build
 on:
   push:
     branches: ['main']
+    tags: ['release/*']
   pull_request:
     branches: ['main']
 
@@ -29,6 +30,7 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
   lint:
     needs: setup
     runs-on: ubuntu-22.04
@@ -52,7 +54,8 @@ jobs:
         run: npm run lint
       - name: run typecheck
         run: npm run typecheck
-  build:
+
+  build-preview:
     needs: [setup, lint]
     environment: preview
     runs-on: ubuntu-22.04
@@ -72,17 +75,49 @@ jobs:
         run: npm ci
       - name: Build marketplace UI
         env:
-          VITE_MARKETPLACE_URL: https://verifier-server-dev.fly.dev
-          VITE_FEE_PLUGIN_ID: vultisig-fees-feee
+          VITE_MARKETPLACE_URL: ${{ secrets.VITE_MARKETPLACE_URL }}
+          VITE_FEE_PLUGIN_ID: ${{ secrets.VITE_FEE_PLUGIN_ID }}
         run: npm run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dist-files
+          name: preview-dist-files
           path: dist/
           retention-days: 7
-  deploy:
-    needs: build
+
+  build-production:
+    needs: [setup, lint]
+    if: startsWith(github.ref, 'refs/tags/release/')
+    environment: production
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '23.7.0'
+          cache: 'npm'
+          cache-dependency-path: |
+            **/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build marketplace UI
+        env:
+          VITE_MARKETPLACE_URL: ${{ secrets.VITE_MARKETPLACE_URL }}
+          VITE_FEE_PLUGIN_ID: ${{ secrets.VITE_FEE_PLUGIN_ID }}
+        run: npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dist-files
+          path: dist/
+          retention-days: 7
+
+  deploy-preview:
+    needs: build-preview
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: preview
     runs-on: ubuntu-22.04
@@ -90,9 +125,36 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist-files
+          name: preview-dist-files
           path: dist/
       - name: Deploy to preview
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          SERVER_USERNAME: ${{ secrets.SSH_USER }}
+          SERVER_HOST: ${{ secrets.SSH_SERVER }}
+          DEPLOY_DIR: ${{ secrets.SSH_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan $SERVER_HOST >> ~/.ssh/known_hosts
+          # Sync built files to server
+          rsync -avz --delete \
+            ./dist/ \
+            $SERVER_USERNAME@$SERVER_HOST:$DEPLOY_DIR/
+
+  deploy-production:
+    needs: build-production
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/release/')
+    environment: production
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-dist-files
+          path: dist/
+      - name: Deploy to production
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
           SERVER_USERNAME: ${{ secrets.SSH_USER }}
