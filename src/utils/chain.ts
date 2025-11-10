@@ -12,7 +12,7 @@ import {
 
 import { vultiApiUrl } from "@/utils/constants";
 
-export const evmChains = [
+const evmChains = [
   "Arbitrum",
   "Avalanche",
   "Base",
@@ -23,7 +23,7 @@ export const evmChains = [
   "Polygon",
 ] as const;
 
-export const evmChainRpcUrls: Record<EvmChain, string> = {
+const evmChainRpcUrls: Record<EvmChain, string> = {
   Arbitrum: `${vultiApiUrl}/arb/`,
   Avalanche: `${vultiApiUrl}/avax/`,
   Base: `${vultiApiUrl}/base/`,
