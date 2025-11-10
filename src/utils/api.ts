@@ -1,4 +1,4 @@
-import { fromBinary, fromJson } from "@bufbuild/protobuf";
+import { fromBinary, fromJson, JsonObject } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
 import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -20,8 +20,8 @@ import {
   AuthTokenForm,
   Category,
   CustomAppPolicy,
-  CustomRecipeSchema,
   ListFilters,
+  RecipeSchema,
   ReshareForm,
   Review,
   ReviewForm,
@@ -237,14 +237,11 @@ export const getPolicies = (
   });
 
 export const getRecipeSpecification = (appId: string) =>
-  get<CustomRecipeSchema>(
-    `${storeUrl}/plugins/${appId}/recipe-specification`
-  ).catch(() => undefined);
+  get<RecipeSchema>(`${storeUrl}/plugins/${appId}/recipe-specification`).catch(
+    () => undefined
+  );
 
-export const getRecipeSuggestion = (
-  appId: string,
-  configuration: Record<string, any>
-) =>
+export const getRecipeSuggestion = (appId: string, configuration: JsonObject) =>
   post<PolicySuggestJson>(
     `${storeUrl}/plugins/${appId}/recipe-specification/suggest`,
     { configuration }

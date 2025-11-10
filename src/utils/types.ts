@@ -1,7 +1,7 @@
 import type * as CSS from "csstype";
 
 import { Policy } from "@/proto/policy_pb";
-import { RecipeSchema } from "@/proto/recipe_specification_pb";
+import { RecipeSchema as ProtoRecipeSchema } from "@/proto/recipe_specification_pb";
 
 export type AuthTokenForm = {
   chainCodeHex: string;
@@ -15,30 +15,25 @@ export type Category = {
   name: string;
 };
 
-export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
-
-export type CustomRecipeSchema = Omit<RecipeSchema, "configuration"> & {
-  configuration?: {
-    definitions?: Record<string, FieldPropsWithDefinition>;
-    properties: Record<string, FieldProps>;
-    required: string[];
-    type: "object";
-  };
+export type Configuration = {
+  properties: Record<string, FieldProps>;
+  required: string[];
+  title: string;
 };
 
-type FieldPropsWithDefinition = {
-  properties?: Record<string, FieldProps>;
-  required?: string[];
-  type: string;
+export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
+
+export type Definitions = Record<string, Configuration>;
+
+export type RecipeSchema = Omit<ProtoRecipeSchema, "configuration"> & {
+  configuration?: Configuration & { definitions: Definitions };
 };
 
 export type FieldProps = {
+  enum: string[];
+  format: string;
+  type: string;
   $ref?: string;
-  enum?: string[];
-  format?: string;
-  properties?: Record<string, FieldProps>;
-  required?: string[];
-  type?: string;
 };
 
 export type ListFilters = {
