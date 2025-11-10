@@ -145,4 +145,4 @@ export type Vault = {
   uid: string;
 };
 
-export type Widget = "#/definitions/asset";
+type Widget = "#/definitions/asset";
