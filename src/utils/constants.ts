@@ -1,3 +1,5 @@
+export const defaultPageSize = 12;
+
 export const modalHash = {
   currency: "#currency",
   language: "#language",
@@ -7,4 +9,5 @@ export const modalHash = {
   review: "#review",
 } as const;
 
-export const PAGE_SIZE = 12;
+export const storeApiUrl = import.meta.env.VITE_APP_STORE_URL;
+export const vultiApiUrl = import.meta.env.VITE_VULTISIG_SERVER;

@@ -1,0 +1,54 @@
+html {
+  font-family: "Brockmann", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.ant-collapse {
+  .ant-collapse-item {
+    .ant-collapse-header {
+      align-items: center;
+      padding: 0;
+
+      .ant-collapse-header-text {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 24px;
+      }
+    }
+
+    .ant-collapse-content {
+      .ant-collapse-content-box {
+        padding: 16px 0 0;
+      }
+    }
+  }
+}
+
+.ant-input {
+  height: 44px;
+}
+
+.ant-input-number {
+  width: 100%;
+
+  .ant-input-number-input {
+    height: 44px;
+  }
+}
+
+.ant-picker {
+  display: flex;
+  height: 44px;
+}
+
+.ant-select {
+  height: 44px;
+  width: 100%;
+}
