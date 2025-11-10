@@ -5,7 +5,7 @@ export const en = {
   addRule: "Add Rule",
   appPermissions: "App Permissions",
   appStore: "App Store",
-  allApps: "All Apps",
+  apps: "Apps",
   audit: "Audit",
   // B
   backHome: "Back Home",
@@ -45,7 +45,6 @@ export const en = {
   lastUpdate: "Last Update",
   light: "Light",
   // M
-  marketplace: "Marketplace",
   maxTransactions: "Max Txs",
   myApps: "My Apps",
   // N

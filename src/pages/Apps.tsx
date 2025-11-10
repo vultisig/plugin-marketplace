@@ -150,28 +150,23 @@ export const AppsPage = () => {
             <Spin centered />
           ) : apps.length ? (
             <>
-              {newPlugin ? (
-                <>
-                  <VStack $style={{ flexDirection: "column", gap: "16px" }}>
-                    <Stack
-                      as="span"
-                      $style={{ fontSize: "17px", lineHeight: "20px" }}
-                    >
-                      {t("new")}
-                    </Stack>
-                    <AppItem {...newPlugin} horizontal />
-                  </VStack>
-                  <Divider light />
-                </>
-              ) : (
-                <></>
+              {!!newPlugin && (
+                <VStack $style={{ flexDirection: "column", gap: "16px" }}>
+                  <Stack
+                    as="span"
+                    $style={{ fontSize: "17px", lineHeight: "20px" }}
+                  >
+                    {t("new")}
+                  </Stack>
+                  <AppItem {...newPlugin} horizontal />
+                </VStack>
               )}
               <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                 <Stack
                   as="span"
                   $style={{ fontSize: "17px", lineHeight: "20px" }}
                 >
-                  {t("allApps")}
+                  {t("apps")}
                 </Stack>
                 <Stack
                   $style={{
