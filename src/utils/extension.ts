@@ -1,4 +1,5 @@
 import { reshareVault } from "@/utils/api";
+import { Chain, EvmChain, evmChainInfo } from "@/utils/chain";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
@@ -30,13 +31,29 @@ export const disconnect = async () => {
   });
 };
 
-export const getAccount = async () => {
+export const getAccount = async (chain: Chain) => {
   await isAvailable();
 
+  let method;
+  let request;
+
+  if (evmChainInfo[chain as EvmChain]) {
+    method = "eth_accounts";
+    request = window.vultisig.ethereum.request;
+  } else {
+    method = "get_accounts";
+
+    if (chain === "Bitcoin") {
+      request = window.vultisig.bitcoin.request;
+    } else if (chain === "Solana") {
+      request = window.vultisig.solana.request;
+    } else if (chain === "Ripple") {
+      request = window.vultisig.ripple.request;
+    }
+  }
+
   try {
-    const [account]: string[] = await window.vultisig.ethereum.request({
-      method: "eth_accounts",
-    });
+    const [account]: string[] = await request({ method });
 
     return account;
   } catch {

@@ -9,6 +9,7 @@ import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { Chain, chains } from "@/utils/chain";
+import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Configuration, Token } from "@/utils/types";
 
@@ -66,6 +67,10 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   useEffect(() => {
     if (chain) {
       setState((prev) => ({ ...prev, loading: true }));
+
+      getAccount(chain).then((address) => {
+        form.setFieldValue(addressField, address);
+      });
 
       getTokenList(chain).then((tokens) => {
         setState((prev) => ({ ...prev, loading: false, tokens }));

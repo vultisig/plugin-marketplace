@@ -121,7 +121,7 @@ export const DefaultLayout = () => {
     if (isNotSupport) return;
 
     const timeoutId = setTimeout(() => {
-      getAccount().then((account) => {
+      getAccount("Ethereum").then((account) => {
         if (account) connect();
       });
     }, 200);

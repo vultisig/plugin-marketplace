@@ -170,6 +170,8 @@ export const AppDetailsPage = () => {
               loading: false,
             }));
 
+            checkStatus();
+
             messageAPI.open({
               type: "success",
               content: t("successfulAppUninstallation"),
