@@ -70,6 +70,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
       getAccount(chain).then((address) => {
         form.setFieldValue(addressField, address);
+        form.setFieldValue(tokenField, undefined);
       });
 
       getTokenList(chain).then((tokens) => {

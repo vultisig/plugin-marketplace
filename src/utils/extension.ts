@@ -82,8 +82,6 @@ export const getAccount = async (chain: Chain) => {
       }
     }
   }
-
-  return undefined;
 };
 
 export const getVault = async () => {
