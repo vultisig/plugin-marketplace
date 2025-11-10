@@ -11,7 +11,7 @@ import {
 import { delToken, getToken, setToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
 import { EvmChain, evmChainIds } from "@/utils/chain";
-import { PAGE_SIZE } from "@/utils/constants";
+import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import { toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
@@ -139,32 +139,29 @@ const post = async <T>(
 //     .put<T>(url, data, config)
 //     .then(({ data }) => toCamelCase(data));
 
-const storeUrl = import.meta.env.VITE_APP_STORE_URL;
-const vultisigUrl = import.meta.env.VITE_VULTISIG_SERVER;
-
 export const addPolicy = async (data: AppPolicy) => {
-  return post<AppPolicy>(`${storeUrl}/plugin/policy`, toSnakeCase(data));
+  return post<AppPolicy>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
 };
 
 export const addReview = async (appId: string, data: ReviewForm) => {
   return post<Review>(
-    `${storeUrl}/plugins/${appId}/reviews`,
+    `${storeApiUrl}/plugins/${appId}/reviews`,
     toSnakeCase(data)
   );
 };
 
 export const delPolicy = async (id: string, signature: string) => {
-  return del(`${storeUrl}/plugin/policy/${id}`, { data: { signature } });
+  return del(`${storeApiUrl}/plugin/policy/${id}`, { data: { signature } });
 };
 
 export const getAuthToken = async (data: AuthToken) => {
-  return post<{ token: string }>(`${storeUrl}/auth`, toSnakeCase(data)).then(
+  return post<{ token: string }>(`${storeApiUrl}/auth`, toSnakeCase(data)).then(
     ({ token }) => token
   );
 };
 
 export const getApp = async (id: string) => {
-  return get<App>(`${storeUrl}/plugins/${id}`).then((plugin) => {
+  return get<App>(`${storeApiUrl}/plugins/${id}`).then((plugin) => {
     const count =
       plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
     const average = count
@@ -189,10 +186,10 @@ export const getApps = async ({
   categoryId,
   skip,
   sort = "-created_at",
-  take = PAGE_SIZE,
+  take = defaultPageSize,
   term,
 }: ListFilters & AppFilters) => {
-  return get<{ plugins: App[]; totalCount: number }>(`${storeUrl}/plugins`, {
+  return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
   }).then(({ plugins, totalCount }) => {
     const modifiedPlugins: App[] =
@@ -215,7 +212,7 @@ export const getBaseValue = async (currency: Currency) => {
       [id: string]: { quote: { [currency: string]: { price: number } } };
     };
   }>(
-    `${vultisigUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
+    `${vultiApiUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
   )
     .then(({ data }) => {
       if (data && data[825]?.quote && data[825].quote[modifiedCurrency]) {
@@ -228,7 +225,7 @@ export const getBaseValue = async (currency: Currency) => {
 };
 
 export const getCategories = async () => {
-  return get<Category[]>(`${storeUrl}/categories`);
+  return get<Category[]>(`${storeApiUrl}/categories`);
 };
 
 export const getOneInchTokens = async (chain: EvmChain) => {
@@ -236,20 +233,18 @@ export const getOneInchTokens = async (chain: EvmChain) => {
   const chainId = evmChainIds[chain as EvmChain];
 
   return get<{ tokens: Record<string, OneInchToken> }>(
-    `${vultisigUrl}/1inch/swap/v6.0/${chainId}/tokens`
+    `${vultiApiUrl}/1inch/swap/v6.0/${chainId}/tokens`
   )
     .then(({ tokens: oneInchTokens }) => {
       Object.values(oneInchTokens).forEach((token) => {
-        if (token.logoURI) {
-          tokens.push({
-            chain,
-            decimals: token.decimals,
-            id: token.address,
-            logo: token.logoURI,
-            name: token.name,
-            ticker: token.symbol,
-          });
-        }
+        tokens.push({
+          chain,
+          decimals: token.decimals,
+          id: token.address,
+          logo: token.logoURI || "",
+          name: token.name,
+          ticker: token.symbol,
+        });
       });
 
       return tokens;
@@ -259,10 +254,10 @@ export const getOneInchTokens = async (chain: EvmChain) => {
 
 export const getPolicies = async (
   appId: string,
-  { skip, take = PAGE_SIZE }: ListFilters
+  { skip, take = defaultPageSize }: ListFilters
 ) => {
   return get<{ policies: AppPolicy[]; totalCount: number }>(
-    `${storeUrl}/plugin/policies/${appId}`,
+    `${storeApiUrl}/plugin/policies/${appId}`,
     { params: toSnakeCase({ skip, take }) }
   ).then(({ policies, totalCount }) => {
     const modifiedPolicies: CustomAppPolicy[] =
@@ -279,7 +274,7 @@ export const getPolicies = async (
 
 export const getRecipeSpecification = async (appId: string) => {
   return get<RecipeSchema>(
-    `${storeUrl}/plugins/${appId}/recipe-specification`
+    `${storeApiUrl}/plugins/${appId}/recipe-specification`
   ).catch(() => undefined);
 };
 
@@ -288,7 +283,7 @@ export const getRecipeSuggestion = async (
   configuration: JsonObject
 ) => {
   return post<PolicySuggestJson>(
-    `${storeUrl}/plugins/${appId}/recipe-specification/suggest`,
+    `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
     { configuration }
   )
     .then((suggest) => fromJson(PolicySuggestSchema, suggest))
@@ -297,30 +292,49 @@ export const getRecipeSuggestion = async (
 
 export const getReviews = async (
   appId: string,
-  { skip, take = PAGE_SIZE }: ListFilters
+  { skip, take = defaultPageSize }: ListFilters
 ) => {
   return get<{ reviews: Review[]; totalCount: number }>(
-    `${storeUrl}/plugins/${appId}/reviews`,
+    `${storeApiUrl}/plugins/${appId}/reviews`,
     { params: toSnakeCase({ skip, take }) }
   ).then(({ reviews, totalCount }) => ({ reviews: reviews || [], totalCount }));
+};
+
+export const getJupiterToken = async (id: string) => {
+  return get<JupiterToken[]>(`${vultiApiUrl}/jup/tokens/v2/search?query=${id}`)
+    .then((jupiterTokens) => {
+      const [jupiterToken] = jupiterTokens;
+
+      if (!jupiterToken) return undefined;
+
+      const token: Token = {
+        chain: "Solana",
+        decimals: jupiterToken.decimals,
+        id: jupiterToken.id,
+        logo: jupiterToken.icon || "",
+        name: jupiterToken.name,
+        ticker: jupiterToken.symbol,
+      };
+
+      return token;
+    })
+    .catch(() => undefined);
 };
 
 export const getJupiterTokens = async () => {
   const tokens: Token[] = [];
 
-  return get<JupiterToken[]>(`${vultisigUrl}/jup/tokens/v2/tag?query=verified`)
+  return get<JupiterToken[]>(`${vultiApiUrl}/jup/tokens/v2/tag?query=verified`)
     .then((jupiterTokens) => {
       jupiterTokens.forEach((token) => {
-        if (token.icon) {
-          tokens.push({
-            chain: "Solana",
-            decimals: token.decimals,
-            id: token.id,
-            logo: token.icon,
-            name: token.name,
-            ticker: token.symbol,
-          });
-        }
+        tokens.push({
+          chain: "Solana",
+          decimals: token.decimals,
+          id: token.id,
+          logo: token.icon || "",
+          name: token.name,
+          ticker: token.symbol,
+        });
       });
 
       return tokens;
@@ -329,15 +343,15 @@ export const getJupiterTokens = async () => {
 };
 
 export const isAppInstalled = async (id: string) => {
-  return get(`${storeUrl}/vault/exist/${id}/${getVaultId()}`)
+  return get(`${storeApiUrl}/vault/exist/${id}/${getVaultId()}`)
     .then(() => true)
     .catch(() => false);
 };
 
 export const reshareVault = async (data: ReshareForm) => {
-  return post(`${storeUrl}/vault/reshare`, toSnakeCase(data));
+  return post(`${storeApiUrl}/vault/reshare`, toSnakeCase(data));
 };
 
 export const uninstallApp = async (appId: string) => {
-  return del(`${storeUrl}/plugin/${appId}`);
+  return del(`${storeApiUrl}/plugin/${appId}`);
 };

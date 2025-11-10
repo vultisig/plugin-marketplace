@@ -1,3 +1,4 @@
+import { Chain as ViemChain } from "viem";
 import {
   arbitrum,
   avalanche,
@@ -8,6 +9,8 @@ import {
   optimism,
   polygon,
 } from "viem/chains";
+
+import { vultiApiUrl } from "@/utils/constants";
 
 export const evmChains = [
   "Arbitrum",
@@ -20,15 +23,52 @@ export const evmChains = [
   "Polygon",
 ] as const;
 
+export const evmChainRpcUrls: Record<EvmChain, string> = {
+  Arbitrum: `${vultiApiUrl}/arb/`,
+  Avalanche: `${vultiApiUrl}/avax/`,
+  Base: `${vultiApiUrl}/base/`,
+  Blast: `${vultiApiUrl}/blast/`,
+  BSC: `${vultiApiUrl}/bsc/`,
+  Ethereum: `${vultiApiUrl}/eth/`,
+  Optimism: `${vultiApiUrl}/opt/`,
+  Polygon: `${vultiApiUrl}/polygon/`,
+};
+
+export const evmChainInfo: Record<EvmChain, ViemChain> = {
+  Arbitrum: {
+    ...arbitrum,
+    rpcUrls: { default: { http: [evmChainRpcUrls.Arbitrum] } },
+  },
+  Avalanche: {
+    ...avalanche,
+    rpcUrls: { default: { http: [evmChainRpcUrls.Avalanche] } },
+  },
+  Base: { ...base, rpcUrls: { default: { http: [evmChainRpcUrls.Base] } } },
+  Blast: { ...blast, rpcUrls: { default: { http: [evmChainRpcUrls.Blast] } } },
+  BSC: { ...bsc, rpcUrls: { default: { http: [evmChainRpcUrls.BSC] } } },
+  Ethereum: {
+    ...mainnet,
+    rpcUrls: { default: { http: [evmChainRpcUrls.Ethereum] } },
+  },
+  Optimism: {
+    ...optimism,
+    rpcUrls: { default: { http: [evmChainRpcUrls.Optimism] } },
+  },
+  Polygon: {
+    ...polygon,
+    rpcUrls: { default: { http: [evmChainRpcUrls.Polygon] } },
+  },
+};
+
 export const evmChainIds: Record<EvmChain, number> = {
-  Arbitrum: arbitrum.id,
-  Avalanche: avalanche.id,
-  Base: base.id,
-  Blast: blast.id,
-  BSC: bsc.id,
-  Ethereum: mainnet.id,
-  Optimism: optimism.id,
-  Polygon: polygon.id,
+  Arbitrum: evmChainInfo.Arbitrum.id,
+  Avalanche: evmChainInfo.Avalanche.id,
+  Base: evmChainInfo.Base.id,
+  Blast: evmChainInfo.Blast.id,
+  BSC: evmChainInfo.BSC.id,
+  Ethereum: evmChainInfo.Ethereum.id,
+  Optimism: evmChainInfo.Optimism.id,
+  Polygon: evmChainInfo.Polygon.id,
 };
 
 export const chains = [...evmChains, "Bitcoin", "Ripple", "Solana"] as const;

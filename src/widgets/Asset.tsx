@@ -1,37 +1,80 @@
-import { Form, Input, Select } from "antd";
-import { FC, useMemo } from "react";
+import { Form, FormInstance, Input, Select, SelectProps } from "antd";
+import { FC, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { useChainAssets } from "@/hooks/useChainAssets";
+import { TokenImage } from "@/components/TokenImage";
+import { useQueries } from "@/hooks/useQueries";
+import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
+import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { chains } from "@/utils/chain";
+import { Chain, chains } from "@/utils/chain";
 import { camelCaseToTitle } from "@/utils/functions";
-import { Configuration } from "@/utils/types";
+import { Configuration, Token } from "@/utils/types";
 
 type AssetWidgetProps = {
   configuration: Configuration;
+  form: FormInstance;
   fullKey: string[];
+};
+
+type StateProps = {
+  loading?: boolean;
+  tokens: Token[];
 };
 
 export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
+  form,
   fullKey,
 }) => {
-  const { assets, chain, loading, setChain } = useChainAssets();
-  const key = fullKey[fullKey.length - 1];
+  const [state, setState] = useState<StateProps>({ tokens: [] });
+  const { loading, tokens } = state;
+  const { getTokenData, getTokenList } = useQueries();
+  const { isValidAddress } = useWalletCore();
   const colors = useTheme();
+  const key = fullKey[fullKey.length - 1];
+  const addressField = [...fullKey, "address"];
+  const chainField = [...fullKey, "chain"];
+  const tokenField = [...fullKey, "token"];
+  const chain: Chain = Form.useWatch(chainField, form);
 
-  const disabled = useMemo(() => !chain, [chain]);
+  const handleSearch: SelectProps["onSearch"] = (address) => {
+    if (
+      !chain ||
+      !address ||
+      !isValidAddress(chain, address) ||
+      tokens.some(({ id }) => id === address)
+    )
+      return;
 
-  const tokens = useMemo(() => {
-    return assets.map((token) => ({
-      label: token.ticker,
-      logo: token.logo,
-      name: token.name,
-      value: token.id,
-    }));
-  }, [assets]);
+    setState((prev) => ({ ...prev, loading: true }));
+
+    getTokenData(chain, address).then((token) => {
+      if (token) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          tokens: [...prev.tokens, token],
+        }));
+      } else {
+        setState((prev) => ({ ...prev, loading: false }));
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (chain) {
+      setState((prev) => ({ ...prev, loading: true }));
+
+      getTokenList(chain).then((tokens) => {
+        setState((prev) => ({ ...prev, loading: false, tokens }));
+      });
+    } else {
+      form.setFieldValue(addressField, undefined);
+      form.setFieldValue(tokenField, undefined);
+    }
+  }, [chain]);
 
   return (
     <VStack $style={{ gap: "16px", gridColumn: "1 / -1" }}>
@@ -45,25 +88,46 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
       >
         <Form.Item
           label="Chain"
-          name={[...fullKey, "chain"]}
+          name={chainField}
           rules={[{ required: required.includes("chain") }]}
           tooltip={properties.chain?.description}
         >
           <Select
-            onChange={setChain}
+            optionRender={({ data: { label, value } }) => (
+              <HStack
+                $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
+              >
+                <TokenImage
+                  src={`/tokens/${value.toLowerCase()}.svg`}
+                  alt={label}
+                  borderRadius="50%"
+                  height="24px"
+                  width="24px"
+                />
+                <Stack
+                  as="span"
+                  $style={{
+                    color: colors.textPrimary.toHex(),
+                    fontSize: "12px",
+                    lineHeight: "12px",
+                  }}
+                >
+                  {label}
+                </Stack>
+              </HStack>
+            )}
             options={chains.map((chain) => ({ value: chain, label: chain }))}
             showSearch
           />
         </Form.Item>
         <Form.Item
           label="Token"
-          name={[...fullKey, "token"]}
+          name={tokenField}
           rules={[{ required: required.includes("token") }]}
           tooltip={properties.token?.description}
         >
           <Select
-            disabled={disabled}
-            loading={loading}
+            disabled={!chain}
             filterOption={(input, option) => {
               if (option === undefined) return false;
 
@@ -78,54 +142,70 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 value.includes(search)
               );
             }}
-            options={tokens}
-            optionRender={({ data }) => (
-              <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                <Stack
-                  as="img"
-                  alt={data.label}
-                  src={data.logo}
-                  $style={{
-                    borderRadius: "50%",
-                    height: "20px",
-                    width: "20px",
-                  }}
+            loading={loading}
+            notFoundContent={
+              loading ? (
+                <HStack $style={{ justifyContent: "center", padding: "12px" }}>
+                  <Spin />
+                </HStack>
+              ) : undefined
+            }
+            onSearch={handleSearch}
+            optionRender={({ data: { label, logo, name } }) => (
+              <HStack
+                $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
+              >
+                <TokenImage
+                  src={logo}
+                  alt={label}
+                  borderRadius="50%"
+                  height="24px"
+                  width="24px"
                 />
                 <VStack $style={{ gap: "4px" }}>
                   <Stack
                     as="span"
                     $style={{
+                      color: colors.textPrimary.toHex(),
                       fontSize: "12px",
                       lineHeight: "12px",
                     }}
                   >
-                    {data.name}
+                    {name}
                   </Stack>
                   <Stack
                     as="span"
                     $style={{
-                      fontSize: "12px",
                       color: colors.textTertiary.toHex(),
+                      fontSize: "12px",
                       lineHeight: "12px",
                     }}
                   >
-                    {data.label}
+                    {label}
                   </Stack>
                 </VStack>
               </HStack>
             )}
+            options={tokens.map((token) => ({
+              label: token.ticker,
+              logo: token.logo,
+              name: token.name,
+              value: token.id,
+            }))}
             allowClear
             showSearch
           />
         </Form.Item>
-        <Form.Item
+        <Stack
+          as={Form.Item}
           label="Address"
-          name={[...fullKey, "address"]}
+          name={addressField}
           rules={[{ required: required.includes("address") }]}
           tooltip={properties.address?.description}
+          $style={{ gridColumn: "1 / -1" }}
         >
-          <Input disabled={disabled} />
-        </Form.Item>
+          <Input disabled={!chain} />
+        </Stack>
       </Stack>
     </VStack>
   );

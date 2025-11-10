@@ -9,6 +9,15 @@ import { App } from "@/App";
 
 dayjs.extend(utc);
 
+const originalFetch = window.fetch;
+
+window.fetch = (input, init) => {
+  if (typeof input === "string" && input.endsWith("wallet-core.wasm"))
+    return originalFetch("/wallet-core.wasm", init);
+
+  return originalFetch(input, init);
+};
+
 if (import.meta.env.DEV) {
   ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 } else {
