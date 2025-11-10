@@ -34,31 +34,56 @@ export const disconnect = async () => {
 export const getAccount = async (chain: Chain) => {
   await isAvailable();
 
-  let method;
-  let request;
-
   if (evmChainInfo[chain as EvmChain]) {
-    method = "eth_accounts";
-    request = window.vultisig.ethereum.request;
+    try {
+      const [account]: string[] = await window.vultisig.ethereum.request({
+        method: "eth_accounts",
+      });
+      return account;
+    } catch {
+      return undefined;
+    }
   } else {
-    method = "get_accounts";
+    const method = "get_accounts";
 
-    if (chain === "Bitcoin") {
-      request = window.vultisig.bitcoin.request;
-    } else if (chain === "Solana") {
-      request = window.vultisig.solana.request;
-    } else if (chain === "Ripple") {
-      request = window.vultisig.ripple.request;
+    switch (chain) {
+      case "Bitcoin": {
+        try {
+          const [account]: string[] = await window.vultisig.bitcoin.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      case "Solana": {
+        try {
+          const [account]: string[] = await window.vultisig.solana.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      case "Ripple": {
+        try {
+          const [account]: string[] = await window.vultisig.ripple.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      default: {
+        return undefined;
+      }
     }
   }
 
-  try {
-    const [account]: string[] = await request({ method });
-
-    return account;
-  } catch {
-    return undefined;
-  }
+  return undefined;
 };
 
 export const getVault = async () => {
