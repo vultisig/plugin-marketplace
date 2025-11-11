@@ -50,8 +50,8 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     if (chain === "Solana") {
       getAccount(chain).then((address) => {
         if (address && token) {
-          const mint = new PublicKey(address);
-          const owner = new PublicKey(token);
+          const mint = new PublicKey(token);
+          const owner = new PublicKey(address);
 
           getAssociatedTokenAddress(
             mint,
