@@ -26,11 +26,11 @@ export const useWalletCore = () => {
   };
 
   const isValidAddress = (chain: Chain, address: string) => {
-    const coinType = getTokenType(chain);
+    const tokenType = getTokenType(chain);
 
-    if (!walletCore || !coinType) return false;
+    if (!walletCore || !tokenType) return false;
 
-    return walletCore.AnyAddress.isValid(address, coinType);
+    return walletCore.AnyAddress.isValid(address, tokenType);
   };
 
   useEffect(() => {

@@ -1,3 +1,9 @@
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 import { Form, FormInstance, Input, Select, SelectProps } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
@@ -42,13 +48,28 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
   const handleChange: SelectProps<string>["onChange"] = (token) => {
     if (chain === "Solana") {
-      if (token) {
-        form.setFieldValue(addressField, token);
-      } else {
-        getAccount(chain).then((address) => {
+      getAccount(chain).then((address) => {
+        if (address && token) {
+          const mint = new PublicKey(address);
+          const owner = new PublicKey(token);
+
+          getAssociatedTokenAddress(
+            mint,
+            owner,
+            true,
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          )
+            .then((address) => {
+              form.setFieldValue(addressField, address.toBase58());
+            })
+            .catch(() => {
+              form.setFieldValue(addressField, undefined);
+            });
+        } else {
           form.setFieldValue(addressField, address);
-        });
-      }
+        }
+      });
     }
   };
 

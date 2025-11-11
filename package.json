@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.10.0",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@tanstack/query-async-storage-persister": "^5.90.9",
     "@tanstack/react-query": "^5.90.7",
     "@tanstack/react-query-persist-client": "^5.90.9",
@@ -59,6 +61,7 @@
     "sass": "^1.93.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
-    "vite": "^7.2.2"
+    "vite": "^7.2.2",
+    "vite-plugin-node-polyfills": "^0.24.0"
   }
 }
