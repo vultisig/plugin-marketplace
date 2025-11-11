@@ -40,7 +40,19 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const tokenField = [...fullKey, "token"];
   const chain: Chain = Form.useWatch(chainField, form);
 
-  const handleSearch: SelectProps["onSearch"] = (address) => {
+  const handleChange: SelectProps<string>["onChange"] = (token) => {
+    if (chain === "Solana") {
+      if (token) {
+        form.setFieldValue(addressField, token);
+      } else {
+        getAccount(chain).then((address) => {
+          form.setFieldValue(addressField, address);
+        });
+      }
+    }
+  };
+
+  const handleSearch: SelectProps<string>["onSearch"] = (address) => {
     if (
       !chain ||
       !address ||
@@ -156,6 +168,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </HStack>
               ) : undefined
             }
+            onChange={handleChange}
             onSearch={handleSearch}
             optionRender={({ data: { label, logo, name } }) => (
               <HStack
