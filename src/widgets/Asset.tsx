@@ -1,3 +1,9 @@
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
 import { Form, FormInstance, Input, Select, SelectProps } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
@@ -40,7 +46,34 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const tokenField = [...fullKey, "token"];
   const chain: Chain = Form.useWatch(chainField, form);
 
-  const handleSearch: SelectProps["onSearch"] = (address) => {
+  const handleChange: SelectProps<string>["onChange"] = (token) => {
+    if (chain === "Solana") {
+      getAccount(chain).then((address) => {
+        if (address && token) {
+          const mint = new PublicKey(token);
+          const owner = new PublicKey(address);
+
+          getAssociatedTokenAddress(
+            mint,
+            owner,
+            true,
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          )
+            .then((address) => {
+              form.setFieldValue(addressField, address.toBase58());
+            })
+            .catch(() => {
+              form.setFieldValue(addressField, undefined);
+            });
+        } else {
+          form.setFieldValue(addressField, address);
+        }
+      });
+    }
+  };
+
+  const handleSearch: SelectProps<string>["onSearch"] = (address) => {
     if (
       !chain ||
       !address ||
@@ -156,6 +189,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </HStack>
               ) : undefined
             }
+            onChange={handleChange}
             onSearch={handleSearch}
             optionRender={({ data: { label, logo, name } }) => (
               <HStack

@@ -23,7 +23,7 @@ const evmChains = [
   "Polygon",
 ] as const;
 
-const evmChainRpcUrls: Record<EvmChain, string> = {
+const evmRpcUrls: Record<EvmChain, string> = {
   Arbitrum: `${vultiApiUrl}/arb/`,
   Avalanche: `${vultiApiUrl}/avax/`,
   Base: `${vultiApiUrl}/base/`,
@@ -37,26 +37,26 @@ const evmChainRpcUrls: Record<EvmChain, string> = {
 export const evmChainInfo: Record<EvmChain, ViemChain> = {
   Arbitrum: {
     ...arbitrum,
-    rpcUrls: { default: { http: [evmChainRpcUrls.Arbitrum] } },
+    rpcUrls: { default: { http: [evmRpcUrls.Arbitrum] } },
   },
   Avalanche: {
     ...avalanche,
-    rpcUrls: { default: { http: [evmChainRpcUrls.Avalanche] } },
+    rpcUrls: { default: { http: [evmRpcUrls.Avalanche] } },
   },
-  Base: { ...base, rpcUrls: { default: { http: [evmChainRpcUrls.Base] } } },
-  Blast: { ...blast, rpcUrls: { default: { http: [evmChainRpcUrls.Blast] } } },
-  BSC: { ...bsc, rpcUrls: { default: { http: [evmChainRpcUrls.BSC] } } },
+  Base: { ...base, rpcUrls: { default: { http: [evmRpcUrls.Base] } } },
+  Blast: { ...blast, rpcUrls: { default: { http: [evmRpcUrls.Blast] } } },
+  BSC: { ...bsc, rpcUrls: { default: { http: [evmRpcUrls.BSC] } } },
   Ethereum: {
     ...mainnet,
-    rpcUrls: { default: { http: [evmChainRpcUrls.Ethereum] } },
+    rpcUrls: { default: { http: [evmRpcUrls.Ethereum] } },
   },
   Optimism: {
     ...optimism,
-    rpcUrls: { default: { http: [evmChainRpcUrls.Optimism] } },
+    rpcUrls: { default: { http: [evmRpcUrls.Optimism] } },
   },
   Polygon: {
     ...polygon,
-    rpcUrls: { default: { http: [evmChainRpcUrls.Polygon] } },
+    rpcUrls: { default: { http: [evmRpcUrls.Polygon] } },
   },
 };
 
