@@ -1,14 +1,13 @@
 import { fromBinary, fromJson, JsonObject } from "@bufbuild/protobuf";
 import { base64Decode } from "@bufbuild/protobuf/wire";
 import axios, { AxiosRequestConfig } from "axios";
-import { jwtDecode } from "jwt-decode";
 
 import {
   PolicySchema,
   PolicySuggestJson,
   PolicySuggestSchema,
 } from "@/proto/policy_pb";
-import { delToken, getToken, setToken } from "@/storage/token";
+import { delToken, getToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
 import { EvmChain, evmChainIds } from "@/utils/chain";
 import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
@@ -32,69 +31,20 @@ import {
   Token,
 } from "@/utils/types";
 
-type JwtPayload = {
-  exp: number;
-  iat: number;
-  public_key: string;
-  token_id: string;
-};
-
-const refreshAuthToken = async (oldToken: string) => {
-  return axios
-    .post<{ token: string }>(
-      `${import.meta.env.VITE_APP_STORE_URL}/auth/refresh`,
-      { token: oldToken },
-      {
-        headers: {
-          Authorization: `Bearer ${oldToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    )
-    .then(({ data }) => data.token);
-};
-
-const api = axios.create({
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const api = axios.create({ headers: { "Content-Type": "application/json" } });
 
 api.interceptors.request.use(
-  async (config) => {
-    const publicKey = getVaultId();
-    const token = getToken(publicKey);
+  (config) => {
+    if (config.url?.startsWith(storeApiUrl)) {
+      const publicKey = getVaultId();
+      const token = getToken(publicKey);
 
-    if (!token) {
-      return { ...config, headers: config.headers.setAuthorization(null) };
-    }
-
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      const now = Math.floor(Date.now() / 1000);
-      const issuedAt = decoded.iat ?? decoded.exp - 7 * 24 * 60 * 60;
-      const totalLifetime = decoded.exp - issuedAt;
-      const remainingLifetime = decoded.exp - now;
-
-      if (totalLifetime <= 0 || remainingLifetime <= 0) {
-        delToken(publicKey!);
-        return config;
-      }
-
-      const percentRemaining = (remainingLifetime / totalLifetime) * 100;
-      if (percentRemaining < 10) {
-        const newToken = await refreshAuthToken(token);
-        setToken(publicKey!, newToken);
-        config.headers.Authorization = `Bearer ${newToken}`;
-      } else {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (err) {
-      console.warn(
-        "Failed to decode or refresh token. Using current token.",
-        err
-      );
-      config.headers.Authorization = `Bearer ${token}`;
+      return {
+        ...config,
+        headers: config.headers.setAuthorization(
+          token ? `Bearer ${token}` : null
+        ),
+      };
     }
 
     return config;
