@@ -34,7 +34,7 @@
     "react-dom": "^18.3.0",
     "react-i18next": "^16.3.3",
     "react-responsive": "^10.0.1",
-    "react-router-dom": "^7.9.6",
+    "react-router-dom": "^7.6.3",
     "styled-components": "^6.1.19",
     "uuid": "^13.0.0",
     "viem": "^2.39.0"
