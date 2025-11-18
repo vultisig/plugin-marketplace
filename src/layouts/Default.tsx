@@ -111,7 +111,7 @@ export const DefaultLayout = () => {
           {
             icon: <LogInIcon />,
             key: "5",
-            label: t("connectWallet"),
+            label: t("connectVault"),
             onClick: connect,
           },
         ]),
@@ -282,7 +282,7 @@ export const DefaultLayout = () => {
                   maxWidth: "110px",
                 }}
               >
-                {vault?.name || t("connectWallet")}
+                {vault?.name || t("connectVault")}
               </Stack>
 
               <EllipsisVerticalIcon />

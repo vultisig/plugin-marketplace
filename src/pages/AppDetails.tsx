@@ -401,7 +401,7 @@ export const AppDetailsPage = () => {
                                 disabled={loading || !schema}
                                 href={modalHash.policy}
                               >
-                                {t("addPolicy")}
+                                {t("addAutomation")}
                               </Button>
                             )}
                             <Button
@@ -706,7 +706,7 @@ export const AppDetailsPage = () => {
                     >
                       {item}
                     </Stack>
-                    <Tooltip title="Required to securely approve and route plugin payment transactions through your vault.">
+                    <Tooltip title="Required to securely approve and route app payment transactions through your vault.">
                       <CircleInfoIcon />
                     </Tooltip>
                   </HStack>
