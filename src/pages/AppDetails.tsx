@@ -235,7 +235,7 @@ export const AppDetailsPage = () => {
         }
       })
       .catch(() => {
-        goBack(routeTree.apps.path);
+        goBack(routeTree.root.path);
       });
 
     return () => {
@@ -279,7 +279,7 @@ export const AppDetailsPage = () => {
                   width: "fit-content",
                 }}
                 $hover={{ color: colors.textTertiary.toHex() }}
-                onClick={() => goBack(routeTree.apps.path)}
+                onClick={() => goBack(routeTree.root.path)}
               >
                 <ChevronLeftIcon fontSize={16} />
                 {t("goBack")}
@@ -455,7 +455,7 @@ export const AppDetailsPage = () => {
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
                     {
-                      href: `${routeTree.apps.path}?categoryId=${app.categoryId}`,
+                      href: `${routeTree.root.path}?categoryId=${app.categoryId}`,
                       lable: t("category"),
                       value: snakeCaseToTitle(app.categoryId),
                     },

@@ -1,5 +1,5 @@
 import { I18nextProvider } from "react-i18next";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { i18nInstance } from "@/i18n/config";
 import { DefaultLayout } from "@/layouts/Default";
@@ -22,11 +22,7 @@ export const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path={routeTree.root.path} element={<DefaultLayout />}>
-                  <Route
-                    element={<Navigate to={routeTree.apps.path} replace />}
-                    index
-                  />
-                  <Route element={<AppsPage />} path={routeTree.apps.path} />
+                  <Route element={<AppsPage />} index />
                   <Route
                     element={<AppDetailsPage />}
                     path={routeTree.appDetails.path}
