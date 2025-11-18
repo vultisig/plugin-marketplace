@@ -157,7 +157,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     return schema.configuration?.definitions;
   }, [schema]);
 
-  const isFeesPlugin = useMemo(() => {
+  const isFeesApp = useMemo(() => {
     return id === import.meta.env.VITE_FEE_APP_ID;
   }, [id]);
 
@@ -515,7 +515,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
 
       return (
         <DynamicFormItem
-          disabled={isFeesPlugin}
+          disabled={isFeesApp}
           key={key}
           label={camelCaseToTitle(key)}
           name={fullKey}
@@ -774,7 +774,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
             >
               <Stack as="span">{title}</Stack>
               <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
-                {`/ ${t("addPolicy")}`}
+                {`/ ${t("addAutomation")}`}
               </Stack>
             </HStack>
           </HStack>
@@ -846,7 +846,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
             layout="vertical"
             onFinish={onFinishSuccess}
             initialValues={
-              isFeesPlugin
+              isFeesApp
                 ? {
                     maxTxsPerWindow: 2,
                     rateLimitWindow: 2,
@@ -909,7 +909,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                   {...restField}
                                 >
                                   <Select
-                                    disabled={isFeesPlugin}
+                                    disabled={isFeesApp}
                                     options={schema.supportedResources.map(
                                       (resource) => ({
                                         label: resource.resourcePath?.full,
@@ -960,7 +960,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                                 ]}
                                               >
                                                 <Input
-                                                  disabled={isFeesPlugin}
+                                                  disabled={isFeesApp}
                                                 />
                                               </Form.Item>
                                             )
@@ -972,7 +972,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                             name={[name, "target"]}
                                             rules={[{ required: step > 0 }]}
                                           >
-                                            <Input disabled={isFeesPlugin} />
+                                            <Input disabled={isFeesApp} />
                                           </Form.Item>
                                         )}
                                         <Stack
@@ -1088,7 +1088,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                             </Stack>
                           )}
                           <Button
-                            disabled={isFeesPlugin}
+                            disabled={isFeesApp}
                             onClick={() => add({})}
                             kind="secondary"
                           >
@@ -1141,13 +1141,13 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                     name="maxTxsPerWindow"
                     label={t("maxTransactions")}
                   >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
+                    <InputNumber disabled={isFeesApp} min={1} />
                   </Form.Item>
                   <Form.Item<FormFieldType>
                     name="rateLimitWindow"
                     label={`${t("rateLimit")} (${t("seconds")})`}
                   >
-                    <InputNumber disabled={isFeesPlugin} min={1} />
+                    <InputNumber disabled={isFeesApp} min={1} />
                   </Form.Item>
 
                   <Stack

@@ -29,9 +29,9 @@ export const AppsPage = () => {
   const { categories, loading, apps } = state;
   const { filters, setFilters } = useFilterParams<AppFilters>();
   const colors = useTheme();
-  const [newPlugin] = apps;
+  const [newApp] = apps;
 
-  const fetchPlugins = useCallback((skip: number, filters: AppFilters) => {
+  const fetchApps = useCallback((skip: number, filters: AppFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
     getApps({ ...filters, skip })
@@ -43,14 +43,14 @@ export const AppsPage = () => {
       });
   }, []);
 
-  const debouncedFetchPlugins = useMemo(
-    () => debounce(fetchPlugins, 500),
-    [fetchPlugins]
+  const debouncedFetchApps = useMemo(
+    () => debounce(fetchApps, 500),
+    [fetchApps]
   );
 
   useEffect(
-    () => debouncedFetchPlugins(0, filters),
-    [debouncedFetchPlugins, filters]
+    () => debouncedFetchApps(0, filters),
+    [debouncedFetchApps, filters]
   );
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export const AppsPage = () => {
             <Spin centered />
           ) : apps.length ? (
             <>
-              {!!newPlugin && (
+              {!!newApp && (
                 <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                   <Stack
                     as="span"
@@ -158,7 +158,7 @@ export const AppsPage = () => {
                   >
                     {t("new")}
                   </Stack>
-                  <AppItem {...newPlugin} horizontal />
+                  <AppItem {...newApp} horizontal />
                 </VStack>
               )}
               <VStack $style={{ flexDirection: "column", gap: "16px" }}>

@@ -1,7 +1,7 @@
 export const en = {
   // A
   action: "Action",
-  addPolicy: "Add Policy",
+  addAutomation: "Add Automation",
   addRule: "Add Rule",
   appPermissions: "App Permissions",
   appStore: "App Store",
@@ -17,7 +17,7 @@ export const en = {
   confirmAppUninstallation: "Are you sure you want to uninstall this app?",
   confirmPolicyDeletion: "Are you sure you want to delete this policy?",
   connect: "Connect",
-  connectWallet: "Connect Wallet",
+  connectVault: "Connect Vault",
   continue: "Continue",
   createdBy: "Created By",
   currency: "Currency",
@@ -59,12 +59,12 @@ export const en = {
   paymentModal: {
     action: "Add to Vault",
     description:
-      "This plugin handles payments securely using your wallet, with full control over fees and visibility. This is a one-time setup.",
+      "This app handles payments securely using your wallet, with full control over fees and visibility. This is a one-time setup.",
     subtitle: "Required Standard App",
     title: "Payment App Required",
   },
   policies: "Policies",
-  policyMaxTxs: "This plugin can send up to {{count}} transactions",
+  policyMaxTxs: "This app can send up to {{count}} transactions",
   policyRateLimit: "every {{duration}}",
   postReview: "Post Review",
   // R

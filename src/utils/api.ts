@@ -142,13 +142,13 @@ export const getApps = async ({
   return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
   }).then(({ plugins, totalCount }) => {
-    const modifiedPlugins: App[] =
+    const modifiedApps: App[] =
       plugins?.map((plugin) => ({
         ...plugin,
         pricing: plugin.pricing || [],
       })) || [];
 
-    return { apps: modifiedPlugins, totalCount };
+    return { apps: modifiedApps, totalCount };
   });
 };
 
