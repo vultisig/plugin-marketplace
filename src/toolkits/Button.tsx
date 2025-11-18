@@ -54,7 +54,7 @@ const StyledButton = styled.div<{
       : $ghost
       ? css`
           background-color: transparent;
-          color: ${theme.textPrimary.toHex()};
+          color: currentColor;
 
           &:hover {
             ${match($kind, {

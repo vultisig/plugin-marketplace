@@ -372,7 +372,13 @@ export const AppDetailsPage = () => {
                         </HStack>
                       </VStack>
                     </HStack>
-                    <VStack $style={{ gap: "8px" }}>
+                    <VStack
+                      $style={{
+                        alignItems: "center",
+                        color: colors.textTertiary.toHex(),
+                        gap: "12px",
+                      }}
+                    >
                       {isConnected ? (
                         isInstalled === undefined ||
                         isFeeAppInstalled === undefined ? (
@@ -402,6 +408,7 @@ export const AppDetailsPage = () => {
                               loading={loading}
                               onClick={handleUninstall}
                               kind="danger"
+                              ghost
                             >
                               {t("uninstall")}
                             </Button>

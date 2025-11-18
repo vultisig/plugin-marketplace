@@ -9,5 +9,5 @@ export const modalHash = {
   review: "#review",
 } as const;
 
-export const storeApiUrl = import.meta.env.VITE_APP_STORE_URL;
-export const vultiApiUrl = import.meta.env.VITE_VULTISIG_SERVER;
+export const storeApiUrl: string = import.meta.env.VITE_APP_STORE_URL;
+export const vultiApiUrl: string = import.meta.env.VITE_VULTISIG_SERVER;
