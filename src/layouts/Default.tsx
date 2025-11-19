@@ -65,7 +65,7 @@ export const DefaultLayout = () => {
           {
             disabled: true,
             icon: <HistoryIcon />,
-            key: "1",
+            key: "2",
             label: "Transaction history",
             onClick: () => {
               navigate(routeTree.transactions.path, { state: true });
@@ -75,7 +75,7 @@ export const DefaultLayout = () => {
       : []),
     {
       icon: <TranslateIcon />,
-      key: "2",
+      key: "3",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -90,7 +90,7 @@ export const DefaultLayout = () => {
     },
     {
       icon: <DollarIcon />,
-      key: "3",
+      key: "4",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -105,7 +105,7 @@ export const DefaultLayout = () => {
     },
     {
       icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
-      key: "4",
+      key: "5",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -122,7 +122,7 @@ export const DefaultLayout = () => {
       ? [
           {
             icon: <ArrowBoxLeftIcon color={colors.accentFour.toHex()} />,
-            key: "5",
+            key: "6",
             label: t("signOut"),
             onClick: disconnect,
           },
@@ -130,7 +130,7 @@ export const DefaultLayout = () => {
       : [
           {
             icon: <ArrowBoxRightIcon color={colors.accentFour.toHex()} />,
-            key: "5",
+            key: "7",
             label: t("connectVault"),
             onClick: connect,
           },
