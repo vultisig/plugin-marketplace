@@ -1,5 +1,4 @@
 type RouteKey =
-  | "apps"
   | "appDetails"
   | "faq"
   | "notFound"
@@ -9,7 +8,6 @@ type RouteKey =
 export const routeTree = {
   faq: { path: "/faq" },
   notFound: { path: "*" },
-  apps: { path: "/apps" },
   appDetails: {
     link: (id: string) => `/apps/${id}`,
     path: "/apps/:id",

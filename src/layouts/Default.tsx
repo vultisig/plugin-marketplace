@@ -219,7 +219,7 @@ export const DefaultLayout = () => {
           <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
             <Stack
               as={Link}
-              to={routeTree.apps.path}
+              to={routeTree.root.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
               {t("apps")}
@@ -227,7 +227,7 @@ export const DefaultLayout = () => {
             {isConnected && (
               <Stack
                 as={Link}
-                to={routeTree.apps.path}
+                to={routeTree.root.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
                 {t("myApps")}
