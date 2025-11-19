@@ -22,7 +22,7 @@ import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
-import { CheckIcon } from "@/icons/CheckIcon";
+import { CheckmarkIcon } from "@/icons/CheckmarkIcon";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CrossIcon } from "@/icons/CrossIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
@@ -812,7 +812,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                       width: "24px",
                     }}
                   >
-                    {passed ? <CheckIcon /> : index + 1}
+                    {passed ? <CheckmarkIcon /> : index + 1}
                   </HStack>
                   <Stack
                     as="span"
@@ -959,9 +959,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                                   },
                                                 ]}
                                               >
-                                                <Input
-                                                  disabled={isFeesApp}
-                                                />
+                                                <Input disabled={isFeesApp} />
                                               </Form.Item>
                                             )
                                           )}

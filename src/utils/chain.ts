@@ -12,68 +12,86 @@ import {
 
 import { vultiApiUrl } from "@/utils/constants";
 
-const evmChains = [
-  "Arbitrum",
-  "Avalanche",
-  "Base",
-  "Blast",
-  "BSC",
-  "Ethereum",
-  "Optimism",
-  "Polygon",
-] as const;
+export const evmChains = {
+  Arbitrum: "Arbitrum",
+  Avalanche: "Avalanche",
+  Base: "Base",
+  Blast: "Blast",
+  BSC: "BSC",
+  Ethereum: "Ethereum",
+  Optimism: "Optimism",
+  Polygon: "Polygon",
+} as const;
+
+const otherChains = {
+  Ripple: "Ripple",
+  Solana: "Solana",
+} as const;
+
+const utxoChains = {
+  Bitcoin: "Bitcoin",
+} as const;
 
 const evmRpcUrls: Record<EvmChain, string> = {
-  Arbitrum: `${vultiApiUrl}/arb/`,
-  Avalanche: `${vultiApiUrl}/avax/`,
-  Base: `${vultiApiUrl}/base/`,
-  Blast: `${vultiApiUrl}/blast/`,
-  BSC: `${vultiApiUrl}/bsc/`,
-  Ethereum: `${vultiApiUrl}/eth/`,
-  Optimism: `${vultiApiUrl}/opt/`,
-  Polygon: `${vultiApiUrl}/polygon/`,
+  [evmChains.Arbitrum]: `${vultiApiUrl}/arb/`,
+  [evmChains.Avalanche]: `${vultiApiUrl}/avax/`,
+  [evmChains.Base]: `${vultiApiUrl}/base/`,
+  [evmChains.Blast]: `${vultiApiUrl}/blast/`,
+  [evmChains.BSC]: `${vultiApiUrl}/bsc/`,
+  [evmChains.Ethereum]: `${vultiApiUrl}/eth/`,
+  [evmChains.Optimism]: `${vultiApiUrl}/opt/`,
+  [evmChains.Polygon]: `${vultiApiUrl}/polygon/`,
 };
 
 export const evmChainInfo: Record<EvmChain, ViemChain> = {
-  Arbitrum: {
+  [evmChains.Arbitrum]: {
     ...arbitrum,
     rpcUrls: { default: { http: [evmRpcUrls.Arbitrum] } },
   },
-  Avalanche: {
+  [evmChains.Avalanche]: {
     ...avalanche,
     rpcUrls: { default: { http: [evmRpcUrls.Avalanche] } },
   },
-  Base: { ...base, rpcUrls: { default: { http: [evmRpcUrls.Base] } } },
-  Blast: { ...blast, rpcUrls: { default: { http: [evmRpcUrls.Blast] } } },
-  BSC: { ...bsc, rpcUrls: { default: { http: [evmRpcUrls.BSC] } } },
-  Ethereum: {
+  [evmChains.Base]: {
+    ...base,
+    rpcUrls: { default: { http: [evmRpcUrls.Base] } },
+  },
+  [evmChains.Blast]: {
+    ...blast,
+    rpcUrls: { default: { http: [evmRpcUrls.Blast] } },
+  },
+  [evmChains.BSC]: { ...bsc, rpcUrls: { default: { http: [evmRpcUrls.BSC] } } },
+  [evmChains.Ethereum]: {
     ...mainnet,
     rpcUrls: { default: { http: [evmRpcUrls.Ethereum] } },
   },
-  Optimism: {
+  [evmChains.Optimism]: {
     ...optimism,
     rpcUrls: { default: { http: [evmRpcUrls.Optimism] } },
   },
-  Polygon: {
+  [evmChains.Polygon]: {
     ...polygon,
     rpcUrls: { default: { http: [evmRpcUrls.Polygon] } },
   },
 };
 
-export const evmChainIds: Record<EvmChain, number> = {
-  Arbitrum: evmChainInfo.Arbitrum.id,
-  Avalanche: evmChainInfo.Avalanche.id,
-  Base: evmChainInfo.Base.id,
-  Blast: evmChainInfo.Blast.id,
-  BSC: evmChainInfo.BSC.id,
-  Ethereum: evmChainInfo.Ethereum.id,
-  Optimism: evmChainInfo.Optimism.id,
-  Polygon: evmChainInfo.Polygon.id,
+export const chains = { ...evmChains, ...utxoChains, ...otherChains } as const;
+
+export const tickers: Record<Chain, string> = {
+  Arbitrum: "ARB",
+  Avalanche: "AVAX",
+  Base: "BASE",
+  Bitcoin: "BTC",
+  Blast: "BLAST",
+  BSC: "BNB",
+  Ethereum: "ETH",
+  Optimism: "OP",
+  Polygon: "MATIC",
+  Ripple: "XRP",
+  Solana: "SOL",
 };
 
-export const chains = [...evmChains, "Bitcoin", "Ripple", "Solana"] as const;
+export type Chain = (typeof chains)[keyof typeof chains];
+export type EvmChain = (typeof evmChains)[keyof typeof evmChains];
 
-export type Chain = (typeof chains)[number];
-export type EvmChain = (typeof evmChains)[number];
-
-export const defaultChain: Chain = "Ethereum";
+export const defaultChain: Chain = chains.Ethereum;

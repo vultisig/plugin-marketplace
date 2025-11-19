@@ -1,6 +1,6 @@
 import { FC, SVGProps } from "react";
 
-export const ChevronLeftIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
+export const ArrowBoxLeftIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
   <svg
     fill="none"
     height="1em"
@@ -12,6 +12,6 @@ export const ChevronLeftIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
     width="1em"
     {...props}
   >
-    <path d="M14.9997 20L8.41391 13.4142C7.63286 12.6332 7.63286 11.3669 8.41391 10.5858L14.9997 4" />
+    <path d="M20.25 12H9M20.25 12L15.75 16.5M20.25 12L15.75 7.5M11.25 20.25H5.75C4.64543 20.25 3.75 19.3546 3.75 18.25V5.75C3.75 4.64543 4.64543 3.75 5.75 3.75H11.25" />
   </svg>
 );

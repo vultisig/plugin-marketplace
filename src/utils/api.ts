@@ -9,7 +9,7 @@ import {
 } from "@/proto/policy_pb";
 import { delToken, getToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
-import { EvmChain, evmChainIds } from "@/utils/chain";
+import { EvmChain, evmChainInfo } from "@/utils/chain";
 import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import { toCamelCase } from "@/utils/functions";
@@ -180,7 +180,7 @@ export const getCategories = async () => {
 
 export const getOneInchTokens = async (chain: EvmChain) => {
   const tokens: Token[] = [];
-  const chainId = evmChainIds[chain as EvmChain];
+  const chainId = evmChainInfo[chain].id;
 
   return get<{ tokens: Record<string, OneInchToken> }>(
     `${vultiApiUrl}/1inch/swap/v6.0/${chainId}/tokens`

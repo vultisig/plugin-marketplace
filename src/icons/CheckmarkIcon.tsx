@@ -1,6 +1,6 @@
 import { FC, SVGProps } from "react";
 
-export const LanguagesIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
+export const CheckmarkIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
   <svg
     fill="none"
     height="1em"
@@ -12,6 +12,6 @@ export const LanguagesIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
     width="1em"
     {...props}
   >
-    <path d="M5 8L11 14M4 14L10 8L12 5M2 5H14M7 2H8M22 22L17 12L12 22M14 18H20" />
+    <path d="M4.75 12.7768L10 19.25L19.25 4.75" />
   </svg>
 );

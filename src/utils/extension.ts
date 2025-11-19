@@ -1,5 +1,5 @@
 import { reshareVault } from "@/utils/api";
-import { Chain, EvmChain, evmChainInfo } from "@/utils/chain";
+import { Chain, evmChains } from "@/utils/chain";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
@@ -15,6 +15,7 @@ export const connect = async () => {
   try {
     const [account]: string[] = await window.vultisig.ethereum.request({
       method: "eth_requestAccounts",
+      params: [{ preselectFastVault: true }],
     });
 
     return account;
@@ -34,7 +35,7 @@ export const disconnect = async () => {
 export const getAccount = async (chain: Chain) => {
   await isAvailable();
 
-  if (evmChainInfo[chain as EvmChain]) {
+  if (chain in evmChains) {
     try {
       const [account]: string[] = await window.vultisig.ethereum.request({
         method: "eth_accounts",

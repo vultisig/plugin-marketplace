@@ -5,7 +5,7 @@ import {
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
 import { Form, FormInstance, Input, Select, SelectProps } from "antd";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { TokenImage } from "@/components/TokenImage";
@@ -14,7 +14,7 @@ import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, chains } from "@/utils/chain";
+import { Chain, chains, evmChains, tickers } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Configuration, Token } from "@/utils/types";
@@ -45,6 +45,31 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const chainField = [...fullKey, "chain"];
   const tokenField = [...fullKey, "token"];
   const chain: Chain = Form.useWatch(chainField, form);
+
+  const nativeTokens = useMemo(() => {
+    return Object.keys(chains).reduce((acc, chain) => {
+      const isEvm = chain in evmChains;
+
+      acc[chain as Chain] = isEvm
+        ? {
+            chain: chains.Ethereum,
+            decimals: 0,
+            id: "",
+            logo: `/tokens/${chains.Ethereum.toLowerCase()}.svg`,
+            name: chains.Ethereum,
+            ticker: tickers[chains.Ethereum],
+          }
+        : {
+            chain: chain as Chain,
+            decimals: 0,
+            id: "",
+            logo: `/tokens/${chain.toLowerCase()}.svg`,
+            name: chain,
+            ticker: tickers[chain as Chain],
+          };
+      return acc;
+    }, {} as Record<Chain, Token>);
+  }, [chain]);
 
   const handleChange: SelectProps<string>["onChange"] = (token) => {
     if (chain === "Solana") {
@@ -103,7 +128,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
       getAccount(chain).then((address) => {
         form.setFieldValue(addressField, address);
-        form.setFieldValue(tokenField, undefined);
+        form.setFieldValue(tokenField, "");
       });
 
       getTokenList(chain).then((tokens) => {
@@ -155,7 +180,10 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </Stack>
               </HStack>
             )}
-            options={chains.map((chain) => ({ value: chain, label: chain }))}
+            options={Object.keys(chains).map((chain) => ({
+              value: chain,
+              label: chain,
+            }))}
             showSearch
           />
         </Form.Item>
@@ -226,12 +254,14 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </VStack>
               </HStack>
             )}
-            options={tokens.map((token) => ({
-              label: token.ticker,
-              logo: token.logo,
-              name: token.name,
-              value: token.id,
-            }))}
+            options={[...(chain ? [nativeTokens[chain]] : []), ...tokens].map(
+              (token) => ({
+                label: token.ticker,
+                logo: token.logo,
+                name: token.name,
+                value: token.id,
+              })
+            )}
             allowClear
             showSearch
           />

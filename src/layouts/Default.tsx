@@ -8,16 +8,17 @@ import { createGlobalStyle, useTheme } from "styled-components";
 import { CurrencyModal } from "@/components/CurrencyModal";
 import { LanguageModal } from "@/components/LanguageModal";
 import { useCore } from "@/hooks/useCore";
+import { ArrowBoxLeftIcon } from "@/icons/ArrowBoxLeftIcon";
+import { ArrowBoxRightIcon } from "@/icons/ArrowBoxRightIcon";
 import { BoxIcon } from "@/icons/BoxIcon";
-import { CircleDollarSignIcon } from "@/icons/CircleDollarSignIcon";
-import { EllipsisVerticalIcon } from "@/icons/EllipsisVerticalIcon";
+import { CreditCardIcon } from "@/icons/CreditCardIcon";
+import { DollarIcon } from "@/icons/DollarIcon";
+import { DotGridVerticalIcon } from "@/icons/DotGridVerticalIcon";
 import { HistoryIcon } from "@/icons/HistoryIcon";
-import { LanguagesIcon } from "@/icons/LanguagesIcon";
-import { LaptopIcon } from "@/icons/LaptopIcon";
-import { LogInIcon } from "@/icons/LogInIcon";
-import { LogOutIcon } from "@/icons/LogOutIcon";
+import { MacbookIcon } from "@/icons/MacbookIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
 import { SunIcon } from "@/icons/SunIcon";
+import { TranslateIcon } from "@/icons/TranslateIcon";
 import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
 import { ZapIcon } from "@/icons/ZapIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -50,9 +51,31 @@ export const DefaultLayout = () => {
   const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
 
   const dropdownMenu: MenuProps["items"] = [
+    ...(isConnected
+      ? [
+          {
+            disabled: true,
+            icon: <CreditCardIcon />,
+            key: "1",
+            label: t("billing"),
+            onClick: () => {
+              navigate(routeTree.billing.path, { state: true });
+            },
+          },
+          {
+            disabled: true,
+            icon: <HistoryIcon />,
+            key: "1",
+            label: "Transaction history",
+            onClick: () => {
+              navigate(routeTree.transactions.path, { state: true });
+            },
+          },
+        ]
+      : []),
     {
-      icon: <LanguagesIcon />,
-      key: "1",
+      icon: <TranslateIcon />,
+      key: "2",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -66,8 +89,8 @@ export const DefaultLayout = () => {
       },
     },
     {
-      icon: <CircleDollarSignIcon />,
-      key: "2",
+      icon: <DollarIcon />,
+      key: "3",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -82,8 +105,15 @@ export const DefaultLayout = () => {
     },
     {
       icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
-      key: "3",
-      label: `${t("theme")}: ${theme === "light" ? t("dark") : t("light")}`,
+      key: "4",
+      label: (
+        <HStack
+          $style={{ alignItems: "center", justifyContent: "space-between" }}
+        >
+          <span>{t("theme")}</span>
+          <span>{theme === "light" ? t("dark") : t("light")}</span>
+        </HStack>
+      ),
       onClick: () => {
         setTheme(theme === "light" ? "dark" : "light");
       },
@@ -91,25 +121,15 @@ export const DefaultLayout = () => {
     ...(isConnected
       ? [
           {
-            disabled: true,
-            icon: <HistoryIcon />,
-            key: "4",
-            label: "Transaction history",
-            onClick: () => {
-              navigate(routeTree.transactions.path, { state: true });
-            },
-          },
-          {
-            danger: true,
-            icon: <LogOutIcon />,
+            icon: <ArrowBoxLeftIcon color={colors.accentFour.toHex()} />,
             key: "5",
-            label: t("disconnect"),
+            label: t("signOut"),
             onClick: disconnect,
           },
         ]
       : [
           {
-            icon: <LogInIcon />,
+            icon: <ArrowBoxRightIcon color={colors.accentFour.toHex()} />,
             key: "5",
             label: t("connectVault"),
             onClick: connect,
@@ -146,7 +166,7 @@ export const DefaultLayout = () => {
         top: "0",
       }}
     >
-      <LaptopIcon fontSize={32} />
+      <MacbookIcon fontSize={32} />
       <Stack
         as="span"
         $style={{
@@ -285,7 +305,7 @@ export const DefaultLayout = () => {
                 {vault?.name || t("connectVault")}
               </Stack>
 
-              <EllipsisVerticalIcon />
+              <DotGridVerticalIcon />
             </HStack>
           </Dropdown>
         </HStack>

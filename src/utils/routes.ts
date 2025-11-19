@@ -1,19 +1,21 @@
 type RouteKey =
   | "apps"
   | "appDetails"
+  | "billing"
   | "faq"
   | "notFound"
   | "root"
   | "transactions";
 
 export const routeTree = {
-  faq: { path: "/faq" },
-  notFound: { path: "*" },
   apps: { path: "/apps" },
   appDetails: {
     link: (id: string) => `/apps/${id}`,
     path: "/apps/:id",
   },
+  billing: { path: "/billing" },
+  faq: { path: "/faq" },
+  notFound: { path: "*" },
   root: { path: "/" },
   transactions: { path: "/transactions" },
 } satisfies Record<

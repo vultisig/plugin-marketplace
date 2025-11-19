@@ -6,7 +6,7 @@ import {
   getJupiterTokens,
   getOneInchTokens,
 } from "@/utils/api";
-import { Chain, EvmChain, evmChainInfo } from "@/utils/chain";
+import { Chain, EvmChain, evmChainInfo, evmChains } from "@/utils/chain";
 import { Token } from "@/utils/types";
 
 export const useQueries = () => {
@@ -16,7 +16,7 @@ export const useQueries = () => {
     return await queryClient.fetchQuery({
       queryKey: ["assets", chain.toLowerCase(), id.toLowerCase()],
       queryFn: async () => {
-        if (evmChainInfo[chain as EvmChain]) {
+        if (chain in evmChains) {
           const client = createPublicClient({
             chain: evmChainInfo[chain as EvmChain],
             transport: http(),
@@ -66,7 +66,7 @@ export const useQueries = () => {
       queryFn: async () => {
         if (chain === "Solana") {
           return await getJupiterTokens();
-        } else if (evmChainInfo[chain as EvmChain]) {
+        } else if (chain in evmChains) {
           return await getOneInchTokens(chain as EvmChain);
         } else {
           return [];
