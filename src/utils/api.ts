@@ -180,6 +180,15 @@ export const getCategories = async () => {
   return get<Category[]>(`${storeApiUrl}/categories`);
 };
 
+export const getMyApps = async ({
+  skip,
+  take = defaultPageSize,
+}: ListFilters) => {
+  return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
+    params: toSnakeCase({ skip, take }),
+  }).then(({ plugins, totalCount }) => ({ apps: plugins, totalCount }));
+};
+
 export const getOneInchTokens = async (chain: EvmChain) => {
   const tokens: Token[] = [];
   const chainId = evmChainInfo[chain].id;

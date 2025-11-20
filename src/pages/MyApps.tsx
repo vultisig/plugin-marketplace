@@ -10,7 +10,7 @@ import { DotGridVerticalIcon } from "@/icons/DotGridVerticalIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getApps, uninstallApp } from "@/utils/api";
+import { getMyApps, uninstallApp } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
 import { routeTree } from "@/utils/routes";
 import { App } from "@/utils/types";
@@ -62,7 +62,7 @@ export const MyAppsPage = () => {
   };
 
   useEffect(() => {
-    getApps({})
+    getMyApps({})
       .then(({ apps }) => {
         setState((prevState) => ({ ...prevState, loading: false, apps }));
       })
