@@ -27,7 +27,7 @@ import {
   isAppInstalled,
   uninstallApp,
 } from "@/utils/api";
-import { modalHash } from "@/utils/constants";
+import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import {
   pricingText,
@@ -37,25 +37,27 @@ import {
 import { routeTree } from "@/utils/routes";
 import { App, RecipeSchema } from "@/utils/types";
 
-interface InitialState {
+type StateProps = {
   app?: App;
   isFeeApp?: boolean;
   isFeeAppInstalled?: boolean;
   isFree?: boolean;
   isInstalled?: boolean;
+  isInstalling?: boolean;
   loading?: boolean;
   schema?: RecipeSchema;
-}
+};
 
 export const AppDetailsPage = () => {
   const { t } = useTranslation();
-  const [state, setState] = useState<InitialState>({});
+  const [state, setState] = useState<StateProps>({});
   const {
     app,
     isFeeApp,
     isFeeAppInstalled,
     isFree,
     isInstalled,
+    isInstalling,
     loading,
     schema,
   } = state;
@@ -115,42 +117,85 @@ export const AppDetailsPage = () => {
     { label: t("support"), value: "24/7" },
   ];
 
-  const checkStatus = useCallback(() => {
+  const checkStatus = useCallback(async () => {
     if (!app) return;
 
-    if (isFree || isFeeAppInstalled) {
-      isAppInstalled(app.id).then((isInstalled) => {
-        setState((prevState) => ({ ...prevState, isInstalled }));
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
 
-        if (isInstalled) {
-          if (!isFeeApp) {
-            getRecipeSpecification(app.id).then((schema) => {
-              setState((prevState) => ({ ...prevState, schema }));
-            });
-          }
-        } else {
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = setTimeout(checkStatus, 1000);
-        }
-      });
-    } else {
-      isAppInstalled(import.meta.env.VITE_FEE_APP_ID).then(
-        (isFeeAppInstalled) => {
+    if (isFree || isFeeAppInstalled) {
+      const appStatus = await isAppInstalled(app.id);
+
+      setState((prevState) => ({ ...prevState, isInstalled: appStatus }));
+
+      if (appStatus) {
+        if (!isFeeApp) {
+          const policySchema = await getRecipeSpecification(app.id);
+
+          if (isInstalling && policySchema)
+            navigate(modalHash.policy, { state: true });
+
           setState((prevState) => ({
             ...prevState,
-            isFeeAppInstalled,
-            isInstalled: false,
+            isInstalling: false,
+            schema: policySchema,
           }));
-
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = setTimeout(checkStatus, 1000);
         }
-      );
+      } else {
+        timeoutRef.current = setTimeout(checkStatus, 1000);
+      }
+    } else {
+      const feeAppStatus = await isAppInstalled(feeAppId);
+
+      setState((prevState) => ({
+        ...prevState,
+        isFeeAppInstalled: feeAppStatus,
+      }));
+
+      timeoutRef.current = setTimeout(checkStatus, 1000);
     }
-  }, [app, isFeeApp, isFeeAppInstalled, isFree]);
+  }, [app, isFeeApp, isFeeAppInstalled, isFree, isInstalling]);
+
+  const fetchApp = useCallback(async () => {
+    const app = await getApp(id);
+
+    if (!app) {
+      goBack(routeTree.root.path);
+      return;
+    }
+
+    const isFeeApp = app.id === feeAppId;
+    const isFree = !app.pricing.length || isFeeApp;
+
+    if (isFree) {
+      setState((prevState) => ({
+        ...prevState,
+        app,
+        isFeeApp,
+        isFree,
+        isFeeAppInstalled: true,
+      }));
+    } else {
+      isAppInstalled(feeAppId).then((isFeeAppInstalled) => {
+        setState((prevState) => ({
+          ...prevState,
+          app,
+          isFeeApp,
+          isFree,
+          isFeeAppInstalled,
+        }));
+      });
+    }
+  }, [feeAppId, goBack, id]);
 
   const handleInstall = () => {
-    startReshareSession(id);
+    setState((prevState) => ({ ...prevState, isInstalling: true }));
+
+    startReshareSession(id).catch(() => {
+      setState((prevState) => ({ ...prevState, isInstalling: false }));
+    });
   };
 
   const handleUninstall = () => {
@@ -195,48 +240,15 @@ export const AppDetailsPage = () => {
     } else {
       setState((prevState) => ({
         ...prevState,
+        isFeeAppInstalled: isFeeApp || isFree ? true : undefined,
         isInstalled: undefined,
-        isFeeAppInstalled: undefined,
+        isInstalling: false,
       }));
     }
   }, [checkStatus, isConnected]);
 
   useEffect(() => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    getApp(id)
-      .then((app) => {
-        const isFeeApp = app.id === import.meta.env.VITE_FEE_APP_ID;
-        const isFree = !app.pricing.length || isFeeApp;
-
-        if (isFree) {
-          setState((prevState) => ({
-            ...prevState,
-            app,
-            isFeeApp,
-            isFree,
-            isFeeAppInstalled: true,
-          }));
-        } else {
-          isAppInstalled(import.meta.env.VITE_FEE_APP_ID).then(
-            (isFeeAppInstalled) => {
-              setState((prevState) => ({
-                ...prevState,
-                app,
-                isFeeApp,
-                isFree,
-                isFeeAppInstalled,
-              }));
-            }
-          );
-        }
-      })
-      .catch(() => {
-        goBack(routeTree.root.path);
-      });
+    fetchApp();
 
     return () => {
       if (timeoutRef.current !== null) {
@@ -244,7 +256,7 @@ export const AppDetailsPage = () => {
         timeoutRef.current = null;
       }
     };
-  }, [id, goBack]);
+  }, []);
 
   return app ? (
     <>
