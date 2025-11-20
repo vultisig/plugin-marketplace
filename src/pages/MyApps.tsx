@@ -40,7 +40,7 @@ export const MyAppsPage = () => {
           .then(() => {
             setState((prevState) => ({
               ...prevState,
-              isInstalled: false,
+              apps: prevState.apps.filter((a) => a.id !== app.id),
               loading: false,
             }));
 
