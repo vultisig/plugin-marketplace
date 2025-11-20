@@ -9,6 +9,7 @@ export const en = {
   audit: "Audit",
   // B
   backHome: "Back Home",
+  billing: "Billing",
   // C
   category: "Category",
   changeCurrency: "Change Currency",
@@ -76,6 +77,7 @@ export const en = {
   // S
   seconds: "Seconds",
   seeDetails: "See Details",
+  signOut: "Sign out",
   sortBy: "Sort By",
   submit: "Submit",
   successfulAppUninstallation: "App successfully uninstalled",

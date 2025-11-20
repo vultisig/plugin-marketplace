@@ -1,7 +1,7 @@
 import { storageKeys } from "@/storage/constants";
 import { getState } from "@/storage/state/get";
 import { setState } from "@/storage/state/set";
-import { type Chain, defaultChain } from "@/utils/chain";
+import { Chain, defaultChain } from "@/utils/chain";
 
 export const getChain = () => {
   return getState(storageKeys.chain, defaultChain);

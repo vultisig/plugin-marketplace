@@ -12,6 +12,6 @@ export const CrossIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
     width="1em"
     {...props}
   >
-    <path d="M18 6L6 18M6 6L18 18" />
+    <path d="M4.75 4.75L19.25 19.25M19.25 4.75L4.75 19.25" />
   </svg>
 );

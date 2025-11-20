@@ -1,0 +1,17 @@
+import { FC, SVGProps } from "react";
+
+export const CreditCardIcon: FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    fill="none"
+    height="1em"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+    width="1em"
+    {...props}
+  >
+    <path d="M2.75 9.75005V17.2461C2.75 18.3507 3.64543 19.2461 4.75 19.2461H19.2461C20.3507 19.2461 21.2461 18.3507 21.2461 17.2461V9.75005M2.75 9.75005V6.75293C2.75 5.64836 3.64543 4.75293 4.75 4.75293H19.248C20.3503 4.75293 21.2448 5.64482 21.2457 6.74712C21.2464 7.74809 21.2461 8.74907 21.2461 9.75005M2.75 9.75005H21.2461M6.75 13.25H9.75" />
+  </svg>
+);

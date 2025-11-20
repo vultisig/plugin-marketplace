@@ -10,13 +10,13 @@ import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
-import { BadgeCheckIcon } from "@/icons/BadgeCheckIcon";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
 import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { StarIcon } from "@/icons/StarIcon";
+import { SubscriptionTickIcon } from "@/icons/SubscriptionTickIcon";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
@@ -729,7 +729,7 @@ export const AppDetailsPage = () => {
                 {["Fully audited, check the certificate"].map((item, index) => (
                   <HStack key={index} $style={{ gap: "8px" }}>
                     <Stack
-                      as={BadgeCheckIcon}
+                      as={SubscriptionTickIcon}
                       $style={{
                         color: colors.success.toHex(),
                         flex: "none",
