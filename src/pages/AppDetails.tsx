@@ -8,6 +8,7 @@ import { useTheme } from "styled-components";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
+import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
@@ -61,8 +62,8 @@ export const AppDetailsPage = () => {
     loading,
     schema,
   } = state;
-  const { baseValue, connect, currency, isConnected, messageAPI, modalAPI } =
-    useCore();
+  const { messageAPI, modalAPI } = useAntd();
+  const { baseValue, connect, currency, isConnected } = useCore();
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const goBack = useGoBack();

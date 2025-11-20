@@ -38,6 +38,7 @@ export const en = {
   // H
   // I
   install: "Install",
+  installedApps: "Installed Apps",
   isFreeApp: "This app is free",
   // J
   // K

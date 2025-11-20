@@ -2,6 +2,7 @@ type RouteKey =
   | "appDetails"
   | "billing"
   | "faq"
+  | "myApps"
   | "notFound"
   | "root"
   | "transactions";
@@ -13,6 +14,7 @@ export const routeTree = {
   },
   billing: { path: "/billing" },
   faq: { path: "/faq" },
+  myApps: { path: "/my-apps" },
   notFound: { path: "*" },
   root: { path: "/" },
   transactions: { path: "/transactions" },

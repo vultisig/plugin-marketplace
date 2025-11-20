@@ -4,8 +4,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { i18nInstance } from "@/i18n/config";
 import { DefaultLayout } from "@/layouts/Default";
 import { AppDetailsPage } from "@/pages/AppDetails";
-import { AppsPage } from "@/pages/Apps";
 import { FaqPage } from "@/pages/FAQ";
+import { MainPage } from "@/pages/Main";
+import { MyAppsPage } from "@/pages/MyApps";
 import { NotFoundPage } from "@/pages/NotFound";
 import { AntdProvider } from "@/providers/Antd";
 import { CoreProvider } from "@/providers/Core";
@@ -22,11 +23,12 @@ export const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path={routeTree.root.path} element={<DefaultLayout />}>
-                  <Route element={<AppsPage />} index />
+                  <Route element={<MainPage />} index />
                   <Route
                     element={<AppDetailsPage />}
                     path={routeTree.appDetails.path}
                   />
+                  <Route element={<MyAppsPage />} path={routeTree.myApps.path} />
                   <Route element={<FaqPage />} path={routeTree.faq.path} />
                 </Route>
                 <Route

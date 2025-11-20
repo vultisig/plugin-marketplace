@@ -3,7 +3,7 @@ import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { CoreContext } from "@/context/Core";
+import { CoreContext, CoreContextProps } from "@/context/Core";
 import { i18nInstance } from "@/i18n/config";
 import { getChain, setChain as setChainStorage } from "@/storage/chain";
 import { storageKeys } from "@/storage/constants";
@@ -30,23 +30,22 @@ import {
 } from "@/utils/extension";
 import { Language } from "@/utils/language";
 import { Theme } from "@/utils/theme";
-import { Vault } from "@/utils/types";
 
-type InitialState = {
-  address?: string;
-  baseValue: number;
-  chain: Chain;
-  currency: Currency;
-  isConnected: boolean;
-  language: Language;
-  theme: Theme;
-  token?: string;
-  vault?: Vault;
-};
+type StateProps = Pick<
+  CoreContextProps,
+  | "address"
+  | "baseValue"
+  | "chain"
+  | "currency"
+  | "isConnected"
+  | "language"
+  | "theme"
+  | "vault"
+>;
 
 export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<InitialState>({
+  const [state, setState] = useState<StateProps>({
     baseValue: 1,
     chain: getChain(),
     currency: getCurrency(),
@@ -75,7 +74,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
         ...prevState,
         address: undefined,
         isConnected: false,
-        token: undefined,
         vault: undefined,
       }));
     });
@@ -96,7 +94,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
                 ...prevState,
                 address,
                 isConnected: true,
-                token,
                 vault,
               }));
             } else {
@@ -127,7 +124,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
                       ...prevState,
                       address,
                       isConnected: true,
-                      token: newToken,
                       vault,
                     }));
 
@@ -217,8 +213,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
         disconnect,
         isConnected,
         language,
-        messageAPI,
-        modalAPI,
         setChain,
         setCurrency,
         setLanguage,

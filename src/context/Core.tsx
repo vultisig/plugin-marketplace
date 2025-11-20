@@ -1,5 +1,3 @@
-import { MessageInstance } from "antd/es/message/interface";
-import { HookAPI } from "antd/es/modal/useModal";
 import { createContext } from "react";
 
 import { setChain } from "@/storage/chain";
@@ -11,7 +9,7 @@ import { Language } from "@/utils/language";
 import { Theme } from "@/utils/theme";
 import { Vault } from "@/utils/types";
 
-interface CoreContextType {
+export type CoreContextProps = {
   address?: string;
   baseValue: number;
   chain: string;
@@ -20,16 +18,14 @@ interface CoreContextType {
   disconnect: () => void;
   isConnected: boolean;
   language: Language;
-  messageAPI: MessageInstance;
-  modalAPI: HookAPI;
   setChain: typeof setChain;
   setCurrency: typeof setCurrency;
   setLanguage: typeof setLanguage;
   setTheme: typeof setTheme;
   theme: Theme;
   vault?: Vault;
-}
+};
 
-export const CoreContext = createContext<CoreContextType | undefined>(
+export const CoreContext = createContext<CoreContextProps | undefined>(
   undefined
 );

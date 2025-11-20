@@ -18,9 +18,9 @@ export type App = {
 };
 
 export type AppFilters = {
-  categoryId: string;
-  sort: string;
-  term: string;
+  categoryId?: string;
+  sort?: string;
+  term?: string;
 };
 
 export type AppPolicy = {
@@ -92,7 +92,7 @@ export type JupiterToken = {
 };
 
 export type ListFilters = {
-  skip: number;
+  skip?: number;
   take?: number;
 };
 

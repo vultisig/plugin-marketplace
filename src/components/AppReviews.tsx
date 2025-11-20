@@ -18,7 +18,7 @@ import { addReview, getReviews } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
 import { App, Review, ReviewForm } from "@/utils/types";
 
-type InitialState = {
+type StateProps = {
   loading: boolean;
   reviews: Review[];
   submitting?: boolean;
@@ -27,7 +27,7 @@ type InitialState = {
 
 export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<InitialState>({
+  const [state, setState] = useState<StateProps>({
     loading: true,
     reviews: [],
     totalCount: 0,
