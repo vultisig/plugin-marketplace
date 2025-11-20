@@ -51,7 +51,7 @@ import {
   getPolicies,
   getRecipeSuggestion,
 } from "@/utils/api";
-import { modalHash } from "@/utils/constants";
+import { feeAppId, modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
@@ -158,7 +158,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   }, [schema]);
 
   const isFeesApp = useMemo(() => {
-    return id === import.meta.env.VITE_FEE_APP_ID;
+    return id === feeAppId;
   }, [id]);
 
   const properties = useMemo(() => {

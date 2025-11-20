@@ -111,25 +111,27 @@ export const getAuthToken = async (data: AuthToken) => {
 };
 
 export const getApp = async (id: string) => {
-  return get<App>(`${storeApiUrl}/plugins/${id}`).then((plugin) => {
-    const count =
-      plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
-    const average = count
-      ? plugin.ratings.reduce(
-          (sum, item) => sum + item.rating * item.count,
-          0
-        ) / count
-      : 0;
-    const clamped = Math.min(Math.max(average, 1), 5);
-    const rate = Math.round(clamped * 2) / 2;
+  return get<App>(`${storeApiUrl}/plugins/${id}`)
+    .then((plugin) => {
+      const count =
+        plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
+      const average = count
+        ? plugin.ratings.reduce(
+            (sum, item) => sum + item.rating * item.count,
+            0
+          ) / count
+        : 0;
+      const clamped = Math.min(Math.max(average, 1), 5);
+      const rate = Math.round(clamped * 2) / 2;
 
-    return {
-      ...plugin,
-      pricing: plugin.pricing || [],
-      rating: { count, rate },
-      ratings: plugin.ratings || [],
-    };
-  });
+      return {
+        ...plugin,
+        pricing: plugin.pricing || [],
+        rating: { count, rate },
+        ratings: plugin.ratings || [],
+      };
+    })
+    .catch(() => undefined);
 };
 
 export const getApps = async ({

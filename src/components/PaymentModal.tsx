@@ -8,7 +8,7 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants";
+import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 
 export const PaymentModal = () => {
@@ -87,7 +87,7 @@ export const PaymentModal = () => {
           </VStack>
           <Button
             icon={<CirclePlusIcon fontSize={16} />}
-            onClick={() => startReshareSession(import.meta.env.VITE_FEE_APP_ID)}
+            onClick={() => startReshareSession(feeAppId)}
           >
             {t("paymentModal.action")}
           </Button>
