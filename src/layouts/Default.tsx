@@ -247,7 +247,7 @@ export const DefaultLayout = () => {
             {isConnected && (
               <Stack
                 as={Link}
-                to={routeTree.root.path}
+                to={routeTree.myApps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
                 {t("myApps")}

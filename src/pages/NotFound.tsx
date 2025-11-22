@@ -13,29 +13,27 @@ export const NotFoundPage = () => {
   const colors = useTheme();
 
   return (
-    <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
-      <VStack
-        as={Layout}
-        $style={{
-          alignItems: "center",
-          backgroundColor: colors.bgPrimary.toHex(),
-          justifyContent: "center",
-          height: "100%",
-        }}
-      >
-        <Result
-          status="404"
-          title="404"
-          subTitle={t("pageNotFound")}
-          extra={
-            <HStack $style={{ justifyContent: "center" }}>
-              <Button onClick={() => goBack(routeTree.root.path)}>
-                {t("backHome")}
-              </Button>
-            </HStack>
-          }
-        />
-      </VStack>
+    <VStack
+      as={Layout}
+      $style={{
+        alignItems: "center",
+        backgroundColor: colors.bgPrimary.toHex(),
+        justifyContent: "center",
+        height: "100%",
+      }}
+    >
+      <Result
+        status="404"
+        title="404"
+        subTitle={t("pageNotFound")}
+        extra={
+          <HStack $style={{ justifyContent: "center" }}>
+            <Button onClick={() => goBack(routeTree.root.path)}>
+              {t("backHome")}
+            </Button>
+          </HStack>
+        }
+      />
     </VStack>
   );
 };

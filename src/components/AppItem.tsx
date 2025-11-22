@@ -12,11 +12,16 @@ import { routeTree } from "@/utils/routes";
 import { App } from "@/utils/types";
 
 export const AppItem: FC<App & { horizontal?: boolean }> = ({
+  avgRating,
   description,
   horizontal,
   id,
+  installations,
+  logoUrl,
   pricing,
+  ratesCount,
   title,
+  thumbnailUrl,
 }) => {
   const { t } = useTranslation();
   const { baseValue, currency } = useCore();
@@ -37,7 +42,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
       <Stack
         as="img"
         alt={title}
-        src="/media/automate-your-payrolls.jpg"
+        src={thumbnailUrl || "/media/automate-your-payrolls.jpg"}
         $style={{
           borderRadius: "12px",
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
@@ -54,7 +59,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
           <Stack
             as="img"
             alt={title}
-            src="/media/payroll.png"
+            src={logoUrl || "/media/payroll.png"}
             $style={{ width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
@@ -89,7 +94,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     lineHeight: "16px",
                   }}
                 >
-                  {toNumberFormat(1258)}
+                  {toNumberFormat(installations)}
                 </Stack>
               </HStack>
               <Stack
@@ -115,7 +120,11 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     fontSize: "12px",
                     lineHeight: "16px",
                   }}
-                >{`${4.5}/5 (${128})`}</Stack>
+                >
+                  {ratesCount
+                    ? `${avgRating}/5 (${ratesCount})`
+                    : t("noRating")}
+                </Stack>
               </HStack>
             </HStack>
           </VStack>
@@ -148,9 +157,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               <Stack as="span">{t("isFreeApp")}</Stack>
             )}
           </VStack>
-          <Button href={routeTree.appDetails.link(id)}>
-            {t("seeDetails")}
-          </Button>
+          <Button href={routeTree.app.link(id)}>{t("seeDetails")}</Button>
         </VStack>
       </VStack>
     </Stack>

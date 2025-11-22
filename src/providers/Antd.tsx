@@ -1,7 +1,14 @@
-import { ConfigProvider, theme, ThemeConfig } from "antd";
+import {
+  ConfigProvider,
+  message as Message,
+  Modal,
+  theme,
+  ThemeConfig,
+} from "antd";
 import { FC, ReactNode, useMemo } from "react";
 import { useTheme } from "styled-components";
 
+import { AntdContext } from "@/context/Antd";
 import { useCore } from "@/hooks/useCore";
 import { Theme } from "@/utils/theme";
 
@@ -11,6 +18,8 @@ const algorithm: Record<Theme, ThemeConfig["algorithm"]> = {
 } as const;
 
 export const AntdProvider: FC<{ children?: ReactNode }> = ({ children }) => {
+  const [messageAPI, messageHolder] = Message.useMessage();
+  const [modalAPI, modalHolder] = Modal.useModal();
   const { theme } = useCore();
   const colors = useTheme();
 
@@ -91,5 +100,13 @@ export const AntdProvider: FC<{ children?: ReactNode }> = ({ children }) => {
     };
   }, [colors, theme]);
 
-  return <ConfigProvider theme={themeConfig}>{children}</ConfigProvider>;
+  return (
+    <ConfigProvider theme={themeConfig}>
+      <AntdContext.Provider value={{ messageAPI, modalAPI }}>
+        {children}
+        {messageHolder}
+        {modalHolder}
+      </AntdContext.Provider>
+    </ConfigProvider>
+  );
 };
