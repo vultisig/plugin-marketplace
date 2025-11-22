@@ -25,7 +25,12 @@ type StateProps = {
   totalCount: number;
 };
 
-export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
+export const AppReviews: FC<App> = ({
+  avgRating,
+  id,
+  ratesCount,
+  ratings = [],
+}) => {
   const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({
     loading: true,
@@ -101,15 +106,15 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                 as="span"
                 $style={{ fontSize: "60px", lineHeight: "72px" }}
               >
-                {rating.rate}
+                {avgRating}
               </Stack>
               <VStack $style={{ gap: "4px" }}>
-                <Rate count={5} value={rating.rate} allowHalf disabled />
+                <Rate count={5} value={avgRating} allowHalf disabled />
                 <Stack
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  {`${rating.count} ${t("reviews")}`}
+                  {`${ratesCount} ${t("reviews")}`}
                 </Stack>
               </VStack>
             </HStack>
@@ -147,7 +152,7 @@ export const AppReviews: FC<App> = ({ id, rating, ratings }) => {
                     height: "100%",
                     position: "absolute",
                     width: `${
-                      rating.count ? (item.count * 100) / rating.count : 0
+                      ratesCount ? (item.count * 100) / ratesCount : 0
                     }%`,
                   }}
                   $style={{

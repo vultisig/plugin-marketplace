@@ -1,5 +1,5 @@
 type RouteKey =
-  | "appDetails"
+  | "app"
   | "billing"
   | "faq"
   | "myApps"
@@ -8,7 +8,7 @@ type RouteKey =
   | "transactions";
 
 export const routeTree = {
-  appDetails: {
+  app: {
     link: (id: string) => `/apps/${id}`,
     path: "/apps/:id",
   },

@@ -49,7 +49,7 @@ type StateProps = {
   schema?: RecipeSchema;
 };
 
-export const AppDetailsPage = () => {
+export const AppPage = () => {
   const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({});
   const {
@@ -178,7 +178,7 @@ export const AppDetailsPage = () => {
         isFree,
         isFeeAppInstalled: true,
       }));
-    } else {
+    } else if (isConnected) {
       isAppInstalled(feeAppId).then((isFeeAppInstalled) => {
         setState((prevState) => ({
           ...prevState,
@@ -188,8 +188,10 @@ export const AppDetailsPage = () => {
           isFeeAppInstalled,
         }));
       });
+    } else {
+      setState((prevState) => ({ ...prevState, app, isFeeApp, isFree }));
     }
-  }, [feeAppId, goBack, id]);
+  }, [feeAppId, goBack, id, isConnected]);
 
   const handleInstall = () => {
     setState((prevState) => ({ ...prevState, isInstalling: true }));
@@ -325,7 +327,7 @@ export const AppDetailsPage = () => {
                       <Stack
                         as="img"
                         alt={app.title}
-                        src="/media/payroll.png"
+                        src={app.logoUrl || "/media/payroll.png"}
                         $style={{ height: "72px", width: "72px" }}
                       />
                       <VStack $style={{ gap: "8px", justifyContent: "center" }}>
@@ -351,7 +353,7 @@ export const AppDetailsPage = () => {
                                 lineHeight: "20px",
                               }}
                             >
-                              {toNumberFormat(1258)}
+                              {toNumberFormat(app.installations)}
                             </Stack>
                           </HStack>
                           <Stack
@@ -377,8 +379,8 @@ export const AppDetailsPage = () => {
                                 lineHeight: "20px",
                               }}
                             >
-                              {app.rating.count
-                                ? `${app.rating.rate}/5 (${app.rating.count})`
+                              {app.ratesCount
+                                ? `${app.avgRating}/5 (${app.ratesCount})`
                                 : t("noRating")}
                             </Stack>
                           </HStack>

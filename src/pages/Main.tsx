@@ -33,13 +33,9 @@ export const MainPage = () => {
   const fetchApps = useCallback((skip: number, filters: AppFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    getApps({ ...filters, skip })
-      .then(({ apps }) => {
-        setState((prevState) => ({ ...prevState, loading: false, apps }));
-      })
-      .catch(() => {
-        setState((prevState) => ({ ...prevState, loading: false }));
-      });
+    getApps({ ...filters, skip }).then(({ apps }) => {
+      setState((prevState) => ({ ...prevState, loading: false, apps }));
+    });
   }, []);
 
   const debouncedFetchApps = useMemo(

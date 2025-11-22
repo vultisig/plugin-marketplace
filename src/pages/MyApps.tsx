@@ -110,7 +110,7 @@ export const MyAppsPage = () => {
                 }}
               >
                 <HStack $style={{ alignItems: "center", gap: "16px" }}>
-                  <Stack as={Link} to={routeTree.appDetails.link(app.id)}>
+                  <Stack as={Link} to={routeTree.app.link(app.id)}>
                     <Stack
                       as="img"
                       alt={app.title}
@@ -131,7 +131,7 @@ export const MyAppsPage = () => {
                   >
                     <Stack
                       as={Link}
-                      to={routeTree.appDetails.link(app.id)}
+                      to={routeTree.app.link(app.id)}
                       $style={{ fontSize: "17px", lineHeight: "20px" }}
                     >
                       {app.title}
@@ -155,7 +155,7 @@ export const MyAppsPage = () => {
                         key: "1",
                         label: (
                           <Link
-                            to={`${routeTree.appDetails.link(app.id)}${
+                            to={`${routeTree.app.link(app.id)}${
                               modalHash.policy
                             }`}
                             state={true}

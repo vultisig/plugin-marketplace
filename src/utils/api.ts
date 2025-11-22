@@ -15,6 +15,7 @@ import { Currency } from "@/utils/currency";
 import { toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
 import {
+  APIResponse,
   App,
   AppFilters,
   AppPolicy,
@@ -67,27 +68,37 @@ api.interceptors.response.use(
   }
 );
 
-const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> =>
-  api.delete<T>(url, config).then(({ data }) => toCamelCase(data));
+const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  return api
+    .delete<APIResponse<T>>(url, config)
+    .then(({ data }) => toCamelCase(data.data));
+};
 
-const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> =>
-  await api.get<T>(url, config).then(({ data }) => toCamelCase(data));
+const get = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+  return await api
+    .get<APIResponse<T>>(url, config)
+    .then(({ data }) => toCamelCase(data.data));
+};
 
 const post = async <T>(
   url: string,
   data?: Record<string, unknown>,
   config?: AxiosRequestConfig
-): Promise<T> =>
-  api.post<T>(url, data, config).then(({ data }) => toCamelCase(data));
+): Promise<T> => {
+  return api
+    .post<APIResponse<T>>(url, data, config)
+    .then(({ data }) => toCamelCase(data.data));
+};
 
-// export const put = async <T>(
+// const put = async <T>(
 //   url: string,
 //   data?: any,
 //   config?: AxiosRequestConfig
-// ): Promise<T> =>
-//   api
-//     .put<T>(url, data, config)
-//     .then(({ data }) => toCamelCase(data));
+// ): Promise<T> => {
+//   return api
+//     .put<APIResponse<T>>(url, data, config)
+//     .then(({ data }) => toCamelCase(data.data));
+// };
 
 export const addPolicy = async (data: AppPolicy) => {
   return post<AppPolicy>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
@@ -112,25 +123,7 @@ export const getAuthToken = async (data: AuthToken) => {
 
 export const getApp = async (id: string) => {
   return get<App>(`${storeApiUrl}/plugins/${id}`)
-    .then((plugin) => {
-      const count =
-        plugin.ratings?.reduce((sum, item) => sum + item.count, 0) || 0;
-      const average = count
-        ? plugin.ratings.reduce(
-            (sum, item) => sum + item.rating * item.count,
-            0
-          ) / count
-        : 0;
-      const clamped = Math.min(Math.max(average, 1), 5);
-      const rate = Math.round(clamped * 2) / 2;
-
-      return {
-        ...plugin,
-        pricing: plugin.pricing || [],
-        rating: { count, rate },
-        ratings: plugin.ratings || [],
-      };
-    })
+    .then((app) => app)
     .catch(() => undefined);
 };
 
@@ -143,15 +136,9 @@ export const getApps = async ({
 }: ListFilters & AppFilters) => {
   return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
-  }).then(({ plugins, totalCount }) => {
-    const modifiedApps: App[] =
-      plugins?.map((plugin) => ({
-        ...plugin,
-        pricing: plugin.pricing || [],
-      })) || [];
-
-    return { apps: modifiedApps, totalCount };
-  });
+  })
+    .then(({ plugins = [], totalCount }) => ({ apps: plugins, totalCount }))
+    .catch(() => ({ apps: [], totalCount: 0 }));
 };
 
 export const getBaseValue = async (currency: Currency) => {
@@ -184,9 +171,10 @@ export const getMyApps = async ({
   skip,
   take = defaultPageSize,
 }: ListFilters) => {
-  return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
-    params: toSnakeCase({ skip, take }),
-  }).then(({ plugins, totalCount }) => ({ apps: plugins, totalCount }));
+  return get<{ plugins: App[]; totalCount: number }>(
+    `${storeApiUrl}/plugins/installed`,
+    { params: toSnakeCase({ skip, take }) }
+  ).then(({ plugins, totalCount }) => ({ apps: plugins, totalCount }));
 };
 
 export const getOneInchTokens = async (chain: EvmChain) => {
