@@ -12,10 +12,13 @@ export type APIResponse<T> = {
 };
 
 export type App = {
+  audited: boolean;
   avgRating: number;
   categoryId: string;
   createdAt: string;
   description: string;
+  faqs: { answer: string; question: string }[];
+  features: string[];
   id: string;
   images: string[];
   installations: number;

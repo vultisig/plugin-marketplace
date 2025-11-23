@@ -70,29 +70,6 @@ export const AppPage = () => {
   const colors = useTheme();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const faqs = [
-    {
-      answer:
-        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
-      question: "How does it work?",
-    },
-    {
-      answer:
-        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
-      question: "How to install?",
-    },
-    {
-      answer:
-        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
-      question: "Is it safe? I don’t want to risk my funds.",
-    },
-    {
-      answer:
-        "Maecenas in porttitor consequat aenean. In nulla cursus pulvinar at lacus ultricies et nulla. Non porta arcu vehicula rhoncus. Habitant integer lectus elit proin. Etiam morbi nunc pretium vestibulum sed convallis etiam. Pulvinar vitae porttitor elementum eget mattis sagittis facilisi magna. Et pulvinar pretium vitae odio non ultricies maecenas id. Non nibh scelerisque in facilisis tincidunt viverra fermentum sem. Quam varius pretium vitae neque. Senectus lectus ultricies nibh eget.",
-      question: "Are apps audited?",
-    },
-  ];
-
   const informations = [
     {
       label: t("feeStructure"),
@@ -114,7 +91,7 @@ export const AppPage = () => {
         </>
       ),
     },
-    { label: t("downloads"), value: "1,294" },
+    { label: t("downloads"), value: app?.installations || 0 },
     { label: t("support"), value: "24/7" },
   ];
 
@@ -572,13 +549,7 @@ export const AppPage = () => {
                 {t("features")}
               </Stack>
               <VStack $style={{ gap: "8px" }}>
-                {[
-                  "Automated payroll processing",
-                  "Direct deposit integration",
-                  "Automated payroll processing",
-                  "Employee self-service portal",
-                  "Direct deposit integration",
-                ].map((item, index) => (
+                {app.features.map((item, index) => (
                   <Fragment key={index}>
                     {index > 0 && <Divider light />}
                     <HStack $style={{ alignItems: "center", gap: "8px" }}>
@@ -606,7 +577,7 @@ export const AppPage = () => {
                 {t("faq")}
               </Stack>
               <VStack $style={{ gap: "16px" }}>
-                {faqs.map(({ answer, question }, index) => (
+                {app.faqs.map(({ answer, question }, index) => (
                   <Fragment key={index}>
                     {index > 0 && <Divider light />}
                     <Collapse
@@ -670,19 +641,13 @@ export const AppPage = () => {
             $style={{ paddingBottom: "24px" }}
             $media={{
               xl: {
-                $style: {
-                  flex: "none",
-                  paddingTop: "84px",
-                  width: "322px",
-                },
+                $style: { flex: "none", paddingTop: "84px", width: "322px" },
               },
             }}
           >
             <VStack
               $style={{ gap: "20px" }}
-              $media={{
-                xl: { $style: { position: "sticky", top: "96px" } },
-              }}
+              $media={{ xl: { $style: { position: "sticky", top: "96px" } } }}
             >
               <VStack
                 $style={{
@@ -727,42 +692,46 @@ export const AppPage = () => {
                   </HStack>
                 ))}
               </VStack>
-              <VStack
-                $style={{
-                  border: `solid 1px ${colors.borderNormal.toHex()}`,
-                  borderRadius: "24px",
-                  gap: "12px",
-                  padding: "32px",
-                }}
-              >
-                <Stack
-                  as="span"
-                  $style={{ fontSize: "16px", lineHeight: "24px" }}
+              {app.audited && (
+                <VStack
+                  $style={{
+                    border: `solid 1px ${colors.borderNormal.toHex()}`,
+                    borderRadius: "24px",
+                    gap: "12px",
+                    padding: "32px",
+                  }}
                 >
-                  {t("audit")}
-                </Stack>
-                {["Fully audited, check the certificate"].map((item, index) => (
-                  <HStack key={index} $style={{ gap: "8px" }}>
-                    <Stack
-                      as={SubscriptionTickIcon}
-                      $style={{
-                        color: colors.success.toHex(),
-                        flex: "none",
-                        fontSize: "16px",
-                      }}
-                    />
-                    <Stack
-                      as="span"
-                      $style={{
-                        color: colors.textSecondary.toHex(),
-                        lineHeight: "16px",
-                      }}
-                    >
-                      {item}
-                    </Stack>
-                  </HStack>
-                ))}
-              </VStack>
+                  <Stack
+                    as="span"
+                    $style={{ fontSize: "16px", lineHeight: "24px" }}
+                  >
+                    {t("audit")}
+                  </Stack>
+                  {["Fully audited, check the certificate"].map(
+                    (item, index) => (
+                      <HStack key={index} $style={{ gap: "8px" }}>
+                        <Stack
+                          as={SubscriptionTickIcon}
+                          $style={{
+                            color: colors.success.toHex(),
+                            flex: "none",
+                            fontSize: "16px",
+                          }}
+                        />
+                        <Stack
+                          as="span"
+                          $style={{
+                            color: colors.textSecondary.toHex(),
+                            lineHeight: "16px",
+                          }}
+                        >
+                          {item}
+                        </Stack>
+                      </HStack>
+                    )
+                  )}
+                </VStack>
+              )}
             </VStack>
           </VStack>
         </VStack>
