@@ -104,32 +104,33 @@ export const AppPage = () => {
     }
 
     if (isFree || isFeeAppInstalled) {
-      const appStatus = await isAppInstalled(app.id);
+      const isInstalled = await isAppInstalled(app.id);
 
-      setState((prevState) => ({ ...prevState, isInstalled: appStatus }));
+      setState((prevState) => ({ ...prevState, isInstalled }));
 
-      if (appStatus) {
+      if (isInstalled) {
         if (!isFeeApp) {
-          const policySchema = await getRecipeSpecification(app.id);
+          const schema = await getRecipeSpecification(app.id);
 
-          if (isInstalling && policySchema)
+          if (isInstalling && schema)
             navigate(modalHash.policy, { state: true });
 
           setState((prevState) => ({
             ...prevState,
             isInstalling: false,
-            schema: policySchema,
+            schema,
           }));
         }
       } else {
         timeoutRef.current = setTimeout(checkStatus, 1000);
       }
     } else {
-      const feeAppStatus = await isAppInstalled(feeAppId);
+      const isFeeAppInstalled = await isAppInstalled(feeAppId);
 
       setState((prevState) => ({
         ...prevState,
-        isFeeAppInstalled: feeAppStatus,
+        isFeeAppInstalled,
+        isInstalled: isFeeAppInstalled ? undefined : false,
       }));
 
       timeoutRef.current = setTimeout(checkStatus, 1000);
@@ -147,27 +148,13 @@ export const AppPage = () => {
     const isFeeApp = app.id === feeAppId;
     const isFree = !app.pricing.length || isFeeApp;
 
-    if (isFree) {
-      setState((prevState) => ({
-        ...prevState,
-        app,
-        isFeeApp,
-        isFree,
-        isFeeAppInstalled: true,
-      }));
-    } else if (isConnected) {
-      isAppInstalled(feeAppId).then((isFeeAppInstalled) => {
-        setState((prevState) => ({
-          ...prevState,
-          app,
-          isFeeApp,
-          isFree,
-          isFeeAppInstalled,
-        }));
-      });
-    } else {
-      setState((prevState) => ({ ...prevState, app, isFeeApp, isFree }));
-    }
+    setState((prevState) => ({
+      ...prevState,
+      app,
+      isFeeApp,
+      isFeeAppInstalled: isFree ? true : undefined,
+      isFree,
+    }));
   }, [feeAppId, goBack, id, isConnected]);
 
   const handleInstall = () => {

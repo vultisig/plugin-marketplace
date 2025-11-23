@@ -179,12 +179,13 @@ export const AppReviews: FC<App> = ({
             </VStack>
           </HStack>
         </VStack>
-        <Divider light />
+
         {loading ? (
           <Spin centered />
         ) : (
           reviews.length > 0 && (
             <>
+              <Divider light />
               {reviews.map(({ address, comment, createdAt, id, rating }) => (
                 <VStack
                   key={id}
