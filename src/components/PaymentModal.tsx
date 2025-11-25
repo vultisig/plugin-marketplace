@@ -34,7 +34,7 @@ export const PaymentModal = () => {
       closable={false}
       footer={false}
       onCancel={() => goBack()}
-      open={visible && !!app}
+      open={visible}
       styles={{ content: { padding: 16 }, footer: { display: "none" } }}
       title={false}
       width={768}
