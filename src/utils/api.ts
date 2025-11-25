@@ -12,7 +12,7 @@ import { getVaultId } from "@/storage/vaultId";
 import { EvmChain, evmChainInfo } from "@/utils/chain";
 import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
-import { toCamelCase } from "@/utils/functions";
+import { normalizeApp, toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
 import {
   APIResponse,
@@ -123,7 +123,7 @@ export const getAuthToken = async (data: AuthToken) => {
 
 export const getApp = async (id: string) => {
   return get<App>(`${storeApiUrl}/plugins/${id}`)
-    .then((app) => app)
+    .then(normalizeApp)
     .catch(() => undefined);
 };
 
@@ -137,8 +137,11 @@ export const getApps = async ({
   return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
     params: toSnakeCase({ categoryId, skip, sort, take, term }),
   })
-    .then(({ plugins = [], totalCount }) => ({ apps: plugins, totalCount }))
-    .catch(() => ({ apps: [], totalCount: 0 }));
+    .then(({ plugins = [], totalCount }) => ({
+      apps: plugins.map(normalizeApp),
+      totalCount,
+    }))
+    .catch(() => ({ apps: [] as App[], totalCount: 0 }));
 };
 
 export const getBaseValue = async (currency: Currency) => {

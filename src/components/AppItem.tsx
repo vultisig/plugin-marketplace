@@ -60,7 +60,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
             as="img"
             alt={title}
             src={logoUrl || "/media/payroll.png"}
-            $style={{ width: "56px" }}
+            $style={{ borderRadius: "12px", width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
             <Stack

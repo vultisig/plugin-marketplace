@@ -1,4 +1,9 @@
-import { BrowserRouter,Route, Routes as ReactRoutes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes as ReactRoutes,
+} from "react-router-dom";
 
 import { useCore } from "@/hooks/useCore";
 import { DefaultLayout } from "@/layouts/Default";
@@ -18,8 +23,13 @@ export const Routes = () => {
         <Route path={routeTree.root.path} element={<DefaultLayout />}>
           <Route element={<MainPage />} index />
           <Route element={<AppPage />} path={routeTree.app.path} />
-          {isConnected && (
+          {isConnected ? (
             <Route element={<MyAppsPage />} path={routeTree.myApps.path} />
+          ) : (
+            <Route
+              path={routeTree.myApps.path}
+              element={<Navigate to={routeTree.root.path} replace />}
+            />
           )}
           <Route element={<FaqPage />} path={routeTree.faq.path} />
         </Route>

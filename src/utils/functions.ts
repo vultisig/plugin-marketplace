@@ -2,6 +2,7 @@ import { Dayjs } from "dayjs";
 
 import { Currency, currencySymbols } from "@/utils/currency";
 import {
+  App,
   AppPolicy,
   AppPricing,
   CSSProperties,
@@ -94,6 +95,36 @@ export const match = <T extends string | number | symbol, V>(
   const handler = handlers[value];
 
   return handler();
+};
+
+export const normalizeApp = (app: App) => {
+  const {
+    avgRating = 0,
+    faqs = [],
+    features = [],
+    images = [],
+    installations = 0,
+    logoUrl = "",
+    pricing = [],
+    ratesCount = 0,
+    thumbnailUrl = "",
+    ...rest
+  } = app;
+
+  const normalizedApp: App = {
+    ...rest,
+    avgRating,
+    faqs,
+    features,
+    images,
+    installations,
+    logoUrl,
+    pricing,
+    ratesCount,
+    thumbnailUrl,
+  };
+
+  return normalizedApp;
 };
 
 export const policyToHexMessage = ({
