@@ -12,20 +12,19 @@ import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getApps, getCategories } from "@/utils/api";
 import { App, AppFilters, Category } from "@/utils/types";
 
-type InitialState = {
+type StateProps = {
   categories: Category[];
   loading: boolean;
   apps: App[];
 };
 
-export const AppsPage = () => {
+export const MainPage = () => {
   const { t } = useTranslation();
-  const initialState: InitialState = {
+  const [state, setState] = useState<StateProps>({
     categories: [],
     loading: true,
     apps: [],
-  };
-  const [state, setState] = useState(initialState);
+  });
   const { categories, loading, apps } = state;
   const { filters, setFilters } = useFilterParams<AppFilters>();
   const colors = useTheme();
@@ -34,13 +33,9 @@ export const AppsPage = () => {
   const fetchApps = useCallback((skip: number, filters: AppFilters) => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    getApps({ ...filters, skip })
-      .then(({ apps }) => {
-        setState((prevState) => ({ ...prevState, loading: false, apps }));
-      })
-      .catch(() => {
-        setState((prevState) => ({ ...prevState, loading: false }));
-      });
+    getApps({ ...filters, skip }).then(({ apps }) => {
+      setState((prevState) => ({ ...prevState, loading: false, apps }));
+    });
   }, []);
 
   const debouncedFetchApps = useMemo(

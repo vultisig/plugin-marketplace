@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Address, createPublicClient, erc20Abi, http } from "viem";
 
 import {
+  getApp,
   getJupiterToken,
   getJupiterTokens,
   getOneInchTokens,
@@ -11,6 +12,14 @@ import { Token } from "@/utils/types";
 
 export const useQueries = () => {
   const queryClient = useQueryClient();
+
+  const getAppData = async (id: string) => {
+    return await queryClient.fetchQuery({
+      queryKey: ["app", id.toLowerCase()],
+      queryFn: async () => await getApp(id),
+      staleTime: Infinity,
+    });
+  };
 
   const getTokenData = async (chain: Chain, id: string) => {
     return await queryClient.fetchQuery({
@@ -76,5 +85,5 @@ export const useQueries = () => {
     });
   };
 
-  return { getTokenData, getTokenList };
+  return { getAppData, getTokenData, getTokenList };
 };

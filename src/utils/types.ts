@@ -4,23 +4,38 @@ import { Policy } from "@/proto/policy_pb";
 import { RecipeSchema as ProtoRecipeSchema } from "@/proto/recipe_specification_pb";
 import { Chain } from "@/utils/chain";
 
+export type APIResponse<T> = {
+  status: number;
+  data: T;
+  timestamp: string;
+  version: string;
+};
+
 export type App = {
+  audited: boolean;
+  avgRating: number;
   categoryId: string;
   createdAt: string;
   description: string;
+  faqs: { answer: string; question: string }[];
+  features: string[];
   id: string;
+  images: string[];
+  installations: number;
+  logoUrl: string;
   pricing: AppPricing[];
-  rating: { count: number; rate: number };
+  ratesCount: number;
   ratings: { count: number; rating: number }[];
   serverEndpoint: string;
+  thumbnailUrl: string;
   title: string;
   updatedAt: string;
 };
 
 export type AppFilters = {
-  categoryId: string;
-  sort: string;
-  term: string;
+  categoryId?: string;
+  sort?: string;
+  term?: string;
 };
 
 export type AppPolicy = {
@@ -92,7 +107,7 @@ export type JupiterToken = {
 };
 
 export type ListFilters = {
-  skip: number;
+  skip?: number;
   take?: number;
 };
 

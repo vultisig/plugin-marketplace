@@ -3,6 +3,7 @@ export const en = {
   action: "Action",
   addAutomation: "Add Automation",
   addRule: "Add Rule",
+  addToVault: "Add to Vault",
   appPermissions: "App Permissions",
   appStore: "App Store",
   apps: "Apps",
@@ -38,6 +39,7 @@ export const en = {
   // H
   // I
   install: "Install",
+  installedApps: "Installed Apps",
   isFreeApp: "This app is free",
   // J
   // K
@@ -57,13 +59,6 @@ export const en = {
   overview: "Overview",
   // P
   pageNotFound: "Sorry, the page you visited does not exist.",
-  paymentModal: {
-    action: "Add to Vault",
-    description:
-      "This app handles payments securely using your wallet, with full control over fees and visibility. This is a one-time setup.",
-    subtitle: "Required Standard App",
-    title: "Payment App Required",
-  },
   policies: "Policies",
   policyMaxTxs: "This app can send up to {{count}} transactions",
   policyRateLimit: "every {{duration}}",

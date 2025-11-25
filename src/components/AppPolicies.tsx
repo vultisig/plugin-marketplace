@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
+import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { CheckmarkIcon } from "@/icons/CheckmarkIcon";
@@ -84,7 +85,7 @@ type FormFieldType = {
   rules: RuleFieldType[];
 } & JsonObject;
 
-type InitialState = {
+type StateProps = {
   loading: boolean;
   policies: CustomAppPolicy[];
   step: number;
@@ -97,14 +98,15 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   schema,
 }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<InitialState>({
+  const [state, setState] = useState<StateProps>({
     loading: true,
     policies: [],
     step: 0,
     totalCount: 0,
   });
   const { loading, policies, step, submitting } = state;
-  const { address, messageAPI, modalAPI } = useCore();
+  const { messageAPI, modalAPI } = useAntd();
+  const { address } = useCore();
   const { id, pricing, title } = app;
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
