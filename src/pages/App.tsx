@@ -106,7 +106,7 @@ export const AppPage = () => {
 
     return schema.supportedResources.reduce<string[]>(
       (acc, { resourcePath }) => {
-        if (!resourcePath) return acc;
+        if (!resourcePath || !resourcePath.functionId) return acc;
 
         const id = resourcePath.functionId;
 
