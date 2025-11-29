@@ -42,7 +42,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
       <Stack
         as="img"
         alt={title}
-        src={thumbnailUrl || "/media/automate-your-payrolls.jpg"}
+        src={thumbnailUrl}
         $style={{
           borderRadius: "12px",
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
@@ -59,25 +59,14 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
           <Stack
             as="img"
             alt={title}
-            src={logoUrl || "/media/payroll.png"}
-            $style={{ borderRadius: "12px", width: "56px" }}
+            src={logoUrl}
+            $style={{ borderRadius: "12px", height: "56px", width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
-            <Stack
-              as="span"
-              $style={{
-                fontSize: "17px",
-                lineHeight: "20px",
-              }}
-            >
+            <Stack as="span" $style={{ fontSize: "17px", lineHeight: "20px" }}>
               {title}
             </Stack>
-            <HStack
-              $style={{
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
+            <HStack $style={{ alignItems: "center", gap: "8px" }}>
               <HStack $style={{ alignItems: "center", gap: "2px" }}>
                 <Stack
                   as={CircleArrowDownIcon}

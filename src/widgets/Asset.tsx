@@ -23,6 +23,7 @@ type AssetWidgetProps = {
   configuration: Configuration;
   form: FormInstance;
   fullKey: string[];
+  supportedChains: Chain[];
 };
 
 type StateProps = {
@@ -34,6 +35,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
   form,
   fullKey,
+  supportedChains,
 }) => {
   const [state, setState] = useState<StateProps>({ tokens: [] });
   const { loading, tokens } = state;
@@ -47,7 +49,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const chain: Chain = Form.useWatch(chainField, form);
 
   const nativeTokens = useMemo(() => {
-    return Object.keys(chains).reduce((acc, chain) => {
+    return supportedChains.reduce((acc, chain) => {
       const isEvm = chain in evmChains;
 
       acc[chain as Chain] = isEvm
@@ -180,7 +182,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
                 </Stack>
               </HStack>
             )}
-            options={Object.keys(chains).map((chain) => ({
+            options={supportedChains.map((chain) => ({
               value: chain,
               label: chain,
             }))}
