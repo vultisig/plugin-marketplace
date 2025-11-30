@@ -167,6 +167,10 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     return schema.configuration?.properties;
   }, [schema]);
 
+  const supportedChains = useMemo(() => {
+    return schema.requirements?.supportedChains || [];
+  }, [schema]);
+
   const visible = useMemo(() => {
     return hash === modalHash.policy;
   }, [hash]);
@@ -493,6 +497,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                 form={form}
                 fullKey={fullKey}
                 key={key}
+                supportedChains={supportedChains}
               />
             );
           }
@@ -763,7 +768,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
           <HStack $style={{ gap: "8px" }}>
             <Stack
               as="img"
-              src="/media/payroll.png"
+              src={app.logoUrl}
               $style={{ height: "24px", width: "24px" }}
             />
             <HStack

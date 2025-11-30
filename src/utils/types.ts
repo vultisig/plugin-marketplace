@@ -1,7 +1,10 @@
 import type * as CSS from "csstype";
 
 import { Policy } from "@/proto/policy_pb";
-import { RecipeSchema as ProtoRecipeSchema } from "@/proto/recipe_specification_pb";
+import {
+  PluginRequirements,
+  RecipeSchema as ProtoRecipeSchema,
+} from "@/proto/recipe_specification_pb";
 import { Chain } from "@/utils/chain";
 
 export type APIResponse<T> = {
@@ -111,8 +114,14 @@ export type ListFilters = {
   take?: number;
 };
 
-export type RecipeSchema = Omit<ProtoRecipeSchema, "configuration"> & {
+export type RecipeSchema = Omit<
+  ProtoRecipeSchema,
+  "configuration" | "requirements"
+> & {
   configuration?: Configuration & { definitions: Definitions };
+  requirements?: Omit<PluginRequirements, "supportedChains"> & {
+    supportedChains: Chain[];
+  };
 };
 
 export type ReshareForm = {

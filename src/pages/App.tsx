@@ -308,8 +308,8 @@ export const AppPage = () => {
                       <Stack
                         as="img"
                         alt={app.title}
-                        src={app.logoUrl || "/media/payroll.png"}
-                        $style={{ height: "72px", width: "72px" }}
+                        src={app.logoUrl}
+                        $style={{ borderRadius: "16px", height: "72px", width: "72px" }}
                       />
                       <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                         <Stack
