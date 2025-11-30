@@ -12,9 +12,9 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
+import { Policies } from "@/components/Policies";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -309,7 +309,11 @@ export const AppPage = () => {
                         as="img"
                         alt={app.title}
                         src={app.logoUrl}
-                        $style={{ borderRadius: "16px", height: "72px", width: "72px" }}
+                        $style={{
+                          borderRadius: "16px",
+                          height: "72px",
+                          width: "72px",
+                        }}
                       />
                       <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                         <Stack
@@ -539,7 +543,7 @@ export const AppPage = () => {
             />
             {isInstalled && !isFeeApp && !!schema && (
               <>
-                <AppPolicies app={app} schema={schema} />
+                <Policies app={app} schema={schema} />
                 <Divider light />
               </>
             )}

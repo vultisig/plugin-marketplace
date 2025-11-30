@@ -4,6 +4,7 @@ export const en = {
   addAutomation: "Add Automation",
   addRule: "Add Rule",
   addToVault: "Add to Vault",
+  amount: "Amount",
   appPermissions: "App Permissions",
   appStore: "App Store",
   apps: "Apps",
@@ -20,8 +21,10 @@ export const en = {
   confirmPolicyDeletion: "Are you sure you want to delete this policy?",
   connect: "Connect",
   connectVault: "Connect Vault",
+  configuration: "Configuration",
   continue: "Continue",
   createdBy: "Created By",
+  createOwnAutomations: "Create your own automations",
   currency: "Currency",
   // D
   dark: "Dark",
@@ -34,6 +37,7 @@ export const en = {
   faq: "FAQ",
   features: "Features",
   feeStructure: "Fee Structure",
+  frequency: "Frequency",
   // G
   goBack: "Go back",
   // H
@@ -68,8 +72,10 @@ export const en = {
   rating: "Rating",
   ratings: "Ratings",
   reviews: "Reviews",
+  rules: "Rules",
   ruleValidationError: "Please enter at least one rule",
   // S
+  scheduling: "Scheduling",
   seconds: "Seconds",
   seeDetails: "See Details",
   signOut: "Sign out",
@@ -82,6 +88,7 @@ export const en = {
   supportedResource: "Supported Resource",
   // T
   target: "Target",
+  templates: "Templates",
   theme: "Theme",
   // U
   uninstall: "Uninstall",
@@ -90,6 +97,7 @@ export const en = {
   unsupportedMedia:
     "The Vultisig App Store is currently only available on desktop.",
   usageInfo: "Usage Info",
+  useTemplate: "Use Template",
   // V
   version: "Version",
   // W
