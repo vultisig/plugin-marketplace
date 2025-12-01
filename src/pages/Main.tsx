@@ -54,7 +54,7 @@ export const MainPage = () => {
     getCategoryList().then((categories) => {
       setState((prevState) => ({ ...prevState, categories }));
     });
-  }, []);
+  }, [getCategoryList]);
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1" }}>

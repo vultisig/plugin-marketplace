@@ -142,7 +142,7 @@ export const AppPage = () => {
 
       timeoutRef.current = setTimeout(checkStatus, 1000);
     }
-  }, [app, isFeeAppInstalled, isFree, isInstalling]);
+  }, [app, isFeeAppInstalled, isFree, isInstalling, navigate]);
 
   const fetchApp = useCallback(async () => {
     if (id === feeAppId) {

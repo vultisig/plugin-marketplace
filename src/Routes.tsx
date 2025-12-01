@@ -1,3 +1,4 @@
+import { FC, ReactNode } from "react";
 import {
   createBrowserRouter,
   Navigate,
@@ -13,41 +14,31 @@ import { MyAppsPage } from "@/pages/MyApps";
 import { NotFoundPage } from "@/pages/NotFound";
 import { routeTree } from "@/utils/routes";
 
-export const Routes = () => {
+const ProtectedRoute: FC<{ children: ReactNode }> = ({ children }) => {
   const { isConnected } = useCore();
+  return isConnected ? children : <Navigate to={routeTree.root.path} replace />;
+};
 
+export const Routes = () => {
   const router = createBrowserRouter([
     {
       path: routeTree.root.path,
       element: <DefaultLayout />,
       children: [
+        { index: true, element: <MainPage /> },
+        { path: routeTree.app.path, element: <AppPage /> },
         {
-          index: true,
-          element: <MainPage />,
+          path: routeTree.myApps.path,
+          element: (
+            <ProtectedRoute>
+              <MyAppsPage />
+            </ProtectedRoute>
+          ),
         },
-        {
-          path: routeTree.app.path,
-          element: <AppPage />,
-        },
-        isConnected
-          ? {
-              path: routeTree.myApps.path,
-              element: <MyAppsPage />,
-            }
-          : {
-              path: routeTree.myApps.path,
-              element: <Navigate to={routeTree.root.path} replace />,
-            },
-        {
-          path: routeTree.faq.path,
-          element: <FaqPage />,
-        },
+        { path: routeTree.faq.path, element: <FaqPage /> },
       ],
     },
-    {
-      path: routeTree.notFound.path,
-      element: <NotFoundPage />,
-    },
+    { path: routeTree.notFound.path, element: <NotFoundPage /> },
   ]);
 
   return <RouterProvider router={router} />;
