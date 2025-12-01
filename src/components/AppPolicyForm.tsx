@@ -394,7 +394,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
-    setState((prevState) => ({ ...prevState, step: 0 }));
+    setState((prevState) => ({ ...prevState, step: configuration ? 0 : 1 }));
 
     form.resetFields();
   }, [form, visible]);
