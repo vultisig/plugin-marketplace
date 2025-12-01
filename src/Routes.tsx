@@ -1,8 +1,8 @@
+import { FC, ReactNode } from "react";
 import {
-  BrowserRouter,
+  createBrowserRouter,
   Navigate,
-  Route,
-  Routes as ReactRoutes,
+  RouterProvider,
 } from "react-router-dom";
 
 import { useCore } from "@/hooks/useCore";
@@ -14,27 +14,32 @@ import { MyAppsPage } from "@/pages/MyApps";
 import { NotFoundPage } from "@/pages/NotFound";
 import { routeTree } from "@/utils/routes";
 
-export const Routes = () => {
+const ProtectedRoute: FC<{ children: ReactNode }> = ({ children }) => {
   const { isConnected } = useCore();
+  return isConnected ? children : <Navigate to={routeTree.root.path} replace />;
+};
 
-  return (
-    <BrowserRouter>
-      <ReactRoutes>
-        <Route path={routeTree.root.path} element={<DefaultLayout />}>
-          <Route element={<MainPage />} index />
-          <Route element={<AppPage />} path={routeTree.app.path} />
-          {isConnected ? (
-            <Route element={<MyAppsPage />} path={routeTree.myApps.path} />
-          ) : (
-            <Route
-              path={routeTree.myApps.path}
-              element={<Navigate to={routeTree.root.path} replace />}
-            />
-          )}
-          <Route element={<FaqPage />} path={routeTree.faq.path} />
-        </Route>
-        <Route path={routeTree.notFound.path} element={<NotFoundPage />} />
-      </ReactRoutes>
-    </BrowserRouter>
-  );
+export const Routes = () => {
+  const router = createBrowserRouter([
+    {
+      path: routeTree.root.path,
+      element: <DefaultLayout />,
+      children: [
+        { index: true, element: <MainPage /> },
+        { path: routeTree.app.path, element: <AppPage /> },
+        {
+          path: routeTree.myApps.path,
+          element: (
+            <ProtectedRoute>
+              <MyAppsPage />
+            </ProtectedRoute>
+          ),
+        },
+        { path: routeTree.faq.path, element: <FaqPage /> },
+      ],
+    },
+    { path: routeTree.notFound.path, element: <NotFoundPage /> },
+  ]);
+
+  return <RouterProvider router={router} />;
 };

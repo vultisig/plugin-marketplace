@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { useCore } from "@/hooks/useCore";
@@ -29,6 +30,8 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
 
   return (
     <Stack
+      as={Link}
+      to={routeTree.app.link(id)}
       $style={{
         border: `solid 1px ${colors.borderNormal.toHex()}`,
         borderRadius: "24px",
@@ -146,7 +149,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               <Stack as="span">{t("isFreeApp")}</Stack>
             )}
           </VStack>
-          <Button href={routeTree.app.link(id)}>{t("seeDetails")}</Button>
+          <Button>{t("seeDetails")}</Button>
         </VStack>
       </VStack>
     </Stack>

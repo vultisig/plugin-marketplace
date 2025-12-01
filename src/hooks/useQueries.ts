@@ -3,9 +3,11 @@ import { Address, createPublicClient, erc20Abi, http } from "viem";
 
 import {
   getApp,
+  getCategories,
   getJupiterToken,
   getJupiterTokens,
   getOneInchTokens,
+  getRecipeSpecification,
 } from "@/utils/api";
 import { Chain, EvmChain, evmChainInfo, evmChains } from "@/utils/chain";
 import { Token } from "@/utils/types";
@@ -16,7 +18,29 @@ export const useQueries = () => {
   const getAppData = async (id: string) => {
     return await queryClient.fetchQuery({
       queryKey: ["app", id.toLowerCase()],
-      queryFn: async () => await getApp(id),
+      queryFn: async () => {
+        return await getApp(id);
+      },
+      staleTime: Infinity,
+    });
+  };
+
+  const getAppSchema = async (id: string) => {
+    return await queryClient.fetchQuery({
+      queryKey: ["app", id.toLowerCase(), "schema"],
+      queryFn: async () => {
+        return await getRecipeSpecification(id);
+      },
+      staleTime: Infinity,
+    });
+  };
+
+  const getCategoryList = async () => {
+    return await queryClient.fetchQuery({
+      queryKey: ["categories"],
+      queryFn: async () => {
+        return await getCategories();
+      },
       staleTime: Infinity,
     });
   };
@@ -85,5 +109,11 @@ export const useQueries = () => {
     });
   };
 
-  return { getAppData, getTokenData, getTokenList };
+  return {
+    getAppData,
+    getAppSchema,
+    getCategoryList,
+    getTokenData,
+    getTokenList,
+  };
 };

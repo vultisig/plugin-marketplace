@@ -4,13 +4,19 @@ import axios, { AxiosRequestConfig } from "axios";
 
 import {
   PolicySchema,
+  PolicySuggest,
   PolicySuggestJson,
   PolicySuggestSchema,
 } from "@/proto/policy_pb";
 import { delToken, getToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
 import { EvmChain, evmChainInfo } from "@/utils/chain";
-import { defaultPageSize, storeApiUrl, vultiApiUrl } from "@/utils/constants";
+import {
+  defaultPageSize,
+  feeAppId,
+  storeApiUrl,
+  vultiApiUrl,
+} from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import { normalizeApp, toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
@@ -31,6 +37,8 @@ import {
   ReviewForm,
   Token,
 } from "@/utils/types";
+
+import { faqs } from "./mockData";
 
 const api = axios.create({ headers: { "Content-Type": "application/json" } });
 
@@ -67,6 +75,13 @@ api.interceptors.response.use(
     );
   }
 );
+
+const externalGet = async <T>(
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<T> => {
+  return await api.get<T>(url, config).then(({ data }) => toCamelCase(data));
+};
 
 const del = async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
   return api
@@ -115,16 +130,26 @@ export const delPolicy = async (id: string, signature: string) => {
   return del(`${storeApiUrl}/plugin/policy/${id}`, { data: { signature } });
 };
 
-export const getAuthToken = async (data: AuthToken) => {
-  return post<{ token: string }>(`${storeApiUrl}/auth`, toSnakeCase(data)).then(
-    ({ token }) => token
+export const getAuthToken = async (data: AuthToken): Promise<string> => {
+  const { token } = await post<{ token: string }>(
+    `${storeApiUrl}/auth`,
+    toSnakeCase(data)
   );
+  return token;
 };
 
-export const getApp = async (id: string) => {
-  return get<App>(`${storeApiUrl}/plugins/${id}`)
-    .then(normalizeApp)
-    .catch(() => undefined);
+export const getApp = async (id: string): Promise<App | undefined> => {
+  try {
+    const app = await get<App>(`${storeApiUrl}/plugins/${id}`);
+
+    const faq = faqs[id];
+
+    if (faq) return normalizeApp({ ...app, faqs: faq });
+
+    return normalizeApp(app);
+  } catch {
+    return undefined;
+  }
 };
 
 export const getApps = async ({
@@ -133,171 +158,217 @@ export const getApps = async ({
   sort = "-created_at",
   take = defaultPageSize,
   term,
-}: ListFilters & AppFilters) => {
-  return get<{ plugins: App[]; totalCount: number }>(`${storeApiUrl}/plugins`, {
-    params: toSnakeCase({ categoryId, skip, sort, take, term }),
-  })
-    .then(({ plugins = [], totalCount }) => ({
-      apps: plugins.map(normalizeApp),
+}: ListFilters & AppFilters): Promise<{ apps: App[]; totalCount: number }> => {
+  try {
+    const { plugins, totalCount } = await get<{
+      plugins: App[];
+      totalCount: number;
+    }>(`${storeApiUrl}/plugins`, {
+      params: toSnakeCase({ categoryId, skip, sort, take, term }),
+    });
+
+    if (!totalCount) return { apps: [], totalCount: 0 };
+
+    return {
+      apps: plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
       totalCount,
-    }))
-    .catch(() => ({ apps: [] as App[], totalCount: 0 }));
+    };
+  } catch {
+    return { apps: [], totalCount: 0 };
+  }
 };
 
-export const getBaseValue = async (currency: Currency) => {
-  if (currency === "usd") return Promise.resolve(1);
+export const getBaseValue = async (currency: Currency): Promise<number> => {
+  if (currency === "usd") return 1;
 
   const modifiedCurrency = currency.toUpperCase();
 
-  return get<{
-    data: {
-      [id: string]: { quote: { [currency: string]: { price: number } } };
-    };
-  }>(
-    `${vultiApiUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
-  )
-    .then(({ data }) => {
-      if (data && data[825]?.quote && data[825].quote[modifiedCurrency]) {
-        return data[825].quote[modifiedCurrency].price || 0;
-      } else {
-        return 0;
-      }
-    })
-    .catch(() => 0);
+  try {
+    const { data } = await externalGet<{
+      data: {
+        [id: string]: { quote: { [currency: string]: { price: number } } };
+      };
+    }>(
+      `${vultiApiUrl}/cmc/v2/cryptocurrency/quotes/latest?id=825&skip_invalid=true&aux=is_active&convert=${currency}`
+    );
+
+    const quote = data?.[825]?.quote?.[modifiedCurrency];
+
+    return quote?.price ?? 0;
+  } catch {
+    return 0;
+  }
 };
 
-export const getCategories = async () => {
-  return get<Category[]>(`${storeApiUrl}/categories`);
+export const getCategories = async (): Promise<Category[]> => {
+  try {
+    return await get<Category[]>(`${storeApiUrl}/categories`);
+  } catch {
+    return [];
+  }
 };
 
 export const getMyApps = async ({
   skip,
   take = defaultPageSize,
-}: ListFilters) => {
-  return get<{ plugins: App[]; totalCount: number }>(
-    `${storeApiUrl}/plugins/installed`,
-    { params: toSnakeCase({ skip, take }) }
-  ).then(({ plugins, totalCount }) => ({ apps: plugins, totalCount }));
+}: ListFilters): Promise<{ apps: App[]; totalCount: number }> => {
+  try {
+    const { plugins, totalCount } = await get<{
+      plugins: App[];
+      totalCount: number;
+    }>(`${storeApiUrl}/plugins/installed`, {
+      params: toSnakeCase({ skip, take }),
+    });
+
+    return { apps: plugins, totalCount };
+  } catch {
+    return { apps: [], totalCount: 0 };
+  }
 };
 
-export const getOneInchTokens = async (chain: EvmChain) => {
-  const tokens: Token[] = [];
-  const chainId = evmChainInfo[chain].id;
+export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
+  try {
+    const { tokens } = await externalGet<{
+      tokens: Record<string, OneInchToken>;
+    }>(`${vultiApiUrl}/1inch/swap/v6.0/${evmChainInfo[chain].id}/tokens`);
 
-  return get<{ tokens: Record<string, OneInchToken> }>(
-    `${vultiApiUrl}/1inch/swap/v6.0/${chainId}/tokens`
-  )
-    .then(({ tokens: oneInchTokens }) => {
-      Object.values(oneInchTokens).forEach((token) => {
-        tokens.push({
-          chain,
-          decimals: token.decimals,
-          id: token.address,
-          logo: token.logoURI || "",
-          name: token.name,
-          ticker: token.symbol,
-        });
-      });
-
-      return tokens;
-    })
-    .catch(() => tokens);
+    return Object.values(tokens).map((token) => ({
+      chain,
+      decimals: token.decimals,
+      id: token.address,
+      logo: token.logoURI || "",
+      name: token.name,
+      ticker: token.symbol,
+    }));
+  } catch {
+    return [];
+  }
 };
 
 export const getPolicies = async (
   appId: string,
   { skip, take = defaultPageSize }: ListFilters
-) => {
-  return get<{ policies: AppPolicy[]; totalCount: number }>(
-    `${storeApiUrl}/plugin/policies/${appId}`,
-    { params: toSnakeCase({ skip, take }) }
-  ).then(({ policies, totalCount }) => {
-    const modifiedPolicies: CustomAppPolicy[] =
-      policies?.map((policy) => {
-        const decoded = base64Decode(policy.recipe);
-        const parsedRecipe = fromBinary(PolicySchema, decoded);
+): Promise<{ policies: CustomAppPolicy[]; totalCount: number }> => {
+  try {
+    const { policies, totalCount } = await get<{
+      policies: AppPolicy[];
+      totalCount: number;
+    }>(`${storeApiUrl}/plugin/policies/${appId}`, {
+      params: toSnakeCase({ skip, take }),
+    });
 
-        return { ...policy, parsedRecipe };
-      }) || [];
+    if (!totalCount) return { policies: [], totalCount: 0 };
+
+    const modifiedPolicies: CustomAppPolicy[] = policies.map((policy) => {
+      const decoded = base64Decode(policy.recipe);
+      const parsedRecipe = fromBinary(PolicySchema, decoded);
+
+      return { ...policy, parsedRecipe };
+    });
 
     return { policies: modifiedPolicies, totalCount };
-  });
+  } catch {
+    return { policies: [], totalCount: 0 };
+  }
 };
 
-export const getRecipeSpecification = async (appId: string) => {
-  return get<RecipeSchema>(
-    `${storeApiUrl}/plugins/${appId}/recipe-specification`
-  ).catch(() => undefined);
+export const getRecipeSpecification = async (
+  appId: string
+): Promise<RecipeSchema | undefined> => {
+  try {
+    return await get<RecipeSchema>(
+      `${storeApiUrl}/plugins/${appId}/recipe-specification`
+    );
+  } catch {
+    return undefined;
+  }
 };
 
 export const getRecipeSuggestion = async (
   appId: string,
   configuration: JsonObject
-) => {
-  return post<PolicySuggestJson>(
-    `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
-    { configuration }
-  )
-    .then((suggest) => fromJson(PolicySuggestSchema, suggest))
-    .catch(() => fromJson(PolicySuggestSchema, {}));
+): Promise<PolicySuggest> => {
+  try {
+    const suggest = await post<PolicySuggestJson>(
+      `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
+      { configuration }
+    );
+
+    return fromJson(PolicySuggestSchema, suggest);
+  } catch {
+    return fromJson(PolicySuggestSchema, {});
+  }
 };
 
 export const getReviews = async (
   appId: string,
   { skip, take = defaultPageSize }: ListFilters
-) => {
-  return get<{ reviews: Review[]; totalCount: number }>(
-    `${storeApiUrl}/plugins/${appId}/reviews`,
-    { params: toSnakeCase({ skip, take }) }
-  ).then(({ reviews, totalCount }) => ({ reviews: reviews || [], totalCount }));
+): Promise<{ reviews: Review[]; totalCount: number }> => {
+  try {
+    const { reviews, totalCount } = await get<{
+      reviews: Review[];
+      totalCount: number;
+    }>(`${storeApiUrl}/plugins/${appId}/reviews`, {
+      params: toSnakeCase({ skip, take }),
+    });
+
+    if (!totalCount) return { reviews: [], totalCount: 0 };
+
+    return { reviews, totalCount };
+  } catch {
+    return { reviews: [], totalCount: 0 };
+  }
 };
 
-export const getJupiterToken = async (id: string) => {
-  return get<JupiterToken[]>(`${vultiApiUrl}/jup/tokens/v2/search?query=${id}`)
-    .then((jupiterTokens) => {
-      const [jupiterToken] = jupiterTokens;
+export const getJupiterToken = async (
+  id: string
+): Promise<Token | undefined> => {
+  try {
+    const [jupiterToken] = await externalGet<JupiterToken[]>(
+      `${vultiApiUrl}/jup/tokens/v2/search?query=${id}`
+    );
 
-      if (!jupiterToken) return undefined;
+    if (!jupiterToken) return undefined;
 
-      const token: Token = {
-        chain: "Solana",
-        decimals: jupiterToken.decimals,
-        id: jupiterToken.id,
-        logo: jupiterToken.icon || "",
-        name: jupiterToken.name,
-        ticker: jupiterToken.symbol,
-      };
-
-      return token;
-    })
-    .catch(() => undefined);
+    return {
+      chain: "Solana",
+      decimals: jupiterToken.decimals,
+      id: jupiterToken.id,
+      logo: jupiterToken.icon || "",
+      name: jupiterToken.name,
+      ticker: jupiterToken.symbol,
+    };
+  } catch {
+    return undefined;
+  }
 };
 
-export const getJupiterTokens = async () => {
-  const tokens: Token[] = [];
+export const getJupiterTokens = async (): Promise<Token[]> => {
+  try {
+    const jupiterTokens = await externalGet<JupiterToken[]>(
+      `${vultiApiUrl}/jup/tokens/v2/tag?query=verified`
+    );
 
-  return get<JupiterToken[]>(`${vultiApiUrl}/jup/tokens/v2/tag?query=verified`)
-    .then((jupiterTokens) => {
-      jupiterTokens.forEach((token) => {
-        tokens.push({
-          chain: "Solana",
-          decimals: token.decimals,
-          id: token.id,
-          logo: token.icon || "",
-          name: token.name,
-          ticker: token.symbol,
-        });
-      });
-
-      return tokens;
-    })
-    .catch(() => tokens);
+    return jupiterTokens.map((token) => ({
+      chain: "Solana",
+      decimals: token.decimals,
+      id: token.id,
+      logo: token.icon || "",
+      name: token.name,
+      ticker: token.symbol,
+    }));
+  } catch {
+    return [];
+  }
 };
 
-export const isAppInstalled = async (id: string) => {
-  return get(`${storeApiUrl}/vault/exist/${id}/${getVaultId()}`)
-    .then(() => true)
-    .catch(() => false);
+export const isAppInstalled = async (id: string): Promise<boolean> => {
+  try {
+    await get(`${storeApiUrl}/vault/exist/${id}/${getVaultId()}`);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 export const reshareVault = async (data: ReshareForm) => {
