@@ -32,7 +32,6 @@ import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
-import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
 import { modalHash } from "@/utils/constants";
@@ -512,237 +511,223 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           layout="vertical"
           onFinish={onFinishSuccess}
         >
-          {schema ? (
-            <>
-              {configuration && (
-                <Stack
-                  $style={{
-                    columnGap: "24px",
-                    display: step === 0 ? "grid" : "none",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
-                >
-                  {renderConfiguration(configuration)}
-                </Stack>
-              )}
-              <Stack $style={{ display: step === 1 ? "block" : "none" }}>
-                <Form.List
-                  name="rules"
-                  rules={[
-                    {
-                      validator: async (_, rules) => {
-                        if (step > 0 && (!rules || rules.length < 1)) {
-                          return Promise.reject(
-                            new Error(t("ruleValidationError"))
-                          );
-                        }
-                      },
-                    },
-                  ]}
-                >
-                  {(fields, { add, remove }, { errors }) => (
-                    <VStack $style={{ gap: "24px" }}>
-                      {fields.map(({ key, name, ...restField }) => (
-                        <Fragment key={`${name}-${key}`}>
-                          <VStack>
-                            <Stack
-                              $style={{
-                                columnGap: "16px",
-                                display: "grid",
-                                gridTemplateColumns: "repeat(2, 1fr)",
-                              }}
-                            >
-                              <Form.Item
-                                name={[name, "resource"]}
-                                label={t("supportedResource")}
-                                rules={[{ required: step > 0 }]}
-                                {...restField}
-                              >
-                                <Select
-                                  options={supportedResources.map(
-                                    (resource) => ({
-                                      label: resource.resourcePath?.full,
-                                      value: resource.resourcePath?.full,
-                                    })
-                                  )}
-                                />
-                              </Form.Item>
-                              <Form.Item<FormFieldType>
-                                shouldUpdate={(prev, current) =>
-                                  prev.rules[name]?.resource !==
-                                  current.rules[name]?.resource
-                                }
-                                noStyle
-                              >
-                                {({ getFieldsValue }) => {
-                                  const { rules = [] } = getFieldsValue();
-                                  const { resource } = rules[name] || {};
-                                  const supportedResource =
-                                    supportedResources.find(
-                                      ({ resourcePath }) =>
-                                        resourcePath?.full === resource
-                                    );
-
-                                  if (!supportedResource) return null;
-
-                                  return (
-                                    <>
-                                      {supportedResource.parameterCapabilities
-                                        .filter(
-                                          ({ supportedTypes }) =>
-                                            supportedTypes !==
-                                            ConstraintType.ANY
-                                        )
-                                        .map(({ parameterName, required }) => (
-                                          <Form.Item
-                                            key={parameterName}
-                                            label={snakeCaseToTitle(
-                                              parameterName
-                                            )}
-                                            name={[name, parameterName]}
-                                            rules={[
-                                              {
-                                                required: step > 0 && required,
-                                              },
-                                            ]}
-                                          >
-                                            <Input />
-                                          </Form.Item>
-                                        ))}
-                                      {supportedResource.target ===
-                                        TargetType.ADDRESS && (
-                                        <Form.Item
-                                          label={t("target")}
-                                          name={[name, "target"]}
-                                          rules={[{ required: step > 0 }]}
-                                        >
-                                          <Input />
-                                        </Form.Item>
-                                      )}
-                                      <Stack
-                                        as={Form.Item}
-                                        name={[name, "description"]}
-                                        label={t("description")}
-                                        $style={{ gridColumn: "1 / -1" }}
-                                      >
-                                        <Input.TextArea />
-                                      </Stack>
-                                    </>
-                                  );
-                                }}
-                              </Form.Item>
-                            </Stack>
-                            <Stack
-                              $style={{
-                                alignItems: "center",
-                                display: "flex",
-                                flexDirection: "row-reverse",
-                                justifyContent: "space-between",
-                              }}
-                            >
-                              {fields.length > 1 && (
-                                <Button
-                                  icon={<TrashIcon fontSize={16} />}
-                                  kind="danger"
-                                  onClick={() => remove(name)}
-                                  ghost
-                                />
-                              )}
-                              <Form.Item<FormFieldType>
-                                shouldUpdate={(prev, current) =>
-                                  prev.rules[name]?.resource !==
-                                  current.rules[name]?.resource
-                                }
-                                noStyle
-                              >
-                                {({ getFieldsValue }) => {
-                                  const { rules = [] } = getFieldsValue();
-                                  const { resource } = rules[name] || {};
-                                  const supportedResource =
-                                    supportedResources.find(
-                                      ({ resourcePath }) =>
-                                        resourcePath?.full === resource
-                                    );
-
-                                  if (!supportedResource) return null;
-
-                                  return supportedResource.resourcePath ? (
-                                    <HStack $style={{ gap: "8px" }}>
-                                      {[
-                                        ...(supportedResource.resourcePath
-                                          .chainId
-                                          ? [
-                                              `Chain: ${camelCaseToTitle(
-                                                supportedResource.resourcePath
-                                                  .chainId
-                                              )}`,
-                                            ]
-                                          : []),
-                                        ...(supportedResource.resourcePath
-                                          .protocolId
-                                          ? [
-                                              `Protocol: ${camelCaseToTitle(
-                                                supportedResource.resourcePath
-                                                  .protocolId
-                                              )}`,
-                                            ]
-                                          : []),
-                                        ...(supportedResource.resourcePath
-                                          .functionId
-                                          ? [
-                                              `Function: ${camelCaseToTitle(
-                                                supportedResource.resourcePath
-                                                  .functionId
-                                              )}`,
-                                            ]
-                                          : []),
-                                      ].map((item, index) => (
-                                        <Stack
-                                          as="span"
-                                          key={index}
-                                          $style={{
-                                            backgroundColor:
-                                              colors.bgSecondary.toHex(),
-                                            borderRadius: "6px",
-                                            color: colors.textPrimary.toHex(),
-                                            display: "inline-flex",
-                                            fontSize: "12px",
-                                            lineHeight: "24px",
-                                            padding: "0 8px",
-                                          }}
-                                        >
-                                          {item}
-                                        </Stack>
-                                      ))}
-                                    </HStack>
-                                  ) : (
-                                    <></>
-                                  );
-                                }}
-                              </Form.Item>
-                            </Stack>
-                          </VStack>
-                          <Divider light />
-                        </Fragment>
-                      ))}
-                      <VStack>
-                        {errors.length > 0 && (
-                          <Stack as={Form.Item} $style={{ margin: "0" }}>
-                            <Form.ErrorList errors={errors} />
-                          </Stack>
-                        )}
-                        <Button onClick={() => add({})} kind="secondary">
-                          {t("addRule")}
-                        </Button>
-                      </VStack>
-                    </VStack>
-                  )}
-                </Form.List>
-              </Stack>
-            </>
-          ) : (
-            <Spin centered />
+          {configuration && (
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: step === 0 ? "grid" : "none",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
+            >
+              {renderConfiguration(configuration)}
+            </Stack>
           )}
+          <Stack $style={{ display: step === 1 ? "block" : "none" }}>
+            <Form.List
+              name="rules"
+              rules={[
+                {
+                  validator: async (_, rules) => {
+                    if (step > 0 && (!rules || rules.length < 1)) {
+                      return Promise.reject(
+                        new Error(t("ruleValidationError"))
+                      );
+                    }
+                  },
+                },
+              ]}
+            >
+              {(fields, { add, remove }, { errors }) => (
+                <VStack $style={{ gap: "24px" }}>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <Fragment key={`${name}-${key}`}>
+                      <VStack>
+                        <Stack
+                          $style={{
+                            columnGap: "16px",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(2, 1fr)",
+                          }}
+                        >
+                          <Form.Item
+                            name={[name, "resource"]}
+                            label={t("supportedResource")}
+                            rules={[{ required: step > 0 }]}
+                            {...restField}
+                          >
+                            <Select
+                              options={supportedResources.map((resource) => ({
+                                label: resource.resourcePath?.full,
+                                value: resource.resourcePath?.full,
+                              }))}
+                            />
+                          </Form.Item>
+                          <Form.Item<FormFieldType>
+                            shouldUpdate={(prev, current) =>
+                              prev.rules[name]?.resource !==
+                              current.rules[name]?.resource
+                            }
+                            noStyle
+                          >
+                            {({ getFieldsValue }) => {
+                              const { rules = [] } = getFieldsValue();
+                              const { resource } = rules[name] || {};
+                              const supportedResource = supportedResources.find(
+                                ({ resourcePath }) =>
+                                  resourcePath?.full === resource
+                              );
+
+                              if (!supportedResource) return null;
+
+                              return (
+                                <>
+                                  {supportedResource.parameterCapabilities
+                                    .filter(
+                                      ({ supportedTypes }) =>
+                                        supportedTypes !== ConstraintType.ANY
+                                    )
+                                    .map(({ parameterName, required }) => (
+                                      <Form.Item
+                                        key={parameterName}
+                                        label={snakeCaseToTitle(parameterName)}
+                                        name={[name, parameterName]}
+                                        rules={[
+                                          {
+                                            required: step > 0 && required,
+                                          },
+                                        ]}
+                                      >
+                                        <Input />
+                                      </Form.Item>
+                                    ))}
+                                  {supportedResource.target ===
+                                    TargetType.ADDRESS && (
+                                    <Form.Item
+                                      label={t("target")}
+                                      name={[name, "target"]}
+                                      rules={[{ required: step > 0 }]}
+                                    >
+                                      <Input />
+                                    </Form.Item>
+                                  )}
+                                  <Stack
+                                    as={Form.Item}
+                                    name={[name, "description"]}
+                                    label={t("description")}
+                                    $style={{ gridColumn: "1 / -1" }}
+                                  >
+                                    <Input.TextArea />
+                                  </Stack>
+                                </>
+                              );
+                            }}
+                          </Form.Item>
+                        </Stack>
+                        <Stack
+                          $style={{
+                            alignItems: "center",
+                            display: "flex",
+                            flexDirection: "row-reverse",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          {fields.length > 1 && (
+                            <Button
+                              icon={<TrashIcon fontSize={16} />}
+                              kind="danger"
+                              onClick={() => remove(name)}
+                              ghost
+                            />
+                          )}
+                          <Form.Item<FormFieldType>
+                            shouldUpdate={(prev, current) =>
+                              prev.rules[name]?.resource !==
+                              current.rules[name]?.resource
+                            }
+                            noStyle
+                          >
+                            {({ getFieldsValue }) => {
+                              const { rules = [] } = getFieldsValue();
+                              const { resource } = rules[name] || {};
+                              const supportedResource = supportedResources.find(
+                                ({ resourcePath }) =>
+                                  resourcePath?.full === resource
+                              );
+
+                              if (!supportedResource) return null;
+
+                              return supportedResource.resourcePath ? (
+                                <HStack $style={{ gap: "8px" }}>
+                                  {[
+                                    ...(supportedResource.resourcePath.chainId
+                                      ? [
+                                          `Chain: ${camelCaseToTitle(
+                                            supportedResource.resourcePath
+                                              .chainId
+                                          )}`,
+                                        ]
+                                      : []),
+                                    ...(supportedResource.resourcePath
+                                      .protocolId
+                                      ? [
+                                          `Protocol: ${camelCaseToTitle(
+                                            supportedResource.resourcePath
+                                              .protocolId
+                                          )}`,
+                                        ]
+                                      : []),
+                                    ...(supportedResource.resourcePath
+                                      .functionId
+                                      ? [
+                                          `Function: ${camelCaseToTitle(
+                                            supportedResource.resourcePath
+                                              .functionId
+                                          )}`,
+                                        ]
+                                      : []),
+                                  ].map((item, index) => (
+                                    <Stack
+                                      as="span"
+                                      key={index}
+                                      $style={{
+                                        backgroundColor:
+                                          colors.bgSecondary.toHex(),
+                                        borderRadius: "6px",
+                                        color: colors.textPrimary.toHex(),
+                                        display: "inline-flex",
+                                        fontSize: "12px",
+                                        lineHeight: "24px",
+                                        padding: "0 8px",
+                                      }}
+                                    >
+                                      {item}
+                                    </Stack>
+                                  ))}
+                                </HStack>
+                              ) : (
+                                <></>
+                              );
+                            }}
+                          </Form.Item>
+                        </Stack>
+                      </VStack>
+                      <Divider light />
+                    </Fragment>
+                  ))}
+                  <VStack>
+                    {errors.length > 0 && (
+                      <Stack as={Form.Item} $style={{ margin: "0" }}>
+                        <Form.ErrorList errors={errors} />
+                      </Stack>
+                    )}
+                    <Button onClick={() => add({})} kind="secondary">
+                      {t("addRule")}
+                    </Button>
+                  </VStack>
+                </VStack>
+              )}
+            </Form.List>
+          </Stack>
         </Form>
       </VStack>
     </Modal>
