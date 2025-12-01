@@ -1,16 +1,7 @@
 import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
-import {
-  Form,
-  FormProps,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-  Table,
-  TableProps,
-} from "antd";
+import { Form, FormProps, Input, Modal, Select, Table, TableProps } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { FC, Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,11 +43,10 @@ import {
   getPolicies,
   getRecipeSuggestion,
 } from "@/utils/api";
-import { feeAppId, modalHash } from "@/utils/constants";
+import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
-  formatDuration,
   getFieldRef,
   policyToHexMessage,
   snakeCaseToTitle,
@@ -79,9 +69,6 @@ type RuleFieldType = {
 } & Record<string, string>;
 
 type FormFieldType = {
-  description?: string;
-  maxTxsPerWindow: number;
-  rateLimitWindow: number;
   rules: RuleFieldType[];
 } & JsonObject;
 
@@ -158,10 +145,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   const definitions = useMemo(() => {
     return schema.configuration?.definitions;
   }, [schema]);
-
-  const isFeesApp = useMemo(() => {
-    return id === feeAppId;
-  }, [id]);
 
   const properties = useMemo(() => {
     return schema.configuration?.properties;
@@ -261,9 +244,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   };
 
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
-    description = "",
-    maxTxsPerWindow,
-    rateLimitWindow,
     rules = [],
     ...values
   }) => {
@@ -277,7 +257,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
             schema.configuration
               ? getConfiguration(schema.configuration, values)
               : {}
-          ).then(({ maxTxsPerWindow = 2, rateLimitWindow, rules = [] }) => {
+          ).then(({ rules = [] }) => {
             const formRules = rules.map(
               ({ parameterConstraints, resource, target }) => {
                 const params: RuleFieldType = { resource };
@@ -298,8 +278,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
               }
             );
 
-            form.setFieldValue("maxTxsPerWindow", maxTxsPerWindow);
-            form.setFieldValue("rateLimitWindow", rateLimitWindow);
             form.setFieldValue("rules", formRules);
 
             setState((prevState) => ({
@@ -308,11 +286,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
               step: 1,
             }));
           });
-
-          break;
-        }
-        case 1: {
-          setState((prevState) => ({ ...prevState, step: 2 }));
 
           break;
         }
@@ -325,7 +298,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
               configuration: schema.configuration
                 ? getConfiguration(schema.configuration, values)
                 : undefined,
-              description,
+              description: "",
               feePolicies: pricing.map((price) => {
                 let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
                 let type = FeeType.FEE_TYPE_UNSPECIFIED;
@@ -367,7 +340,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                 });
               }),
               id: schema.pluginId,
-              maxTxsPerWindow,
               name: schema.pluginName,
               rules: rules
                 .filter(
@@ -424,7 +396,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                     }),
                   });
                 }),
-              rateLimitWindow,
               version: schema.pluginVersion,
             });
 
@@ -522,7 +493,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
 
       return (
         <DynamicFormItem
-          disabled={isFeesApp}
           key={key}
           label={camelCaseToTitle(key)}
           name={fullKey}
@@ -789,7 +759,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
         width={992}
       >
         <VStack $style={{ flex: "none", gap: "16px", width: "218px" }}>
-          {["Configuration", "Rules", "Scheduling"].map((item, index) => {
+          {["Configuration", "Rules"].map((item, index) => {
             const disabled = step < index;
             const passed = step > index;
 
@@ -852,22 +822,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
             form={form}
             layout="vertical"
             onFinish={onFinishSuccess}
-            initialValues={
-              isFeesApp
-                ? {
-                    maxTxsPerWindow: 2,
-                    rateLimitWindow: 2,
-                    rules: [
-                      {
-                        resource: "ethereum.erc20.transfer",
-                        target: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-                        amount: "500000000",
-                        recipient: "1",
-                      },
-                    ],
-                  }
-                : {}
-            }
           >
             {schema ? (
               <>
@@ -916,7 +870,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                   {...restField}
                                 >
                                   <Select
-                                    disabled={isFeesApp}
                                     options={schema.supportedResources.map(
                                       (resource) => ({
                                         label: resource.resourcePath?.full,
@@ -966,7 +919,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                                   },
                                                 ]}
                                               >
-                                                <Input disabled={isFeesApp} />
+                                                <Input />
                                               </Form.Item>
                                             )
                                           )}
@@ -977,7 +930,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                             name={[name, "target"]}
                                             rules={[{ required: step > 0 }]}
                                           >
-                                            <Input disabled={isFeesApp} />
+                                            <Input />
                                           </Form.Item>
                                         )}
                                         <Stack
@@ -1092,77 +1045,13 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                               <Form.ErrorList errors={errors} />
                             </Stack>
                           )}
-                          <Button
-                            disabled={isFeesApp}
-                            onClick={() => add({})}
-                            kind="secondary"
-                          >
+                          <Button onClick={() => add({})} kind="secondary">
                             {t("addRule")}
                           </Button>
                         </VStack>
                       </VStack>
                     )}
                   </Form.List>
-                </Stack>
-                <Stack
-                  $style={{
-                    columnGap: "16px",
-                    display: step === 2 ? "grid" : "none",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
-                >
-                  <Form.Item<FormFieldType>
-                    shouldUpdate={(prev, current) =>
-                      prev.maxTxsPerWindow !== current.maxTxsPerWindow ||
-                      prev.rateLimitWindow !== current.rateLimitWindow
-                    }
-                    noStyle
-                  >
-                    {({ getFieldsValue }) => {
-                      const { maxTxsPerWindow, rateLimitWindow } =
-                        getFieldsValue();
-
-                      return (
-                        <Stack
-                          $style={{
-                            gridColumn: "1 / -1",
-                            marginBottom: "24px",
-                            textAlign: "center",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {`${t("policyMaxTxs", { count: maxTxsPerWindow })}${
-                            rateLimitWindow
-                              ? ` ${t("policyRateLimit", {
-                                  duration: formatDuration(rateLimitWindow),
-                                })}`
-                              : "."
-                          }`}
-                        </Stack>
-                      );
-                    }}
-                  </Form.Item>
-                  <Form.Item<FormFieldType>
-                    name="maxTxsPerWindow"
-                    label={t("maxTransactions")}
-                  >
-                    <InputNumber disabled={isFeesApp} min={1} />
-                  </Form.Item>
-                  <Form.Item<FormFieldType>
-                    name="rateLimitWindow"
-                    label={`${t("rateLimit")} (${t("seconds")})`}
-                  >
-                    <InputNumber disabled={isFeesApp} min={1} />
-                  </Form.Item>
-
-                  <Stack
-                    as={Form.Item<FormFieldType>}
-                    name="description"
-                    label={t("description")}
-                    $style={{ gridColumn: "1 / -1" }}
-                  >
-                    <Input.TextArea />
-                  </Stack>
                 </Stack>
               </>
             ) : (
