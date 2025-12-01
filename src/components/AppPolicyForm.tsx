@@ -3,7 +3,7 @@ import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { Form, FormProps, Input, Modal, Select } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { FC, Fragment, useEffect, useMemo, useState } from "react";
+import { FC, Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -74,30 +74,27 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   schema,
 }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<StateProps>({ step: 0 });
+  const [state, setState] = useState<StateProps>({
+    step: schema.configuration ? 0 : 1,
+  });
   const { step, submitting } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing, title } = app;
+  const {
+    configuration,
+    pluginId,
+    pluginName,
+    pluginVersion,
+    requirements,
+    supportedResources,
+  } = schema;
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
   const colors = useTheme();
-
-  const definitions = useMemo(() => {
-    return schema.configuration?.definitions;
-  }, [schema]);
-
-  const properties = useMemo(() => {
-    return schema.configuration?.properties;
-  }, [schema]);
-
-  const supportedChains = useMemo(() => {
-    return schema.requirements?.supportedChains || [];
-  }, [schema]);
-
-  const visible = useMemo(() => {
-    return hash === modalHash.policy;
-  }, [hash]);
+  const definitions = configuration?.definitions;
+  const supportedChains = requirements?.supportedChains || [];
+  const visible = hash === modalHash.policy;
 
   const getConfiguration = (
     configuration: Configuration,
@@ -127,9 +124,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   };
 
   const handleStepBack = (step: number) => {
-    if (step > 1) {
-      setState((prevState) => ({ ...prevState, step: 1 }));
-    } else if (properties && step > 0) {
+    if (configuration && step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
     } else {
       onClose();
@@ -141,8 +136,8 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
 
     const jsonData = create(PolicySchema, {
       author: "",
-      configuration: schema.configuration
-        ? getConfiguration(schema.configuration, values)
+      configuration: configuration
+        ? getConfiguration(configuration, values)
         : undefined,
       description: "",
       feePolicies: pricing.map((price) => {
@@ -185,12 +180,12 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           type,
         });
       }),
-      id: schema.pluginId,
-      name: schema.pluginName,
+      id: pluginId,
+      name: pluginName,
       rules: rules
         .filter(
           ({ resource }) =>
-            schema.supportedResources.findIndex(
+            supportedResources.findIndex(
               ({ resourcePath }) => resourcePath?.full === resource
             ) >= 0
         )
@@ -199,7 +194,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
             parameterCapabilities,
             resourcePath,
             target: targetType,
-          } = schema.supportedResources.find(
+          } = supportedResources.find(
             ({ resourcePath }) => resourcePath?.full === resource
           )!;
 
@@ -242,7 +237,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
             }),
           });
         }),
-      version: schema.pluginVersion,
+      version: pluginVersion,
     });
 
     const binary = toBinary(PolicySchema, jsonData);
@@ -253,7 +248,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       active: true,
       id: uuidv4(),
       pluginId: id,
-      pluginVersion: String(schema.pluginVersion),
+      pluginVersion: String(pluginVersion),
       policyVersion: 0,
       publicKey: getVaultId(),
       recipe,
@@ -265,22 +260,15 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       .then((signature) => {
         addPolicy({ ...policy, signature })
           .then(() => {
-            setState((prevState) => ({
-              ...prevState,
-              submitting: false,
-            }));
-
             form.resetFields();
 
             onClose(true);
           })
           .catch((error: Error) => {
             messageAPI.error(error.message);
-
-            setState((prevState) => ({
-              ...prevState,
-              submitting: false,
-            }));
+          })
+          .finally(() => {
+            setState((prevState) => ({ ...prevState, submitting: false }));
           });
       })
       .catch((error: Error) => {
@@ -297,48 +285,48 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     if (!submitting) {
       switch (step) {
         case 0: {
-          if (!schema.configuration) return;
+          if (!configuration) return;
 
           setState((prevState) => ({ ...prevState, submitting: true }));
 
-          getRecipeSuggestion(
-            id,
-            getConfiguration(schema.configuration, values)
-          ).then(({ rules = [] }) => {
-            const formRules = rules.map(
-              ({ parameterConstraints, resource, target }) => {
-                const params: RuleFieldType = { resource };
+          getRecipeSuggestion(id, getConfiguration(configuration, values)).then(
+            ({ rules = [] }) => {
+              const formRules = rules.map(
+                ({ parameterConstraints, resource, target }) => {
+                  const params: RuleFieldType = { resource };
 
-                if (target?.target?.value) {
-                  params.target = target.target.value as string;
-                }
-
-                parameterConstraints.forEach(
-                  ({ constraint, parameterName }) => {
-                    if (constraint?.value?.value) {
-                      params[parameterName] = constraint.value.value as string;
-                    }
+                  if (target?.target?.value) {
+                    params.target = target.target.value as string;
                   }
-                );
 
-                return params;
+                  parameterConstraints.forEach(
+                    ({ constraint, parameterName }) => {
+                      if (constraint?.value?.value) {
+                        params[parameterName] = constraint.value
+                          .value as string;
+                      }
+                    }
+                  );
+
+                  return params;
+                }
+              );
+
+              if (formRules.length > 0) {
+                form.setFieldValue("rules", formRules);
+
+                handleSubmit({ rules: formRules, ...values });
+
+                setState((prevState) => ({ ...prevState, step: 1 }));
+              } else {
+                setState((prevState) => ({
+                  ...prevState,
+                  submitting: false,
+                  step: 1,
+                }));
               }
-            );
-
-            if (formRules.length > 0) {
-              form.setFieldValue("rules", formRules);
-
-              handleSubmit({ rules: formRules, ...values });
-
-              setState((prevState) => ({ ...prevState, step: 1 }));
-            } else {
-              setState((prevState) => ({
-                ...prevState,
-                submitting: false,
-                step: 1,
-              }));
             }
-          });
+          );
 
           break;
         }
@@ -405,23 +393,25 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   };
 
   useEffect(() => {
-    if (visible) {
-      setState((prevState) => ({ ...prevState, step: 0 }));
+    if (!visible) return;
 
-      form.resetFields();
-    }
+    setState((prevState) => ({ ...prevState, step: 0 }));
+
+    form.resetFields();
   }, [form, visible]);
 
   return (
     <Modal
       centered={true}
-      closeIcon={step > 0 ? <ChevronLeftIcon /> : <CrossIcon />}
+      closeIcon={
+        configuration && step > 0 ? <ChevronLeftIcon /> : <CrossIcon />
+      }
       footer={
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button loading={submitting} onClick={() => form.submit()}>
-              {step < 2 ? t("continue") : t("submit")}
+              {step < 1 ? t("continue") : t("submit")}
             </Button>
           </HStack>
         </>
@@ -525,7 +515,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
         >
           {schema ? (
             <>
-              {schema.configuration && (
+              {configuration && (
                 <Stack
                   $style={{
                     columnGap: "24px",
@@ -533,7 +523,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                     gridTemplateColumns: "repeat(2, 1fr)",
                   }}
                 >
-                  {renderConfiguration(schema.configuration)}
+                  {renderConfiguration(configuration)}
                 </Stack>
               )}
               <Stack $style={{ display: step === 1 ? "block" : "none" }}>
@@ -570,7 +560,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                                 {...restField}
                               >
                                 <Select
-                                  options={schema.supportedResources.map(
+                                  options={supportedResources.map(
                                     (resource) => ({
                                       label: resource.resourcePath?.full,
                                       value: resource.resourcePath?.full,
@@ -589,7 +579,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                                   const { rules = [] } = getFieldsValue();
                                   const { resource } = rules[name] || {};
                                   const supportedResource =
-                                    schema.supportedResources.find(
+                                    supportedResources.find(
                                       ({ resourcePath }) =>
                                         resourcePath?.full === resource
                                     );
@@ -670,7 +660,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                                   const { rules = [] } = getFieldsValue();
                                   const { resource } = rules[name] || {};
                                   const supportedResource =
-                                    schema.supportedResources.find(
+                                    supportedResources.find(
                                       ({ resourcePath }) =>
                                         resourcePath?.full === resource
                                     );
