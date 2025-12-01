@@ -131,7 +131,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     }
   };
 
-  const handleSubmit = ({ rules, ...values }: FormFieldType) => {
+  const handleSign = (values: JsonObject, rules: RuleFieldType[]) => {
     setState((prevState) => ({ ...prevState, submitting: true }));
 
     const jsonData = create(PolicySchema, {
@@ -208,7 +208,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                 create(ParameterConstraintSchema, {
                   constraint: create(ConstraintSchema, {
                     denominatedIn:
-                      resourcePath?.chainId.toLowerCase() === "ethereum"
+                      resourcePath?.chainId?.toLowerCase() === "ethereum"
                         ? "wei"
                         : "",
                     period: "",
@@ -278,63 +278,62 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       });
   };
 
+  const handleSuggest = (values: JsonObject) => {
+    if (!configuration) return;
+
+    setState((prevState) => ({ ...prevState, submitting: true }));
+
+    getRecipeSuggestion(id, getConfiguration(configuration, values)).then(
+      ({ rules = [] }) => {
+        const formRules = rules.map(
+          ({ parameterConstraints, resource, target }) => {
+            const params: RuleFieldType = { resource };
+
+            if (target?.target?.value) {
+              params.target = target.target.value as string;
+            }
+
+            parameterConstraints.forEach(({ constraint, parameterName }) => {
+              if (constraint?.value?.value) {
+                params[parameterName] = constraint.value.value as string;
+              }
+            });
+
+            return params;
+          }
+        );
+
+        if (formRules.length > 0) {
+          form.setFieldValue("rules", formRules);
+
+          handleSign(values, formRules);
+
+          setState((prevState) => ({ ...prevState, step: 1 }));
+        } else {
+          setState((prevState) => ({
+            ...prevState,
+            submitting: false,
+            step: 1,
+          }));
+        }
+      }
+    );
+  };
+
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
     rules = [],
     ...values
   }) => {
-    if (!submitting) {
-      switch (step) {
-        case 0: {
-          if (!configuration) return;
+    switch (step) {
+      case 0: {
+        handleSuggest(values);
 
-          setState((prevState) => ({ ...prevState, submitting: true }));
+        break;
+      }
+      default: {
+        handleSign(values, rules);
 
-          getRecipeSuggestion(id, getConfiguration(configuration, values)).then(
-            ({ rules = [] }) => {
-              const formRules = rules.map(
-                ({ parameterConstraints, resource, target }) => {
-                  const params: RuleFieldType = { resource };
-
-                  if (target?.target?.value) {
-                    params.target = target.target.value as string;
-                  }
-
-                  parameterConstraints.forEach(
-                    ({ constraint, parameterName }) => {
-                      if (constraint?.value?.value) {
-                        params[parameterName] = constraint.value
-                          .value as string;
-                      }
-                    }
-                  );
-
-                  return params;
-                }
-              );
-
-              if (formRules.length > 0) {
-                form.setFieldValue("rules", formRules);
-
-                handleSubmit({ rules: formRules, ...values });
-
-                setState((prevState) => ({ ...prevState, step: 1 }));
-              } else {
-                setState((prevState) => ({
-                  ...prevState,
-                  submitting: false,
-                  step: 1,
-                }));
-              }
-            }
-          );
-
-          break;
-        }
-        default: {
-          handleSubmit({ rules, ...values });
-
-          break;
-        }
+        break;
       }
     }
   };
