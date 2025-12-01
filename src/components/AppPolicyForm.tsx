@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
+import { parseUnits } from "viem";
 
 import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { useAntd } from "@/hooks/useAntd";
@@ -282,41 +283,49 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
 
     setState((prevState) => ({ ...prevState, submitting: true }));
 
-    getRecipeSuggestion(id, getConfiguration(configuration, values)).then(
-      ({ rules = [] }) => {
-        const formRules = rules.map(
-          ({ parameterConstraints, resource, target }) => {
-            const params: RuleFieldType = { resource };
+    const configurationData = getConfiguration(configuration, values);
 
-            if (target?.target?.value) {
-              params.target = target.target.value as string;
-            }
+    // TODO: move amount to asset widget
+    if ("from" in values && "fromAmount" in values) {
+      configurationData["fromAmount"] = parseUnits(
+        values.fromAmount as string,
+        (values.from as JsonObject).decimals as number
+      ).toString();
+    }
 
-            parameterConstraints.forEach(({ constraint, parameterName }) => {
-              if (constraint?.value?.value) {
-                params[parameterName] = constraint.value.value as string;
-              }
-            });
+    getRecipeSuggestion(id, configurationData).then(({ rules = [] }) => {
+      const formRules = rules.map(
+        ({ parameterConstraints, resource, target }) => {
+          const params: RuleFieldType = { resource };
 
-            return params;
+          if (target?.target?.value) {
+            params.target = target.target.value as string;
           }
-        );
 
-        if (formRules.length > 0) {
-          form.setFieldValue("rules", formRules);
+          parameterConstraints.forEach(({ constraint, parameterName }) => {
+            if (constraint?.value?.value) {
+              params[parameterName] = constraint.value.value as string;
+            }
+          });
 
-          handleSign(values, formRules);
-
-          setState((prevState) => ({ ...prevState, step: 1 }));
-        } else {
-          setState((prevState) => ({
-            ...prevState,
-            submitting: false,
-            step: 1,
-          }));
+          return params;
         }
+      );
+
+      if (formRules.length > 0) {
+        form.setFieldValue("rules", formRules);
+
+        handleSign(values, formRules);
+
+        setState((prevState) => ({ ...prevState, step: 1 }));
+      } else {
+        setState((prevState) => ({
+          ...prevState,
+          submitting: false,
+          step: 1,
+        }));
       }
-    );
+    });
   };
 
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
