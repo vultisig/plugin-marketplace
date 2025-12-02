@@ -265,7 +265,7 @@ export const AppReviews: FC<App> = ({
             borderRadius: 12,
             padding: 24,
           },
-          content: { display: "flex", flexDirection: "column", gap: "20px" },
+          container: { display: "flex", flexDirection: "column", gap: "20px" },
           footer: { display: "flex", justifyContent: "center", margin: 0 },
           header: { margin: 0 },
         }}

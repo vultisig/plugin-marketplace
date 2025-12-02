@@ -54,7 +54,6 @@ export const DefaultLayout = () => {
     ...(isConnected
       ? [
           {
-            disabled: true,
             icon: <CreditCardIcon />,
             key: "1",
             label: t("billing"),
@@ -263,8 +262,8 @@ export const DefaultLayout = () => {
           </HStack>
           <Dropdown
             menu={{ items: dropdownMenu }}
-            overlayStyle={{ width: 302 }}
             placement="bottomRight"
+            styles={{ root: { width: 302 } }}
           >
             <HStack
               $style={{

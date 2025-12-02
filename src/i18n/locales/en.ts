@@ -4,6 +4,8 @@ export const en = {
   addAutomation: "Add Automation",
   addRule: "Add Rule",
   addToVault: "Add to Vault",
+  amount: "Amount",
+  appName: "App Name",
   appPermissions: "App Permissions",
   appStore: "App Store",
   apps: "Apps",
@@ -25,6 +27,7 @@ export const en = {
   currency: "Currency",
   // D
   dark: "Dark",
+  date: "Date",
   description: "Description",
   disconnect: "Disconnect",
   discoverApps: "Discover Apps",
@@ -34,12 +37,14 @@ export const en = {
   faq: "FAQ",
   features: "Features",
   feeStructure: "Fee Structure",
+  feeType: "Fee Type",
   // G
   goBack: "Go back",
   // H
   // I
   install: "Install",
   installedApps: "Installed Apps",
+  installedOn: "Installed on",
   isFreeApp: "This app is free",
   // J
   // K
@@ -53,6 +58,7 @@ export const en = {
   // N
   name: "Name",
   new: "New",
+  nextPayment: "Next Payment",
   no: "No",
   noRating: "No Rating yet",
   // O
@@ -74,6 +80,8 @@ export const en = {
   seeDetails: "See Details",
   signOut: "Sign out",
   sortBy: "Sort By",
+  startDate: "Start Date",
+  status: "Status",
   submit: "Submit",
   successfulAppUninstallation: "App successfully uninstalled",
   successfulAuthenticated: "Successfully authenticated!",
@@ -83,6 +91,8 @@ export const en = {
   // T
   target: "Target",
   theme: "Theme",
+  totalFees: "Total Fees",
+  type: "Type",
   // U
   uninstall: "Uninstall",
   unsuccessfulAppUninstallation: "App uninstallation failed",
