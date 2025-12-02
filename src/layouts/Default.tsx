@@ -54,7 +54,6 @@ export const DefaultLayout = () => {
     ...(isConnected
       ? [
           {
-            disabled: true,
             icon: <CreditCardIcon />,
             key: "1",
             label: t("billing"),

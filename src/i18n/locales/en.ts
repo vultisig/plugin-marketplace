@@ -4,6 +4,7 @@ export const en = {
   addAutomation: "Add Automation",
   addRule: "Add Rule",
   addToVault: "Add to Vault",
+  amount: "Amount",
   appName: "App Name",
   appPermissions: "App Permissions",
   appStore: "App Store",
@@ -26,6 +27,7 @@ export const en = {
   currency: "Currency",
   // D
   dark: "Dark",
+  date: "Date",
   description: "Description",
   disconnect: "Disconnect",
   discoverApps: "Discover Apps",
@@ -79,6 +81,7 @@ export const en = {
   signOut: "Sign out",
   sortBy: "Sort By",
   startDate: "Start Date",
+  status: "Status",
   submit: "Submit",
   successfulAppUninstallation: "App successfully uninstalled",
   successfulAuthenticated: "Successfully authenticated!",
@@ -89,6 +92,7 @@ export const en = {
   target: "Target",
   theme: "Theme",
   totalFees: "Total Fees",
+  type: "Type",
   // U
   uninstall: "Uninstall",
   unsuccessfulAppUninstallation: "App uninstallation failed",
