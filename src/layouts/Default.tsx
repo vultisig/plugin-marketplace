@@ -62,10 +62,9 @@ export const DefaultLayout = () => {
             },
           },
           {
-            disabled: true,
             icon: <HistoryIcon />,
             key: "2",
-            label: "Transaction history",
+            label: t("transactionHistory"),
             onClick: () => {
               navigate(routeTree.transactions.path, { state: true });
             },

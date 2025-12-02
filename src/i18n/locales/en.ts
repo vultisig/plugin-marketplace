@@ -92,6 +92,7 @@ export const en = {
   target: "Target",
   theme: "Theme",
   totalFees: "Total Fees",
+  transactionHistory: "Transaction History",
   type: "Type",
   // U
   uninstall: "Uninstall",
