@@ -13,6 +13,7 @@ import { FaqPage } from "@/pages/FAQ";
 import { MainPage } from "@/pages/Main";
 import { MyAppsPage } from "@/pages/MyApps";
 import { NotFoundPage } from "@/pages/NotFound";
+import { TransactionsPage } from "@/pages/Transactions";
 import { routeTree } from "@/utils/routes";
 
 const ProtectedRoute: FC<{ children: ReactNode }> = ({ children }) => {
@@ -44,7 +45,14 @@ export const Routes = () => {
             </ProtectedRoute>
           ),
         },
-
+        {
+          path: routeTree.transactions.path,
+          element: (
+            <ProtectedRoute>
+              <TransactionsPage />
+            </ProtectedRoute>
+          ),
+        },
         { path: routeTree.faq.path, element: <FaqPage /> },
       ],
     },
