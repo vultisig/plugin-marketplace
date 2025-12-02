@@ -594,7 +594,7 @@ export const AppPage = () => {
                               ),
                             },
                           ]}
-                          expandIconPosition="end"
+                          expandIconPlacement="end"
                           ghost
                         />
                       </Fragment>
