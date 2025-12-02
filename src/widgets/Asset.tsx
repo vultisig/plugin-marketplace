@@ -14,7 +14,7 @@ import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, chains, evmChains, tickers } from "@/utils/chain";
+import { Chain, chains, decimals, evmChains, tickers } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Configuration, Token } from "@/utils/types";
@@ -45,6 +45,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const key = fullKey[fullKey.length - 1];
   const addressField = [...fullKey, "address"];
   const chainField = [...fullKey, "chain"];
+  const decimalsField = [...fullKey, "decimals"];
   const tokenField = [...fullKey, "token"];
   const chain: Chain = Form.useWatch(chainField, form);
 
@@ -52,28 +53,33 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     return supportedChains.reduce((acc, chain) => {
       const isEvm = chain in evmChains;
 
-      acc[chain as Chain] = isEvm
+      acc[chain] = isEvm
         ? {
             chain: chains.Ethereum,
-            decimals: 0,
+            decimals: decimals[chains.Ethereum],
             id: "",
             logo: `/tokens/${chains.Ethereum.toLowerCase()}.svg`,
             name: chains.Ethereum,
             ticker: tickers[chains.Ethereum],
           }
         : {
-            chain: chain as Chain,
-            decimals: 0,
+            chain,
+            decimals: decimals[chain],
             id: "",
             logo: `/tokens/${chain.toLowerCase()}.svg`,
             name: chain,
-            ticker: tickers[chain as Chain],
+            ticker: tickers[chain],
           };
       return acc;
     }, {} as Record<Chain, Token>);
   }, [chain]);
 
   const handleChange: SelectProps<string>["onChange"] = (token) => {
+    const selectedToken =
+      tokens.find(({ id }) => id === token) || nativeTokens[chain];
+
+    form.setFieldValue(decimalsField, selectedToken.decimals);
+
     if (chain === "Solana") {
       getAccount(chain).then((address) => {
         if (address && token) {
@@ -130,6 +136,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
       getAccount(chain).then((address) => {
         form.setFieldValue(addressField, address);
+        form.setFieldValue(decimalsField, nativeTokens[chain].decimals);
         form.setFieldValue(tokenField, "");
       });
 
@@ -138,6 +145,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
       });
     } else {
       form.setFieldValue(addressField, undefined);
+      form.setFieldValue(decimalsField, undefined);
       form.setFieldValue(tokenField, undefined);
     }
   }, [chain]);
@@ -278,6 +286,9 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
         >
           <Input disabled={!chain} />
         </Stack>
+        <Form.Item name={decimalsField} noStyle>
+          <Input type="hidden" />
+        </Form.Item>
       </Stack>
     </VStack>
   );

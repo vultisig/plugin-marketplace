@@ -1,4 +1,4 @@
-import { Chain as ViemChain,defineChain } from "viem";
+import { Chain as ViemChain, defineChain } from "viem";
 import {
   arbitrum,
   avalanche,
@@ -74,6 +74,45 @@ export const chains = {
   ...utxoChains,
   ...otherChains,
 } as const;
+
+export const decimals: Record<Chain, number> = {
+  [chains.Akash]: 6,
+  [chains.Arbitrum]: 18,
+  [chains.Avalanche]: 18,
+  [chains.Base]: 18,
+  [chains.Bitcoin]: 8,
+  [chains.BitcoinCash]: 8,
+  [chains.Blast]: 18,
+  [chains.BSC]: 18,
+  [chains.Cardano]: 6,
+  [chains.Cosmos]: 6,
+  [chains.CronosChain]: 18,
+  [chains.Dash]: 8,
+  [chains.Dogecoin]: 8,
+  [chains.Dydx]: 18,
+  [chains.Ethereum]: 18,
+  [chains.Hyperliquid]: 18,
+  [chains.Kujira]: 6,
+  [chains.Litecoin]: 8,
+  [chains.Mantle]: 18,
+  [chains.MayaChain]: 10,
+  [chains.Noble]: 6,
+  [chains.Optimism]: 18,
+  [chains.Osmosis]: 6,
+  [chains.Polkadot]: 10,
+  [chains.Polygon]: 18,
+  [chains.Ripple]: 6,
+  [chains.Solana]: 9,
+  [chains.Sei]: 18,
+  [chains.Sui]: 9,
+  [chains.Terra]: 6,
+  [chains.TerraClassic]: 6,
+  [chains.THORChain]: 8,
+  [chains.Ton]: 9,
+  [chains.Tron]: 6,
+  [chains.Zcash]: 8,
+  [chains.Zksync]: 18,
+};
 
 export const tickers: Record<Chain, string> = {
   [chains.Akash]: "AKT",
