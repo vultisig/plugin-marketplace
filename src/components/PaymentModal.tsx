@@ -35,7 +35,7 @@ export const PaymentModal = () => {
       footer={false}
       onCancel={() => goBack()}
       open={visible}
-      styles={{ content: { padding: 16 }, footer: { display: "none" } }}
+      styles={{ container: { padding: 16 }, footer: { display: "none" } }}
       title={false}
       width={768}
     >

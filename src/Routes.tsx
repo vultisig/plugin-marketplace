@@ -8,6 +8,7 @@ import {
 import { useCore } from "@/hooks/useCore";
 import { DefaultLayout } from "@/layouts/Default";
 import { AppPage } from "@/pages/App";
+import { BillingPage } from "@/pages/Billing";
 import { FaqPage } from "@/pages/FAQ";
 import { MainPage } from "@/pages/Main";
 import { MyAppsPage } from "@/pages/MyApps";
@@ -28,6 +29,14 @@ export const Routes = () => {
         { index: true, element: <MainPage /> },
         { path: routeTree.app.path, element: <AppPage /> },
         {
+          path: routeTree.billing.path,
+          element: (
+            <ProtectedRoute>
+              <BillingPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
           path: routeTree.myApps.path,
           element: (
             <ProtectedRoute>
@@ -35,6 +44,7 @@ export const Routes = () => {
             </ProtectedRoute>
           ),
         },
+
         { path: routeTree.faq.path, element: <FaqPage /> },
       ],
     },

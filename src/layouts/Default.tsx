@@ -263,8 +263,8 @@ export const DefaultLayout = () => {
           </HStack>
           <Dropdown
             menu={{ items: dropdownMenu }}
-            overlayStyle={{ width: 302 }}
             placement="bottomRight"
+            styles={{ root: { width: 302 } }}
           >
             <HStack
               $style={{

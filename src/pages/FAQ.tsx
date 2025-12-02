@@ -91,7 +91,7 @@ export const FaqPage = () => {
                   <Collapse
                     bordered={false}
                     items={[{ key: "1", label: question, children: answer }]}
-                    expandIconPosition="right"
+                    expandIconPlacement="end"
                     ghost
                   />
                 </Fragment>
