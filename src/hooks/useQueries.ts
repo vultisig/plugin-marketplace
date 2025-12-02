@@ -47,7 +47,7 @@ export const useQueries = () => {
 
   const getTokenData = async (chain: Chain, id: string) => {
     return await queryClient.fetchQuery({
-      queryKey: ["assets", chain.toLowerCase(), id.toLowerCase()],
+      queryKey: ["tokens", chain.toLowerCase(), id.toLowerCase()],
       queryFn: async () => {
         if (chain in evmChains) {
           const client = createPublicClient({
@@ -95,7 +95,7 @@ export const useQueries = () => {
 
   const getTokenList = async (chain: Chain) => {
     return await queryClient.fetchQuery({
-      queryKey: ["assets", chain.toLowerCase()],
+      queryKey: ["tokens", chain.toLowerCase()],
       queryFn: async () => {
         if (chain === "Solana") {
           return await getJupiterTokens();
