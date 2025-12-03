@@ -46,6 +46,7 @@ import {
 } from "@/utils/functions";
 import { App, AppPolicy, Configuration, RecipeSchema } from "@/utils/types";
 import { AssetWidget } from "@/widgets/Asset";
+import { TemplateItem } from "@/components/TemplateItem";
 
 type RuleFieldType = {
   description?: string;
@@ -342,6 +343,11 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   }) => {
     switch (step) {
       case 0: {
+        setState((prevState) => ({ ...prevState, step: 1 }));
+
+        break;
+      }
+      case 1: {
         handleSuggest(values);
 
         break;
@@ -426,7 +432,11 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button loading={submitting} onClick={() => form.submit()}>
-              {step < 1 ? t("continue") : t("submit")}
+              {!step
+                ? t("createOwnAutomations")
+                : step < 2
+                ? t("continue")
+                : t("submit")}
             </Button>
           </HStack>
         </>
@@ -464,7 +474,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       width={992}
     >
       <VStack $style={{ flex: "none", gap: "16px", width: "218px" }}>
-        {["Configuration", "Rules"].map((item, index) => {
+        {[t("templates"), t("configuration"), t("rules")].map((item, index) => {
           const disabled = step < index;
           const passed = step > index;
 
@@ -528,7 +538,18 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           layout="vertical"
           onFinish={onFinishSuccess}
         >
-          {configuration && (
+          {step === 0 && (
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
+            >
+              <TemplateItem onEdit={() => {}} onUse={() => {}} />
+            </Stack>
+          )}
+          {configuration && step > 0 && (
             <Stack
               $style={{
                 columnGap: "24px",
