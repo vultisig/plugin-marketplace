@@ -226,6 +226,34 @@ export const getMyApps = async ({
   }
 };
 
+export const getOneInchToken = async (
+  chain: EvmChain,
+  id: string
+): Promise<Token | undefined> => {
+  try {
+    const tokens = await externalGet<OneInchToken[]>(
+      `${vultiApiUrl}/1inch/token/v1.2/${evmChainInfo[chain].id}/search?query=${id}`
+    );
+
+    const token = tokens.find(
+      (token) => token.address.toLowerCase() === id.toLowerCase()
+    );
+
+    if (!token) return undefined;
+
+    return {
+      chain,
+      decimals: token.decimals,
+      id: token.address,
+      logo: token.logoURI || "",
+      name: token.name,
+      ticker: token.symbol,
+    };
+  } catch {
+    return undefined;
+  }
+};
+
 export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
   try {
     const { tokens } = await externalGet<{

@@ -31,6 +31,7 @@ import {
 } from "@/proto/policy_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
+import { AssetTemplate } from "@/templates/AssetTemplate";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -46,7 +47,6 @@ import {
 } from "@/utils/functions";
 import { App, AppPolicy, Configuration, RecipeSchema } from "@/utils/types";
 import { AssetWidget } from "@/widgets/Asset";
-import { TemplateItem } from "@/components/TemplateItem";
 
 type RuleFieldType = {
   description?: string;
@@ -84,6 +84,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   const { id, pricing, title } = app;
   const {
     configuration,
+    configurationExample,
     pluginId,
     pluginName,
     pluginVersion,
@@ -115,17 +116,15 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           return [[key, getConfiguration(fieldRef, value as JsonObject)]];
         }
 
-        if (field.format === "date-time") {
-          return [[key, (value as any as Dayjs).utc().format()]];
-        }
-
         return [[key, value]];
       })
     );
   };
 
-  const handleStepBack = (step: number) => {
-    if (configuration && step > 0) {
+  const handleBack = (step: number) => {
+    if (configuration && step > 1) {
+      setState((prevState) => ({ ...prevState, step: 1 }));
+    } else if (step > 0) {
       setState((prevState) => ({ ...prevState, step: 0 }));
     } else {
       onClose();
@@ -337,6 +336,12 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     });
   };
 
+  const handleTemplate = (data: JsonObject, edit?: boolean) => {
+    form.setFieldsValue(data);
+
+    setState((prevState) => ({ ...prevState, step: edit ? 1 : 2 }));
+  };
+
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
     rules = [],
     ...values
@@ -442,7 +447,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
         </>
       }
       maskClosable={false}
-      onCancel={() => handleStepBack(step)}
+      onCancel={() => handleBack(step)}
       open={visible}
       styles={{
         body: { display: "flex", gap: 32 },
@@ -538,7 +543,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           layout="vertical"
           onFinish={onFinishSuccess}
         >
-          {step === 0 && (
+          {configuration && configurationExample && !step && (
             <Stack
               $style={{
                 columnGap: "24px",
@@ -546,21 +551,24 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              <TemplateItem onEdit={() => {}} onUse={() => {}} />
+              <AssetTemplate
+                defaultValues={configurationExample}
+                onSelect={handleTemplate}
+              />
             </Stack>
           )}
-          {configuration && step > 0 && (
+          {configuration && (
             <Stack
               $style={{
                 columnGap: "24px",
-                display: step === 0 ? "grid" : "none",
+                display: step === 1 ? "grid" : "none",
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
               {renderConfiguration(configuration)}
             </Stack>
           )}
-          <Stack $style={{ display: step === 1 ? "block" : "none" }}>
+          <Stack $style={{ display: step === 2 ? "block" : "none" }}>
             <Form.List
               name="rules"
               rules={[

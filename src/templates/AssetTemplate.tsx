@@ -1,20 +1,55 @@
-import { FC } from "react";
+import { JsonObject } from "@bufbuild/protobuf";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
+import dayjs from "dayjs";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { TokenImage } from "@/components/TokenImage";
+import { useQueries } from "@/hooks/useQueries";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
 import { PencilLineIcon } from "@/icons/PencilLineIcon";
 import { Divider } from "@/toolkits/Divider";
+import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, chains, tickers } from "@/utils/chain";
+import { Chain, nativeTokens, tickers } from "@/utils/chain";
+import { getAccount } from "@/utils/extension";
+import { Token } from "@/utils/types";
 
-type TemplateItemProps = {
-  onEdit: () => void;
-  onUse: () => void;
+type AssetProps = {
+  address: string;
+  chain: Chain;
+  decimals: number;
+  token: string;
 };
 
-export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
+type DataProps = {
+  amount: string;
+  endDate: number;
+  frequency: string;
+  from: AssetProps;
+  to: AssetProps;
+};
+
+type AssetTemplateProps = {
+  defaultValues: JsonObject;
+  onSelect: (data: JsonObject, edit?: boolean) => void;
+};
+
+export const AssetTemplate: FC<AssetTemplateProps> = ({
+  defaultValues,
+  onSelect,
+}) => {
+  const [data, setData] = useState<DataProps>({
+    ...defaultValues,
+    endDate: dayjs(defaultValues.endDate as string).valueOf(),
+  } as DataProps);
+  const { amount, frequency, from, to } = data;
   const { t } = useTranslation();
   const colors = useTheme();
 
@@ -28,8 +63,14 @@ export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
       }}
     >
       <HStack $style={{ gap: "12px", position: "relative" }}>
-        <ChainItem chain={chains.Ethereum} />
-        <ChainItem chain={chains.Bitcoin} />
+        <AssetItem
+          asset={from}
+          setAsset={(asset) => setData((prev) => ({ ...prev, from: asset }))}
+        />
+        <AssetItem
+          asset={to}
+          setAsset={(asset) => setData((prev) => ({ ...prev, to: asset }))}
+        />
         <VStack
           $style={{
             backgroundColor: colors.bgSecondary.toHex(),
@@ -79,7 +120,7 @@ export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
             {t("frequency")}
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            Weekly
+            {frequency}
           </Stack>
         </HStack>
         <Divider light />
@@ -88,14 +129,14 @@ export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
             {t("amount")}
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            1000 USDC
+            {amount} {tickers[from.chain]}
           </Stack>
         </HStack>
       </VStack>
       <HStack $style={{ gap: "8px" }}>
         <VStack
           as="span"
-          onClick={onUse}
+          onClick={() => onSelect(data)}
           $style={{
             alignItems: "center",
             backgroundColor: colors.buttonPrimary.toHex(),
@@ -113,7 +154,7 @@ export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
         </VStack>
         <VStack
           as="span"
-          onClick={onEdit}
+          onClick={() => onSelect(data, true)}
           $style={{
             alignItems: "center",
             backgroundColor: colors.bgTertiary.toHex(),
@@ -133,8 +174,52 @@ export const TemplateItem: FC<TemplateItemProps> = ({ onEdit, onUse }) => {
   );
 };
 
-const ChainItem: FC<{ chain: Chain }> = ({ chain }) => {
+const AssetItem: FC<{
+  asset: AssetProps;
+  setAsset: (asset: AssetProps) => void;
+}> = ({ asset, setAsset }) => {
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const { getTokenData } = useQueries();
   const colors = useTheme();
+
+  useEffect(() => {
+    if (token) {
+      const { chain, decimals } = token;
+
+      getAccount(chain).then((address) => {
+        if (address) {
+          if (chain === "Solana") {
+            const mint = new PublicKey(asset.token);
+            const owner = new PublicKey(address);
+
+            getAssociatedTokenAddress(
+              mint,
+              owner,
+              true,
+              TOKEN_PROGRAM_ID,
+              ASSOCIATED_TOKEN_PROGRAM_ID
+            )
+              .then((address) => {
+                setAsset({ ...asset, address: address.toBase58(), decimals });
+              })
+              .catch(() => {
+                setAsset({ ...asset, decimals });
+              });
+          } else {
+            setAsset({ ...asset, address, decimals });
+          }
+        }
+      });
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (asset.token) {
+      getTokenData(asset.chain, asset.token).then(setToken);
+    } else {
+      setToken(nativeTokens[asset.chain]);
+    }
+  }, [asset.chain, asset.token, getTokenData]);
 
   return (
     <VStack
@@ -151,14 +236,35 @@ const ChainItem: FC<{ chain: Chain }> = ({ chain }) => {
         width: "100%",
       }}
     >
-      <TokenImage
-        alt={chain}
-        borderRadius="50%"
-        height="30px"
-        src={`/tokens/${chain.toLowerCase()}.svg`}
-        width="30px"
-      />
-      <Stack as="span">{tickers[chain]}</Stack>
+      {token ? (
+        <>
+          <Stack $style={{ position: "relative" }}>
+            <TokenImage
+              alt={token.ticker}
+              borderRadius="50%"
+              height="30px"
+              src={token.logo}
+              width="30px"
+            />
+            {!!token.id && (
+              <Stack
+                $style={{ bottom: "-4px", position: "absolute", right: "-4px" }}
+              >
+                <TokenImage
+                  alt={token.chain}
+                  borderRadius="50%"
+                  height="16px"
+                  src={`/tokens/${token.chain.toLowerCase()}.svg`}
+                  width="16px"
+                />
+              </Stack>
+            )}
+          </Stack>
+          <Stack as="span">{token.ticker}</Stack>
+        </>
+      ) : (
+        <Spin />
+      )}
     </VStack>
   );
 };

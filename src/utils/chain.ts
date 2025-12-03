@@ -16,6 +16,8 @@ import {
 
 import { vultiApiUrl } from "@/utils/constants";
 
+import { Token } from "./types";
+
 const cosmosChains = {
   Akash: "Akash",
   Cosmos: "Cosmos",
@@ -152,6 +154,18 @@ export const tickers: Record<Chain, string> = {
   [chains.Zcash]: "ZEC",
   [chains.Zksync]: "ZK",
 };
+
+export const nativeTokens = Object.values(chains).reduce((acc, chain) => {
+  acc[chain] = {
+    chain,
+    decimals: decimals[chain],
+    id: "",
+    logo: `/tokens/${chain.toLowerCase()}.svg`,
+    name: chain,
+    ticker: tickers[chain],
+  };
+  return acc;
+}, {} as Record<Chain, Token>);
 
 const evmRpcUrls: Record<EvmChain, string> = {
   [evmChains.Arbitrum]: `${vultiApiUrl}/arb/`,

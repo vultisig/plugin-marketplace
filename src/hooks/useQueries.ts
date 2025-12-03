@@ -6,6 +6,7 @@ import {
   getCategories,
   getJupiterToken,
   getJupiterTokens,
+  getOneInchToken,
   getOneInchTokens,
   getRecipeSpecification,
 } from "@/utils/api";
@@ -50,39 +51,43 @@ export const useQueries = () => {
       queryKey: ["tokens", chain.toLowerCase(), id.toLowerCase()],
       queryFn: async () => {
         if (chain in evmChains) {
-          const client = createPublicClient({
-            chain: evmChainInfo[chain as EvmChain],
-            transport: http(),
-          });
+          return await getOneInchToken(chain as EvmChain, id).catch(
+            async () => {
+              const client = createPublicClient({
+                chain: evmChainInfo[chain as EvmChain],
+                transport: http(),
+              });
 
-          const [decimals, name, ticker] = await Promise.all([
-            client.readContract({
-              address: id as Address,
-              abi: erc20Abi,
-              functionName: "decimals",
-            }),
-            client.readContract({
-              address: id as Address,
-              abi: erc20Abi,
-              functionName: "name",
-            }),
-            client.readContract({
-              address: id as Address,
-              abi: erc20Abi,
-              functionName: "symbol",
-            }),
-          ]);
+              const [decimals, name, ticker] = await Promise.all([
+                client.readContract({
+                  address: id as Address,
+                  abi: erc20Abi,
+                  functionName: "decimals",
+                }),
+                client.readContract({
+                  address: id as Address,
+                  abi: erc20Abi,
+                  functionName: "name",
+                }),
+                client.readContract({
+                  address: id as Address,
+                  abi: erc20Abi,
+                  functionName: "symbol",
+                }),
+              ]);
 
-          const token: Token = {
-            chain,
-            decimals,
-            id,
-            logo: "",
-            name,
-            ticker,
-          };
+              const token: Token = {
+                chain,
+                decimals,
+                id,
+                logo: "",
+                name,
+                ticker,
+              };
 
-          return token;
+              return token;
+            }
+          );
         } else if (chain === "Solana") {
           return await getJupiterToken(id);
         } else {

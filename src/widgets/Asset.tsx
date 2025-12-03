@@ -74,60 +74,160 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     }, {} as Record<Chain, Token>);
   }, [chain]);
 
-  const handleChange: SelectProps<string>["onChange"] = (token) => {
-    const selectedToken =
-      tokens.find(({ id }) => id === token) || nativeTokens[chain];
-
-    form.setFieldValue(decimalsField, selectedToken.decimals);
-
-    if (chain === "Solana") {
-      getAccount(chain).then((address) => {
-        if (address && token) {
-          const mint = new PublicKey(token);
-          const owner = new PublicKey(address);
-
-          getAssociatedTokenAddress(
-            mint,
-            owner,
-            true,
-            TOKEN_PROGRAM_ID,
-            ASSOCIATED_TOKEN_PROGRAM_ID
-          )
-            .then((address) => {
-              form.setFieldValue(addressField, address.toBase58());
-            })
-            .catch(() => {
-              form.setFieldValue(addressField, undefined);
-            });
-        } else {
-          form.setFieldValue(addressField, address);
-        }
-      });
-    }
+  const chainSelectProps: SelectProps<
+    string,
+    { label: string; value: string }
+  > = {
+    optionRender: ({ data: { label, value } }) => (
+      <HStack $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}>
+        <TokenImage
+          src={`/tokens/${value.toLowerCase()}.svg`}
+          alt={label}
+          borderRadius="50%"
+          height="24px"
+          width="24px"
+        />
+        <Stack
+          as="span"
+          $style={{
+            color: colors.textPrimary.toHex(),
+            fontSize: "12px",
+            lineHeight: "12px",
+          }}
+        >
+          {label}
+        </Stack>
+      </HStack>
+    ),
+    options: supportedChains.map((chain) => ({ value: chain, label: chain })),
+    showSearch: true,
   };
 
-  const handleSearch: SelectProps<string>["onSearch"] = (address) => {
-    if (
-      !chain ||
-      !address ||
-      !isValidAddress(chain, address) ||
-      tokens.some(({ id }) => id === address)
-    )
-      return;
+  const tokenSelectProps: SelectProps<
+    string,
+    { label: string; logo: string; name: string; value: string }
+  > = {
+    allowClear: true,
+    disabled: !chain,
+    loading,
+    notFoundContent: loading ? (
+      <HStack $style={{ justifyContent: "center", padding: "12px" }}>
+        <Spin />
+      </HStack>
+    ) : undefined,
+    onChange: (token) => {
+      const selectedToken =
+        tokens.find(({ id }) => id === token) || nativeTokens[chain];
 
-    setState((prev) => ({ ...prev, loading: true }));
+      console.log("Selected Token:", token);
 
-    getTokenData(chain, address).then((token) => {
-      if (token) {
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          tokens: [...prev.tokens, token],
-        }));
-      } else {
-        setState((prev) => ({ ...prev, loading: false }));
+      form.setFieldValue(decimalsField, selectedToken.decimals);
+
+      if (chain === "Solana") {
+        getAccount(chain).then((address) => {
+          if (address && token) {
+            const mint = new PublicKey(token);
+            const owner = new PublicKey(address);
+
+            getAssociatedTokenAddress(
+              mint,
+              owner,
+              true,
+              TOKEN_PROGRAM_ID,
+              ASSOCIATED_TOKEN_PROGRAM_ID
+            )
+              .then((address) => {
+                form.setFieldValue(addressField, address.toBase58());
+              })
+              .catch(() => {
+                form.setFieldValue(addressField, undefined);
+              });
+          } else {
+            form.setFieldValue(addressField, address);
+          }
+        });
       }
-    });
+    },
+    optionRender: ({ data: { label, logo, name } }) => (
+      <HStack $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}>
+        <TokenImage
+          src={logo}
+          alt={label}
+          borderRadius="50%"
+          height="24px"
+          width="24px"
+        />
+        <VStack $style={{ gap: "4px" }}>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textPrimary.toHex(),
+              fontSize: "12px",
+              lineHeight: "12px",
+            }}
+          >
+            {name}
+          </Stack>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              fontSize: "12px",
+              lineHeight: "12px",
+            }}
+          >
+            {label}
+          </Stack>
+        </VStack>
+      </HStack>
+    ),
+    options: [...(chain ? [nativeTokens[chain]] : []), ...tokens].map(
+      (token) => ({
+        label: token.ticker,
+        logo: token.logo,
+        name: token.name,
+        value: token.id,
+      })
+    ),
+    showSearch: {
+      filterOption: (input, option) => {
+        if (!option) return false;
+
+        const label = option.label.toLowerCase();
+        const name = option.name.toLowerCase();
+        const value = option.value.toLowerCase();
+        const search = input.toLowerCase();
+
+        return (
+          label.includes(search) ||
+          name.includes(search) ||
+          value.includes(search)
+        );
+      },
+      onSearch: (address) => {
+        if (
+          !chain ||
+          !address ||
+          !isValidAddress(chain, address) ||
+          tokens.some(({ id }) => id === address)
+        )
+          return;
+
+        setState((prev) => ({ ...prev, loading: true }));
+
+        getTokenData(chain, address).then((token) => {
+          if (token) {
+            setState((prev) => ({
+              ...prev,
+              loading: false,
+              tokens: [...prev.tokens, token],
+            }));
+          } else {
+            setState((prev) => ({ ...prev, loading: false }));
+          }
+        });
+      },
+    },
   };
 
   useEffect(() => {
@@ -166,36 +266,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           rules={[{ required: required.includes("chain") }]}
           tooltip={properties.chain?.description}
         >
-          <Select
-            optionRender={({ data: { label, value } }) => (
-              <HStack
-                $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
-              >
-                <TokenImage
-                  src={`/tokens/${value.toLowerCase()}.svg`}
-                  alt={label}
-                  borderRadius="50%"
-                  height="24px"
-                  width="24px"
-                />
-                <Stack
-                  as="span"
-                  $style={{
-                    color: colors.textPrimary.toHex(),
-                    fontSize: "12px",
-                    lineHeight: "12px",
-                  }}
-                >
-                  {label}
-                </Stack>
-              </HStack>
-            )}
-            options={supportedChains.map((chain) => ({
-              value: chain,
-              label: chain,
-            }))}
-            showSearch
-          />
+          <Select {...chainSelectProps} />
         </Form.Item>
         <Form.Item
           label="Token"
@@ -203,78 +274,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           rules={[{ required: required.includes("token") }]}
           tooltip={properties.token?.description}
         >
-          <Select
-            disabled={!chain}
-            filterOption={(input, option) => {
-              if (option === undefined) return false;
-
-              const label = option.label.toLowerCase();
-              const name = option.name.toLowerCase();
-              const value = option.value.toLowerCase();
-              const search = input.toLowerCase();
-
-              return (
-                label.includes(search) ||
-                name.includes(search) ||
-                value.includes(search)
-              );
-            }}
-            loading={loading}
-            notFoundContent={
-              loading ? (
-                <HStack $style={{ justifyContent: "center", padding: "12px" }}>
-                  <Spin />
-                </HStack>
-              ) : undefined
-            }
-            onChange={handleChange}
-            onSearch={handleSearch}
-            optionRender={({ data: { label, logo, name } }) => (
-              <HStack
-                $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
-              >
-                <TokenImage
-                  src={logo}
-                  alt={label}
-                  borderRadius="50%"
-                  height="24px"
-                  width="24px"
-                />
-                <VStack $style={{ gap: "4px" }}>
-                  <Stack
-                    as="span"
-                    $style={{
-                      color: colors.textPrimary.toHex(),
-                      fontSize: "12px",
-                      lineHeight: "12px",
-                    }}
-                  >
-                    {name}
-                  </Stack>
-                  <Stack
-                    as="span"
-                    $style={{
-                      color: colors.textTertiary.toHex(),
-                      fontSize: "12px",
-                      lineHeight: "12px",
-                    }}
-                  >
-                    {label}
-                  </Stack>
-                </VStack>
-              </HStack>
-            )}
-            options={[...(chain ? [nativeTokens[chain]] : []), ...tokens].map(
-              (token) => ({
-                label: token.ticker,
-                logo: token.logo,
-                name: token.name,
-                value: token.id,
-              })
-            )}
-            allowClear
-            showSearch
-          />
+          <Select {...tokenSelectProps} />
         </Form.Item>
         <Stack
           as={Form.Item}
