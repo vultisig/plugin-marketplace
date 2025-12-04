@@ -45,10 +45,7 @@ export const AssetTemplate: FC<AssetTemplateProps> = ({
   defaultValues,
   onSelect,
 }) => {
-  const [data, setData] = useState<DataProps>({
-    ...defaultValues,
-    endDate: dayjs(defaultValues.endDate as string).valueOf(),
-  } as DataProps);
+  const [data, setData] = useState<DataProps>(defaultValues as DataProps);
   const { amount, frequency, from, to } = data;
   const { t } = useTranslation();
   const colors = useTheme();

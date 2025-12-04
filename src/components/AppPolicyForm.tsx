@@ -325,12 +325,12 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
 
         handleSign(values, formRules);
 
-        setState((prevState) => ({ ...prevState, step: 1 }));
+        setState((prevState) => ({ ...prevState, step: 2 }));
       } else {
         setState((prevState) => ({
           ...prevState,
           submitting: false,
-          step: 1,
+          step: 2,
         }));
       }
     });
