@@ -211,7 +211,7 @@ const AssetItem: FC<{
         }
       });
     }
-  }, [token]);
+  }, [asset, token]);
 
   useEffect(() => {
     if (asset.token) {
@@ -219,7 +219,7 @@ const AssetItem: FC<{
     } else {
       setToken(nativeTokens[asset.chain]);
     }
-  }, [asset.chain, asset.token, getTokenData]);
+  }, [asset.chain, asset.token]);
 
   return (
     <VStack
