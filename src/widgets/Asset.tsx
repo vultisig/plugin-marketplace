@@ -74,34 +74,41 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     }, {} as Record<Chain, Token>);
   }, [chain]);
 
-  const chainSelectProps: SelectProps<
-    string,
-    { label: string; value: string }
-  > = {
-    optionRender: ({ data: { label, value } }) => (
-      <HStack $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}>
-        <TokenImage
-          src={`/tokens/${value.toLowerCase()}.svg`}
-          alt={label}
-          borderRadius="50%"
-          height="24px"
-          width="24px"
-        />
-        <Stack
-          as="span"
-          $style={{
-            color: colors.textPrimary.toHex(),
-            fontSize: "12px",
-            lineHeight: "12px",
-          }}
+  const chainSelectProps: SelectProps<Chain, { label: string; value: string }> =
+    {
+      onChange: (chain) => {
+        getAccount(chain).then((address) => {
+          form.setFieldValue(addressField, address);
+          form.setFieldValue(decimalsField, nativeTokens[chain].decimals);
+          form.setFieldValue(tokenField, "");
+        });
+      },
+      optionRender: ({ data: { label, value } }) => (
+        <HStack
+          $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}
         >
-          {label}
-        </Stack>
-      </HStack>
-    ),
-    options: supportedChains.map((chain) => ({ value: chain, label: chain })),
-    showSearch: true,
-  };
+          <TokenImage
+            src={`/tokens/${value.toLowerCase()}.svg`}
+            alt={label}
+            borderRadius="50%"
+            height="24px"
+            width="24px"
+          />
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textPrimary.toHex(),
+              fontSize: "12px",
+              lineHeight: "12px",
+            }}
+          >
+            {label}
+          </Stack>
+        </HStack>
+      ),
+      options: supportedChains.map((chain) => ({ value: chain, label: chain })),
+      showSearch: true,
+    };
 
   const tokenSelectProps: SelectProps<
     string,
@@ -118,8 +125,6 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     onChange: (token) => {
       const selectedToken =
         tokens.find(({ id }) => id === token) || nativeTokens[chain];
-
-      console.log("Selected Token:", token);
 
       form.setFieldValue(decimalsField, selectedToken.decimals);
 
@@ -233,12 +238,6 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   useEffect(() => {
     if (chain) {
       setState((prev) => ({ ...prev, loading: true }));
-
-      getAccount(chain).then((address) => {
-        form.setFieldValue(addressField, address);
-        form.setFieldValue(decimalsField, nativeTokens[chain].decimals);
-        form.setFieldValue(tokenField, "");
-      });
 
       getTokenList(chain).then((tokens) => {
         setState((prev) => ({ ...prev, loading: false, tokens }));

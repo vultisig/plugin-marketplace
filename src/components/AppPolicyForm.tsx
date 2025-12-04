@@ -2,7 +2,7 @@ import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { Form, FormProps, Input, Modal, Select } from "antd";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { FC, Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -574,7 +574,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
               rules={[
                 {
                   validator: async (_, rules) => {
-                    if (step > 0 && (!rules || rules.length < 1)) {
+                    if (step > 1 && (!rules || rules.length < 1)) {
                       return Promise.reject(
                         new Error(t("ruleValidationError"))
                       );
