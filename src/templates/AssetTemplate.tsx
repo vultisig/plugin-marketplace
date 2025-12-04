@@ -183,35 +183,35 @@ const AssetItem: FC<{
   const colors = useTheme();
 
   useEffect(() => {
-    if (token) {
-      const { chain, decimals } = token;
+    if (!token) return;
 
-      getAccount(chain).then((address) => {
-        if (address) {
-          if (chain === "Solana") {
-            const mint = new PublicKey(asset.token);
-            const owner = new PublicKey(address);
+    const { chain, decimals } = token;
 
-            getAssociatedTokenAddress(
-              mint,
-              owner,
-              true,
-              TOKEN_PROGRAM_ID,
-              ASSOCIATED_TOKEN_PROGRAM_ID
-            )
-              .then((address) => {
-                setAsset({ ...asset, address: address.toBase58(), decimals });
-              })
-              .catch(() => {
-                setAsset({ ...asset, decimals });
-              });
-          } else {
-            setAsset({ ...asset, address, decimals });
-          }
+    getAccount(chain).then((address) => {
+      if (address) {
+        if (chain === "Solana") {
+          const mint = new PublicKey(asset.token);
+          const owner = new PublicKey(address);
+
+          getAssociatedTokenAddress(
+            mint,
+            owner,
+            true,
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          )
+            .then((address) => {
+              setAsset({ ...asset, address: address.toBase58(), decimals });
+            })
+            .catch(() => {
+              setAsset({ ...asset, decimals });
+            });
+        } else {
+          setAsset({ ...asset, address, decimals });
         }
-      });
-    }
-  }, [asset, token]);
+      }
+    });
+  }, [asset.token, token]);
 
   useEffect(() => {
     if (asset.token) {
