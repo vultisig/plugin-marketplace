@@ -5,7 +5,6 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
