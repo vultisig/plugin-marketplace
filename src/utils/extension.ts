@@ -78,6 +78,16 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
+      case "Zcash": {
+        try {
+          const [account]: string[] = await window.vultisig.zcash.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
       default: {
         return undefined;
       }

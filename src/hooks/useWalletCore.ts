@@ -22,6 +22,7 @@ export const useWalletCore = () => {
       [chains.Polygon]: () => walletCore.CoinType.polygon,
       [chains.Ripple]: () => walletCore.CoinType.xrp,
       [chains.Solana]: () => walletCore.CoinType.solana,
+      [chains.Zcash]: () => walletCore.CoinType.zcash,
     });
   };
 

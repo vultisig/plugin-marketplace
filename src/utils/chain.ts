@@ -30,6 +30,7 @@ const otherChains = {
 
 const utxoChains = {
   Bitcoin: "Bitcoin",
+  Zcash: "Zcash",
 } as const;
 
 const evmRpcUrls: Record<EvmChain, string> = {
@@ -89,6 +90,7 @@ export const tickers: Record<Chain, string> = {
   Polygon: "MATIC",
   Ripple: "XRP",
   Solana: "SOL",
+  Zcash: "ZEC",
 };
 
 export type Chain = (typeof chains)[keyof typeof chains];
