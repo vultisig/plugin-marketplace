@@ -3,9 +3,11 @@ import { Address, createPublicClient, erc20Abi, http } from "viem";
 
 import {
   getApp,
+  getCategories,
   getJupiterToken,
   getJupiterTokens,
   getOneInchTokens,
+  getRecipeSpecification,
 } from "@/utils/api";
 import { Chain, EvmChain, evmChainInfo, evmChains } from "@/utils/chain";
 import { Token } from "@/utils/types";
@@ -16,14 +18,36 @@ export const useQueries = () => {
   const getAppData = async (id: string) => {
     return await queryClient.fetchQuery({
       queryKey: ["app", id.toLowerCase()],
-      queryFn: async () => await getApp(id),
+      queryFn: async () => {
+        return await getApp(id);
+      },
+      staleTime: Infinity,
+    });
+  };
+
+  const getAppSchema = async (id: string) => {
+    return await queryClient.fetchQuery({
+      queryKey: ["app", id.toLowerCase(), "schema"],
+      queryFn: async () => {
+        return await getRecipeSpecification(id);
+      },
+      staleTime: Infinity,
+    });
+  };
+
+  const getCategoryList = async () => {
+    return await queryClient.fetchQuery({
+      queryKey: ["categories"],
+      queryFn: async () => {
+        return await getCategories();
+      },
       staleTime: Infinity,
     });
   };
 
   const getTokenData = async (chain: Chain, id: string) => {
     return await queryClient.fetchQuery({
-      queryKey: ["assets", chain.toLowerCase(), id.toLowerCase()],
+      queryKey: ["tokens", chain.toLowerCase(), id.toLowerCase()],
       queryFn: async () => {
         if (chain in evmChains) {
           const client = createPublicClient({
@@ -71,7 +95,7 @@ export const useQueries = () => {
 
   const getTokenList = async (chain: Chain) => {
     return await queryClient.fetchQuery({
-      queryKey: ["assets", chain.toLowerCase()],
+      queryKey: ["tokens", chain.toLowerCase()],
       queryFn: async () => {
         if (chain === "Solana") {
           return await getJupiterTokens();
@@ -85,5 +109,11 @@ export const useQueries = () => {
     });
   };
 
-  return { getAppData, getTokenData, getTokenList };
+  return {
+    getAppData,
+    getAppSchema,
+    getCategoryList,
+    getTokenData,
+    getTokenList,
+  };
 };

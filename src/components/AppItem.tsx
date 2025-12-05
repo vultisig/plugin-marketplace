@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { useCore } from "@/hooks/useCore";
@@ -29,6 +30,8 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
 
   return (
     <Stack
+      as={Link}
+      to={routeTree.app.link(id)}
       $style={{
         border: `solid 1px ${colors.borderNormal.toHex()}`,
         borderRadius: "24px",
@@ -42,7 +45,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
       <Stack
         as="img"
         alt={title}
-        src={thumbnailUrl || "/media/automate-your-payrolls.jpg"}
+        src={thumbnailUrl}
         $style={{
           borderRadius: "12px",
           ...(horizontal ? { height: "224px" } : { width: "100%" }),
@@ -59,25 +62,14 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
           <Stack
             as="img"
             alt={title}
-            src={logoUrl || "/media/payroll.png"}
-            $style={{ borderRadius: "12px", width: "56px" }}
+            src={logoUrl}
+            $style={{ borderRadius: "12px", height: "56px", width: "56px" }}
           />
           <VStack $style={{ gap: "8px", justifyContent: "center" }}>
-            <Stack
-              as="span"
-              $style={{
-                fontSize: "17px",
-                lineHeight: "20px",
-              }}
-            >
+            <Stack as="span" $style={{ fontSize: "17px", lineHeight: "20px" }}>
               {title}
             </Stack>
-            <HStack
-              $style={{
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
+            <HStack $style={{ alignItems: "center", gap: "8px" }}>
               <HStack $style={{ alignItems: "center", gap: "2px" }}>
                 <Stack
                   as={CircleArrowDownIcon}
@@ -157,7 +149,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               <Stack as="span">{t("isFreeApp")}</Stack>
             )}
           </VStack>
-          <Button href={routeTree.app.link(id)}>{t("seeDetails")}</Button>
+          <Button>{t("seeDetails")}</Button>
         </VStack>
       </VStack>
     </Stack>

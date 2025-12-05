@@ -114,8 +114,9 @@ export const MyAppsPage = () => {
                     <Stack
                       as="img"
                       alt={app.title}
-                      src="/media/payroll.png"
+                      src={app.logoUrl}
                       $style={{
+                        borderRadius: "12px",
                         display: "block",
                         height: "56px",
                         width: "56px",

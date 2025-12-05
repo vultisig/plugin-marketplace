@@ -54,7 +54,6 @@ export const DefaultLayout = () => {
     ...(isConnected
       ? [
           {
-            disabled: true,
             icon: <CreditCardIcon />,
             key: "1",
             label: t("billing"),
@@ -63,10 +62,9 @@ export const DefaultLayout = () => {
             },
           },
           {
-            disabled: true,
             icon: <HistoryIcon />,
             key: "2",
-            label: "Transaction history",
+            label: t("transactionHistory"),
             onClick: () => {
               navigate(routeTree.transactions.path, { state: true });
             },
@@ -263,8 +261,8 @@ export const DefaultLayout = () => {
           </HStack>
           <Dropdown
             menu={{ items: dropdownMenu }}
-            overlayStyle={{ width: 302 }}
             placement="bottomRight"
+            styles={{ root: { width: 302 } }}
           >
             <HStack
               $style={{

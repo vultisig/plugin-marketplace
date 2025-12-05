@@ -9,8 +9,8 @@ type RouteKey =
 
 export const routeTree = {
   app: {
-    link: (id: string) => `/apps/${id}`,
-    path: "/apps/:id",
+    link: (id: string) => `/app/${id}`,
+    path: "/app/:id",
   },
   billing: { path: "/billing" },
   faq: { path: "/faq" },

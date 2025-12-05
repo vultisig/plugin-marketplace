@@ -18,6 +18,7 @@ import { PaymentModal } from "@/components/PaymentModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
+import { useQueries } from "@/hooks/useQueries";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
@@ -28,12 +29,7 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import {
-  getApp,
-  getRecipeSpecification,
-  isAppInstalled,
-  uninstallApp,
-} from "@/utils/api";
+import { isAppInstalled, uninstallApp } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import {
@@ -46,7 +42,6 @@ import { App, RecipeSchema } from "@/utils/types";
 
 type StateProps = {
   app?: App;
-  isFeeApp?: boolean;
   isFeeAppInstalled?: boolean;
   isFree?: boolean;
   isInstalled?: boolean;
@@ -60,7 +55,6 @@ export const AppPage = () => {
   const [state, setState] = useState<StateProps>({});
   const {
     app,
-    isFeeApp,
     isFeeAppInstalled,
     isFree,
     isInstalled,
@@ -68,6 +62,7 @@ export const AppPage = () => {
     loading,
     schema,
   } = state;
+  const { getAppData, getAppSchema } = useQueries();
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
   const { id = "" } = useParams<{ id: string }>();
@@ -106,7 +101,7 @@ export const AppPage = () => {
 
     return schema.supportedResources.reduce<string[]>(
       (acc, { resourcePath }) => {
-        if (!resourcePath) return acc;
+        if (!resourcePath || !resourcePath.functionId) return acc;
 
         const id = resourcePath.functionId;
 
@@ -147,26 +142,28 @@ export const AppPage = () => {
 
       timeoutRef.current = setTimeout(checkStatus, 1000);
     }
-  }, [app, isFeeApp, isFeeAppInstalled, isFree, isInstalling]);
+  }, [app, isFeeAppInstalled, isFree, isInstalling, navigate]);
 
   const fetchApp = useCallback(async () => {
-    const app = await getApp(id);
-    let schema: RecipeSchema | undefined = undefined;
+    if (id === feeAppId) {
+      goBack(routeTree.root.path);
+      return;
+    }
+
+    const app = await getAppData(id);
 
     if (!app) {
       goBack(routeTree.root.path);
       return;
     }
 
-    const isFeeApp = app.id === feeAppId;
-    const isFree = !app.pricing.length || isFeeApp;
+    const schema = await getAppSchema(app.id);
 
-    if (!isFeeApp) schema = await getRecipeSpecification(app.id);
+    const isFree = !app.pricing.length;
 
     setState((prevState) => ({
       ...prevState,
       app,
-      isFeeApp,
       isFeeAppInstalled: isFree ? true : undefined,
       isFree,
       permissions,
@@ -224,7 +221,7 @@ export const AppPage = () => {
     } else {
       setState((prevState) => ({
         ...prevState,
-        isFeeAppInstalled: isFeeApp || isFree ? true : undefined,
+        isFeeAppInstalled: isFree ? true : undefined,
         isInstalled: undefined,
         isInstalling: false,
       }));
@@ -308,8 +305,12 @@ export const AppPage = () => {
                       <Stack
                         as="img"
                         alt={app.title}
-                        src={app.logoUrl || "/media/payroll.png"}
-                        $style={{ height: "72px", width: "72px" }}
+                        src={app.logoUrl}
+                        $style={{
+                          borderRadius: "16px",
+                          height: "72px",
+                          width: "72px",
+                        }}
                       />
                       <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                         <Stack
@@ -392,14 +393,12 @@ export const AppPage = () => {
                           </Button>
                         ) : isInstalled ? (
                           <>
-                            {!isFeeApp && (
-                              <Button
-                                disabled={loading || !schema}
-                                href={modalHash.policy}
-                              >
-                                {t("addAutomation")}
-                              </Button>
-                            )}
+                            <Button
+                              disabled={loading || !schema}
+                              href={modalHash.policy}
+                            >
+                              {t("addAutomation")}
+                            </Button>
                             <Button
                               loading={loading}
                               onClick={handleUninstall}
@@ -419,34 +418,30 @@ export const AppPage = () => {
                       )}
                     </VStack>
                   </HStack>
-                  {!isFeeApp && (
-                    <VStack
-                      as="span"
-                      $style={{
-                        alignItems: "center",
-                        color: colors.textSecondary.toHex(),
-                        flexGrow: "1",
-                      }}
-                    >
-                      {app.pricing.length ? (
-                        app.pricing.map(
-                          ({ amount, frequency, type }, index) => (
-                            <Stack as="span" key={index}>
-                              {pricingText({
-                                amount,
-                                baseValue,
-                                currency,
-                                frequency,
-                                type,
-                              })}
-                            </Stack>
-                          )
-                        )
-                      ) : (
-                        <Stack as="span">{t("isFreeApp")}</Stack>
-                      )}
-                    </VStack>
-                  )}
+                  <VStack
+                    as="span"
+                    $style={{
+                      alignItems: "center",
+                      color: colors.textSecondary.toHex(),
+                      flexGrow: "1",
+                    }}
+                  >
+                    {app.pricing.length ? (
+                      app.pricing.map(({ amount, frequency, type }, index) => (
+                        <Stack as="span" key={index}>
+                          {pricingText({
+                            amount,
+                            baseValue,
+                            currency,
+                            frequency,
+                            type,
+                          })}
+                        </Stack>
+                      ))
+                    ) : (
+                      <Stack as="span">{t("isFreeApp")}</Stack>
+                    )}
+                  </VStack>
                 </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
@@ -507,7 +502,7 @@ export const AppPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
-                ...(isInstalled && !isFeeApp
+                ...(isInstalled
                   ? [{ key: "#policies", label: t("policies") }]
                   : []),
                 { key: "#overview", label: t("overview") },
@@ -537,7 +532,7 @@ export const AppPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            {isInstalled && !isFeeApp && !!schema && (
+            {isInstalled && !!schema && (
               <>
                 <AppPolicies app={app} schema={schema} />
                 <Divider light />
@@ -573,28 +568,42 @@ export const AppPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <VStack id="faq" $style={{ gap: "24px" }}>
-              <Stack
-                as="span"
-                $style={{ fontSize: "18px", lineHeight: "28px" }}
-              >
-                {t("faq")}
-              </Stack>
-              <VStack $style={{ gap: "16px" }}>
-                {app.faqs.map(({ answer, question }, index) => (
-                  <Fragment key={index}>
-                    {index > 0 && <Divider light />}
-                    <Collapse
-                      bordered={false}
-                      items={[{ key: "1", label: question, children: answer }]}
-                      expandIconPosition="end"
-                      ghost
-                    />
-                  </Fragment>
-                ))}
-              </VStack>
-            </VStack>
-            <Divider light />
+            {app.faqs.length > 0 && (
+              <>
+                <VStack id="faq" $style={{ gap: "24px" }}>
+                  <Stack
+                    as="span"
+                    $style={{ fontSize: "18px", lineHeight: "28px" }}
+                  >
+                    {t("faq")}
+                  </Stack>
+                  <VStack $style={{ gap: "16px" }}>
+                    {app.faqs.map(({ answer, question }, index) => (
+                      <Fragment key={index}>
+                        {index > 0 && <Divider light />}
+                        <Collapse
+                          bordered={false}
+                          items={[
+                            {
+                              key: "1",
+                              label: question,
+                              children: (
+                                <Stack
+                                  dangerouslySetInnerHTML={{ __html: answer }}
+                                />
+                              ),
+                            },
+                          ]}
+                          expandIconPlacement="end"
+                          ghost
+                        />
+                      </Fragment>
+                    ))}
+                  </VStack>
+                </VStack>
+                <Divider light />
+              </>
+            )}
             <VStack id="informations" $style={{ gap: "24px" }}>
               <Stack
                 as="span"
@@ -745,7 +754,7 @@ export const AppPage = () => {
           )}
         </VStack>
       </VStack>
-      {!isFeeApp && !isFeeAppInstalled && <PaymentModal />}
+      {!isFeeAppInstalled && <PaymentModal />}
     </>
   ) : (
     <Spin centered />

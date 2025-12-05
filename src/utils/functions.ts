@@ -55,29 +55,6 @@ export const cssPropertiesToString = (styles: CSSProperties) => {
     .join("\n");
 };
 
-export const formatDuration = (seconds: number): string => {
-  const SECONDS_IN_MINUTE = 60;
-  const SECONDS_IN_HOUR = 60 * SECONDS_IN_MINUTE;
-  const SECONDS_IN_DAY = 24 * SECONDS_IN_HOUR;
-
-  const days = Math.floor(seconds / SECONDS_IN_DAY);
-  const hours = Math.floor((seconds % SECONDS_IN_DAY) / SECONDS_IN_HOUR);
-  const minutes = Math.floor((seconds % SECONDS_IN_HOUR) / SECONDS_IN_MINUTE);
-  const secs = seconds % SECONDS_IN_MINUTE;
-
-  const parts = [
-    { label: "d", value: days },
-    { label: "h", value: hours },
-    { label: "m", value: minutes },
-    { label: "s", value: secs },
-  ];
-
-  return parts
-    .filter((part) => part.value > 0)
-    .map((part) => `${part.value}${part.label}`)
-    .join(" / ");
-};
-
 export const getFieldRef = (field: FieldProps, definitions?: Definitions) => {
   if (!definitions) return;
 
