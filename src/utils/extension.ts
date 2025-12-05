@@ -117,7 +117,7 @@ export const startReshareSession = async (pluginId: string) => {
   await isAvailable();
 
   try {
-    const response = await window.vultisig.plugin.request({
+    const response = await window.vultisig.plugin.request<string>({
       method: "reshare_sign",
       params: [{ id: pluginId }],
     });
@@ -171,12 +171,15 @@ export const personalSign = async (
 ) => {
   await isAvailable();
 
-  const signature = await window.vultisig.plugin.request({
+  const signature = await window.vultisig.plugin.request<
+    string | { error?: string }
+  >({
     method: "personal_sign",
     params: [message, address, type],
   });
 
-  if (signature?.error) throw new Error(signature.error);
+  if (typeof signature === "object" && signature?.error)
+    throw new Error(signature.error);
 
   return signature as string;
 };
