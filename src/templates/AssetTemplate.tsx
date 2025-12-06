@@ -180,10 +180,12 @@ const AssetItem: FC<{
 
   useEffect(() => {
     if (!token) return;
+    let cancelled = false;
 
     const { chain, decimals } = token;
 
     getAccount(chain).then((address) => {
+      if (cancelled) return;
       if (address) {
         if (chain === "Solana") {
           const mint = new PublicKey(asset.token);
@@ -197,9 +199,11 @@ const AssetItem: FC<{
             ASSOCIATED_TOKEN_PROGRAM_ID
           )
             .then((address) => {
+              if (cancelled) return;
               setAsset({ ...asset, address: address.toBase58(), decimals });
             })
             .catch(() => {
+              if (cancelled) return;
               setAsset({ ...asset, decimals });
             });
         } else {
@@ -207,6 +211,10 @@ const AssetItem: FC<{
         }
       }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [asset.token, token]);
 
   useEffect(() => {
