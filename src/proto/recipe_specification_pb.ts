@@ -18,7 +18,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file recipe_specification.proto.
  */
 export const file_recipe_specification: GenFile = /*@__PURE__*/
-  fileDesc("ChpyZWNpcGVfc3BlY2lmaWNhdGlvbi5wcm90bxIFdHlwZXMirQIKDFJlY2lwZVNjaGVtYRIPCgd2ZXJzaW9uGAEgASgFEhEKCXBsdWdpbl9pZBgDIAEoCRITCgtwbHVnaW5fbmFtZRgEIAEoCRIWCg5wbHVnaW5fdmVyc2lvbhgFIAEoBRIzChNzdXBwb3J0ZWRfcmVzb3VyY2VzGAYgAygLMhYudHlwZXMuUmVzb3VyY2VQYXR0ZXJuEi8KDHJlcXVpcmVtZW50cxgIIAEoCzIZLnR5cGVzLlBsdWdpblJlcXVpcmVtZW50cxIuCg1jb25maWd1cmF0aW9uGAkgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI2ChVjb25maWd1cmF0aW9uX2V4YW1wbGUYCiABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IrgBCg9SZXNvdXJjZVBhdHRlcm4SKgoNcmVzb3VyY2VfcGF0aBgBIAEoCzITLnR5cGVzLlJlc291cmNlUGF0aBJEChZwYXJhbWV0ZXJfY2FwYWJpbGl0aWVzGAIgAygLMiQudHlwZXMuUGFyYW1ldGVyQ29uc3RyYWludENhcGFiaWxpdHkSEAoIcmVxdWlyZWQYAyABKAgSIQoGdGFyZ2V0GAQgASgOMhEudHlwZXMuVGFyZ2V0VHlwZSJ5Ch1QYXJhbWV0ZXJDb25zdHJhaW50Q2FwYWJpbGl0eRIWCg5wYXJhbWV0ZXJfbmFtZRgBIAEoCRIuCg9zdXBwb3J0ZWRfdHlwZXMYAiABKA4yFS50eXBlcy5Db25zdHJhaW50VHlwZRIQCghyZXF1aXJlZBgDIAEoCCJMChJQbHVnaW5SZXF1aXJlbWVudHMSHAoUbWluX3Z1bHRpc2lnX3ZlcnNpb24YASABKAUSGAoQc3VwcG9ydGVkX2NoYWlucxgCIAMoCUIjWiFnaXRodWIuY29tL3Z1bHRpc2lnL3JlY2lwZXMvdHlwZXNiBnByb3RvMw", [file_constraint, file_google_protobuf_struct, file_resource, file_rule]);
+  fileDesc("ChpyZWNpcGVfc3BlY2lmaWNhdGlvbi5wcm90bxIFdHlwZXMirQIKDFJlY2lwZVNjaGVtYRIPCgd2ZXJzaW9uGAEgASgFEhEKCXBsdWdpbl9pZBgDIAEoCRITCgtwbHVnaW5fbmFtZRgEIAEoCRIWCg5wbHVnaW5fdmVyc2lvbhgFIAEoBRIzChNzdXBwb3J0ZWRfcmVzb3VyY2VzGAYgAygLMhYudHlwZXMuUmVzb3VyY2VQYXR0ZXJuEi8KDHJlcXVpcmVtZW50cxgIIAEoCzIZLnR5cGVzLlBsdWdpblJlcXVpcmVtZW50cxIuCg1jb25maWd1cmF0aW9uGAkgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBI2ChVjb25maWd1cmF0aW9uX2V4YW1wbGUYCiADKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IrgBCg9SZXNvdXJjZVBhdHRlcm4SKgoNcmVzb3VyY2VfcGF0aBgBIAEoCzITLnR5cGVzLlJlc291cmNlUGF0aBJEChZwYXJhbWV0ZXJfY2FwYWJpbGl0aWVzGAIgAygLMiQudHlwZXMuUGFyYW1ldGVyQ29uc3RyYWludENhcGFiaWxpdHkSEAoIcmVxdWlyZWQYAyABKAgSIQoGdGFyZ2V0GAQgASgOMhEudHlwZXMuVGFyZ2V0VHlwZSJ5Ch1QYXJhbWV0ZXJDb25zdHJhaW50Q2FwYWJpbGl0eRIWCg5wYXJhbWV0ZXJfbmFtZRgBIAEoCRIuCg9zdXBwb3J0ZWRfdHlwZXMYAiABKA4yFS50eXBlcy5Db25zdHJhaW50VHlwZRIQCghyZXF1aXJlZBgDIAEoCCJMChJQbHVnaW5SZXF1aXJlbWVudHMSHAoUbWluX3Z1bHRpc2lnX3ZlcnNpb24YASABKAUSGAoQc3VwcG9ydGVkX2NoYWlucxgCIAMoCUIjWiFnaXRodWIuY29tL3Z1bHRpc2lnL3JlY2lwZXMvdHlwZXNiBnByb3RvMw", [file_constraint, file_google_protobuf_struct, file_resource, file_rule]);
 
 /**
  * RecipeSchema defines what types of recipes/policies a plugin can handle
@@ -75,9 +75,9 @@ export type RecipeSchema = Message<"types.RecipeSchema"> & {
   /**
    * Plugin configuration_example
    *
-   * @generated from field: google.protobuf.Struct configuration_example = 10;
+   * @generated from field: repeated google.protobuf.Struct configuration_example = 10;
    */
-  configurationExample?: JsonObject;
+  configurationExample: JsonObject[];
 };
 
 /**
@@ -135,9 +135,9 @@ export type RecipeSchemaJson = {
   /**
    * Plugin configuration_example
    *
-   * @generated from field: google.protobuf.Struct configuration_example = 10;
+   * @generated from field: repeated google.protobuf.Struct configuration_example = 10;
    */
-  configurationExample?: StructJson;
+  configurationExample?: StructJson[];
 };
 
 /**

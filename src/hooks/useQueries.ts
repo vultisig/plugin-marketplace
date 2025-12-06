@@ -10,7 +10,13 @@ import {
   getOneInchTokens,
   getRecipeSpecification,
 } from "@/utils/api";
-import { Chain, EvmChain, evmChainInfo, evmChains } from "@/utils/chain";
+import {
+  Chain,
+  chains,
+  EvmChain,
+  evmChainInfo,
+  evmChains,
+} from "@/utils/chain";
 import { Token } from "@/utils/types";
 
 export const useQueries = () => {
@@ -88,10 +94,10 @@ export const useQueries = () => {
               return token;
             }
           );
-        } else if (chain === "Solana") {
+        } else if (chain === chains.Solana) {
           return await getJupiterToken(id);
         } else {
-          return;
+          throw new Error();
         }
       },
       staleTime: Infinity,
@@ -102,12 +108,12 @@ export const useQueries = () => {
     return await queryClient.fetchQuery({
       queryKey: ["tokens", chain.toLowerCase()],
       queryFn: async () => {
-        if (chain === "Solana") {
+        if (chain === chains.Solana) {
           return await getJupiterTokens();
         } else if (chain in evmChains) {
           return await getOneInchTokens(chain as EvmChain);
         } else {
-          return [];
+          throw new Error();
         }
       },
       staleTime: Infinity,

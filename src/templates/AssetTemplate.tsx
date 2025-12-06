@@ -211,7 +211,9 @@ const AssetItem: FC<{
 
   useEffect(() => {
     if (asset.token) {
-      getTokenData(asset.chain, asset.token).then(setToken);
+      getTokenData(asset.chain, asset.token)
+        .catch(() => undefined)
+        .then(setToken);
     } else {
       setToken(nativeTokens[asset.chain]);
     }

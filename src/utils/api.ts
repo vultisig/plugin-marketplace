@@ -10,7 +10,7 @@ import {
 } from "@/proto/policy_pb";
 import { delToken, getToken } from "@/storage/token";
 import { getVaultId } from "@/storage/vaultId";
-import { EvmChain, evmChainInfo } from "@/utils/chain";
+import { chains, EvmChain, evmChainInfo } from "@/utils/chain";
 import {
   defaultPageSize,
   feeAppId,
@@ -138,18 +138,14 @@ export const getAuthToken = async (data: AuthToken): Promise<string> => {
   return token;
 };
 
-export const getApp = async (id: string): Promise<App | undefined> => {
-  try {
-    const app = await get<App>(`${storeApiUrl}/plugins/${id}`);
+export const getApp = async (id: string): Promise<App> => {
+  const app = await get<App>(`${storeApiUrl}/plugins/${id}`);
 
-    const faq = faqs[id];
+  const faq = faqs[id];
 
-    if (faq) return normalizeApp({ ...app, faqs: faq });
+  if (faq) return normalizeApp({ ...app, faqs: faq });
 
-    return normalizeApp(app);
-  } catch {
-    return undefined;
-  }
+  return normalizeApp(app);
 };
 
 export const getApps = async ({
@@ -201,11 +197,7 @@ export const getBaseValue = async (currency: Currency): Promise<number> => {
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-  try {
-    return await get<Category[]>(`${storeApiUrl}/categories`);
-  } catch {
-    return [];
-  }
+  return await get<Category[]>(`${storeApiUrl}/categories`);
 };
 
 export const getMyApps = async ({
@@ -229,48 +221,40 @@ export const getMyApps = async ({
 export const getOneInchToken = async (
   chain: EvmChain,
   id: string
-): Promise<Token | undefined> => {
-  try {
-    const tokens = await externalGet<OneInchToken[]>(
-      `${vultiApiUrl}/1inch/token/v1.2/${evmChainInfo[chain].id}/search?query=${id}`
-    );
+): Promise<Token> => {
+  const tokens = await externalGet<OneInchToken[]>(
+    `${vultiApiUrl}/1inch/token/v1.2/${evmChainInfo[chain].id}/search?query=${id}`
+  );
 
-    const token = tokens.find(
-      (token) => token.address.toLowerCase() === id.toLowerCase()
-    );
+  const token = tokens.find(
+    (token) => token.address.toLowerCase() === id.toLowerCase()
+  );
 
-    if (!token) return undefined;
+  if (!token) throw new Error();
 
-    return {
-      chain,
-      decimals: token.decimals,
-      id: token.address,
-      logo: token.logoURI || "",
-      name: token.name,
-      ticker: token.symbol,
-    };
-  } catch {
-    return undefined;
-  }
+  return {
+    chain,
+    decimals: token.decimals,
+    id: token.address,
+    logo: token.logoURI || "",
+    name: token.name,
+    ticker: token.symbol,
+  };
 };
 
 export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
-  try {
-    const { tokens } = await externalGet<{
-      tokens: Record<string, OneInchToken>;
-    }>(`${vultiApiUrl}/1inch/swap/v6.0/${evmChainInfo[chain].id}/tokens`);
+  const { tokens } = await externalGet<{
+    tokens: Record<string, OneInchToken>;
+  }>(`${vultiApiUrl}/1inch/swap/v6.0/${evmChainInfo[chain].id}/tokens`);
 
-    return Object.values(tokens).map((token) => ({
-      chain,
-      decimals: token.decimals,
-      id: token.address,
-      logo: token.logoURI || "",
-      name: token.name,
-      ticker: token.symbol,
-    }));
-  } catch {
-    return [];
-  }
+  return Object.values(tokens).map((token) => ({
+    chain,
+    decimals: token.decimals,
+    id: token.address,
+    logo: token.logoURI || "",
+    name: token.name,
+    ticker: token.symbol,
+  }));
 };
 
 export const getPolicies = async (
@@ -302,14 +286,10 @@ export const getPolicies = async (
 
 export const getRecipeSpecification = async (
   appId: string
-): Promise<RecipeSchema | undefined> => {
-  try {
-    return await get<RecipeSchema>(
-      `${storeApiUrl}/plugins/${appId}/recipe-specification`
-    );
-  } catch {
-    return undefined;
-  }
+): Promise<RecipeSchema> => {
+  return await get<RecipeSchema>(
+    `${storeApiUrl}/plugins/${appId}/recipe-specification`
+  );
 };
 
 export const getRecipeSuggestion = async (
@@ -348,46 +328,36 @@ export const getReviews = async (
   }
 };
 
-export const getJupiterToken = async (
-  id: string
-): Promise<Token | undefined> => {
-  try {
-    const [jupiterToken] = await externalGet<JupiterToken[]>(
-      `${vultiApiUrl}/jup/tokens/v2/search?query=${id}`
-    );
+export const getJupiterToken = async (id: string): Promise<Token> => {
+  const [jupiterToken] = await externalGet<JupiterToken[]>(
+    `${vultiApiUrl}/jup/tokens/v2/search?query=${id}`
+  );
 
-    if (!jupiterToken) return undefined;
+  if (!jupiterToken) throw new Error();
 
-    return {
-      chain: "Solana",
-      decimals: jupiterToken.decimals,
-      id: jupiterToken.id,
-      logo: jupiterToken.icon || "",
-      name: jupiterToken.name,
-      ticker: jupiterToken.symbol,
-    };
-  } catch {
-    return undefined;
-  }
+  return {
+    chain: chains.Solana,
+    decimals: jupiterToken.decimals,
+    id: jupiterToken.id,
+    logo: jupiterToken.icon || "",
+    name: jupiterToken.name,
+    ticker: jupiterToken.symbol,
+  };
 };
 
 export const getJupiterTokens = async (): Promise<Token[]> => {
-  try {
-    const jupiterTokens = await externalGet<JupiterToken[]>(
-      `${vultiApiUrl}/jup/tokens/v2/tag?query=verified`
-    );
+  const jupiterTokens = await externalGet<JupiterToken[]>(
+    `${vultiApiUrl}/jup/tokens/v2/tag?query=verified`
+  );
 
-    return jupiterTokens.map((token) => ({
-      chain: "Solana",
-      decimals: token.decimals,
-      id: token.id,
-      logo: token.icon || "",
-      name: token.name,
-      ticker: token.symbol,
-    }));
-  } catch {
-    return [];
-  }
+  return jupiterTokens.map((token) => ({
+    chain: chains.Solana,
+    decimals: token.decimals,
+    id: token.id,
+    logo: token.icon || "",
+    name: token.name,
+    ticker: token.symbol,
+  }));
 };
 
 export const isAppInstalled = async (id: string): Promise<boolean> => {

@@ -1,5 +1,5 @@
 import { reshareVault } from "@/utils/api";
-import { Chain, evmChains } from "@/utils/chain";
+import { Chain, chains, evmChains } from "@/utils/chain";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
@@ -48,7 +48,7 @@ export const getAccount = async (chain: Chain) => {
     const method = "get_accounts";
 
     switch (chain) {
-      case "Bitcoin": {
+      case chains.Bitcoin: {
         try {
           const [account]: string[] = await window.vultisig.bitcoin.request({
             method,
@@ -58,7 +58,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case "Solana": {
+      case chains.Solana: {
         try {
           const [account]: string[] = await window.vultisig.solana.request({
             method,
@@ -68,7 +68,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case "Ripple": {
+      case chains.Ripple: {
         try {
           const [account]: string[] = await window.vultisig.ripple.request({
             method,
@@ -78,7 +78,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case "Zcash": {
+      case chains.Zcash: {
         try {
           const [account]: string[] = await window.vultisig.zcash.request({
             method,

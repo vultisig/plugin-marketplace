@@ -220,17 +220,17 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
         setState((prev) => ({ ...prev, loading: true }));
 
-        getTokenData(chain, address).then((token) => {
-          if (token) {
+        getTokenData(chain, address)
+          .then((token) => {
             setState((prev) => ({
               ...prev,
               loading: false,
               tokens: [...prev.tokens, token],
             }));
-          } else {
+          })
+          .catch(() => {
             setState((prev) => ({ ...prev, loading: false }));
-          }
-        });
+          });
       },
     },
   };
@@ -239,9 +239,11 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
     if (chain) {
       setState((prev) => ({ ...prev, loading: true }));
 
-      getTokenList(chain).then((tokens) => {
-        setState((prev) => ({ ...prev, loading: false, tokens }));
-      });
+      getTokenList(chain)
+        .catch(() => [])
+        .then((tokens) => {
+          setState((prev) => ({ ...prev, loading: false, tokens }));
+        });
     } else {
       form.setFieldValue(addressField, undefined);
       form.setFieldValue(decimalsField, undefined);
