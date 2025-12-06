@@ -179,7 +179,7 @@ const AssetItem: FC<{
   const colors = useTheme();
 
   useEffect(() => {
-    if (!token) return;
+    if (!asset.token || !token) return;
     let cancelled = false;
 
     const { chain, decimals } = token;
@@ -232,7 +232,7 @@ const AssetItem: FC<{
       $style={{
         alignItems: "center",
         backgroundColor: colors.bgTertiary.toHex(),
-        borderColor: colors.borderLight.toHSL(),
+        borderColor: colors.borderLight.toHex(),
         borderRadius: "16px",
         borderStyle: "solid",
         borderWidth: "1px",
