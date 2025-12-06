@@ -2,8 +2,8 @@ import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { Form, FormProps, Input, Modal, Select } from "antd";
-import dayjs, { Dayjs } from "dayjs";
-import { FC, Fragment, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { FC, Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -31,6 +31,7 @@ import {
 } from "@/proto/policy_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
+import { AssetTemplate } from "@/templates/AssetTemplate";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -47,15 +48,7 @@ import {
 import { App, AppPolicy, Configuration, RecipeSchema } from "@/utils/types";
 import { AssetWidget } from "@/widgets/Asset";
 
-type RuleFieldType = {
-  description?: string;
-  resource: string;
-  target?: string;
-} & Record<string, string>;
-
-type FormFieldType = {
-  rules: RuleFieldType[];
-} & JsonObject;
+type FormFieldType = { rules: JsonObject[] } & JsonObject;
 
 type AppPolicyFormProps = {
   app: App;
@@ -74,15 +67,14 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   schema,
 }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<StateProps>({
-    step: schema.configuration ? 0 : 1,
-  });
+  const [state, setState] = useState<StateProps>({ step: 1 });
   const { step, submitting } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing, title } = app;
   const {
     configuration,
+    configurationExample,
     pluginId,
     pluginName,
     pluginVersion,
@@ -95,6 +87,14 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   const definitions = configuration?.definitions;
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.policy;
+
+  const steps = useMemo(() => {
+    return [
+      ...(configurationExample ? [t("templates")] : []),
+      ...(configuration ? [t("configuration")] : []),
+      t("rules"),
+    ];
+  }, [configuration, configurationExample]);
 
   const getConfiguration = (
     configuration: Configuration,
@@ -114,24 +114,20 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           return [[key, getConfiguration(fieldRef, value as JsonObject)]];
         }
 
-        if (field.format === "date-time") {
-          return [[key, (value as any as Dayjs).utc().format()]];
-        }
-
         return [[key, value]];
       })
     );
   };
 
-  const handleStepBack = (step: number) => {
-    if (configuration && step > 0) {
-      setState((prevState) => ({ ...prevState, step: 0 }));
+  const handleBack = () => {
+    if (step > 1) {
+      setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
     } else {
       onClose();
     }
   };
 
-  const handleSign = (values: JsonObject, rules: RuleFieldType[]) => {
+  const handleSign = (values: JsonObject, rules: JsonObject[]) => {
     setState((prevState) => ({ ...prevState, submitting: true }));
 
     const jsonData = create(PolicySchema, {
@@ -200,7 +196,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
 
           return create(RuleSchema, {
             constraints: {},
-            description,
+            description: description as string,
             effect: Effect.ALLOW,
             id: "",
             parameterConstraints: parameterCapabilities.map(
@@ -222,7 +218,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                   parameterName,
                 })
             ),
-            resource,
+            resource: resource as string,
             target: create(TargetSchema, {
               targetType,
               target:
@@ -304,7 +300,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     getRecipeSuggestion(id, configurationData).then(({ rules = [] }) => {
       const formRules = rules.map(
         ({ parameterConstraints, resource, target }) => {
-          const params: RuleFieldType = { resource };
+          const params: JsonObject = { resource };
 
           if (target?.target?.value) {
             params.target = target.target.value as string;
@@ -323,34 +319,41 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       if (formRules.length > 0) {
         form.setFieldValue("rules", formRules);
 
-        handleSign(values, formRules);
+        setTimeout(() => {
+          setState((prevState) => ({ ...prevState, step: steps.length }));
 
-        setState((prevState) => ({ ...prevState, step: 1 }));
+          handleSign(values, formRules);
+        }, 0);
       } else {
         setState((prevState) => ({
           ...prevState,
+          step: steps.length,
           submitting: false,
-          step: 1,
         }));
       }
     });
+  };
+
+  const handleTemplate = (data: JsonObject, edit?: boolean) => {
+    form.setFieldsValue(data);
+
+    if (edit) {
+      setState((prevState) => ({ ...prevState, step: steps.length - 1 }));
+    } else {
+      handleSuggest(data);
+    }
   };
 
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
     rules = [],
     ...values
   }) => {
-    switch (step) {
-      case 0: {
-        handleSuggest(values);
-
-        break;
-      }
-      default: {
-        handleSign(values, rules);
-
-        break;
-      }
+    if (steps.length === step) {
+      handleSign(values, rules);
+    } else if (steps.length - 1 === step) {
+      handleSuggest(values);
+    } else if (steps.length - 2 === step) {
+      setState((prevState) => ({ ...prevState, step: prevState.step + 1 }));
     }
   };
 
@@ -410,7 +413,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
-    setState((prevState) => ({ ...prevState, step: configuration ? 0 : 1 }));
+    setState((prevState) => ({ ...prevState, step: 1 }));
 
     form.resetFields();
   }, [form, visible]);
@@ -418,21 +421,29 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   return (
     <Modal
       centered={true}
-      closeIcon={
-        configuration && step > 0 ? <ChevronLeftIcon /> : <CrossIcon />
-      }
+      closeIcon={step > 1 ? <ChevronLeftIcon /> : <CrossIcon />}
       footer={
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button loading={submitting} onClick={() => form.submit()}>
-              {step < 1 ? t("continue") : t("submit")}
+              {configurationExample
+                ? step > 2
+                  ? t("submit")
+                  : step > 1
+                  ? t("continue")
+                  : t("createOwnAutomations")
+                : configuration
+                ? step > 1
+                  ? t("submit")
+                  : t("continue")
+                : t("submit")}
             </Button>
           </HStack>
         </>
       }
       maskClosable={false}
-      onCancel={() => handleStepBack(step)}
+      onCancel={handleBack}
       open={visible}
       styles={{
         body: { display: "flex", gap: 32 },
@@ -464,9 +475,9 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
       width={992}
     >
       <VStack $style={{ flex: "none", gap: "16px", width: "218px" }}>
-        {["Configuration", "Rules"].map((item, index) => {
-          const disabled = step < index;
-          const passed = step > index;
+        {steps.map((item, index) => {
+          const disabled = step < index + 1;
+          const passed = step > index + 1;
 
           return (
             <Fragment key={index}>
@@ -528,24 +539,41 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           layout="vertical"
           onFinish={onFinishSuccess}
         >
+          {configurationExample && (
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: step === steps.length - 2 ? "grid" : "none",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
+            >
+              {configurationExample.map((example, index) => (
+                <AssetTemplate
+                  defaultValues={example}
+                  key={index}
+                  onSelect={handleTemplate}
+                />
+              ))}
+            </Stack>
+          )}
           {configuration && (
             <Stack
               $style={{
                 columnGap: "24px",
-                display: step === 0 ? "grid" : "none",
+                display: step === steps.length - 1 ? "grid" : "none",
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
               {renderConfiguration(configuration)}
             </Stack>
           )}
-          <Stack $style={{ display: step === 1 ? "block" : "none" }}>
+          <Stack $style={{ display: step === steps.length ? "block" : "none" }}>
             <Form.List
               name="rules"
               rules={[
                 {
                   validator: async (_, rules) => {
-                    if (step > 0 && (!rules || rules.length < 1)) {
+                    if (step === steps.length && (!rules || rules.length < 1)) {
                       return Promise.reject(
                         new Error(t("ruleValidationError"))
                       );
@@ -569,7 +597,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                           <Form.Item
                             name={[name, "resource"]}
                             label={t("supportedResource")}
-                            rules={[{ required: step > 0 }]}
+                            rules={[{ required: step === steps.length }]}
                             {...restField}
                           >
                             <Select
@@ -610,7 +638,8 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                                         name={[name, parameterName]}
                                         rules={[
                                           {
-                                            required: step > 0 && required,
+                                            required:
+                                              step === steps.length && required,
                                           },
                                         ]}
                                       >
@@ -622,7 +651,9 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                                     <Form.Item
                                       label={t("target")}
                                       name={[name, "target"]}
-                                      rules={[{ required: step > 0 }]}
+                                      rules={[
+                                        { required: step === steps.length },
+                                      ]}
                                     >
                                       <Input />
                                     </Form.Item>

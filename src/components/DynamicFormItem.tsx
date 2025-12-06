@@ -8,7 +8,7 @@ import {
   Select,
 } from "antd";
 import dayjs from "dayjs";
-import { FC, ReactNode } from "react";
+import { FC } from "react";
 
 import { camelCaseToTitle } from "@/utils/functions";
 import { FieldProps } from "@/utils/types";
@@ -22,8 +22,6 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
   type,
   ...rest
 }) => {
-  let element: ReactNode;
-
   const disabledDate: DatePickerProps["disabledDate"] = (current) => {
     return current && current.isBefore(dayjs(), "day");
   };
@@ -54,50 +52,60 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
 
   switch (type) {
     case "int": {
-      element = <InputNumber disabled={disabled} />;
-
-      break;
+      return (
+        <Form.Item {...rest}>
+          <InputNumber disabled={disabled} />
+        </Form.Item>
+      );
     }
     default: {
       if (enumerable) {
-        element = (
-          <Select
-            disabled={disabled}
-            options={enumerable.map((value) => ({
-              label: camelCaseToTitle(value),
-              value,
-            }))}
-          />
+        return (
+          <Form.Item {...rest}>
+            <Select
+              disabled={disabled}
+              options={enumerable.map((value) => ({
+                label: camelCaseToTitle(value),
+                value,
+              }))}
+            />
+          </Form.Item>
         );
       } else {
         switch (format) {
           case "date-time": {
-            element = (
-              <DatePicker
-                disabled={disabled}
-                disabledDate={disabledDate}
-                disabledTime={disabledTime}
-                format="YYYY-MM-DD HH:mm"
-                showNow={false}
-                showTime={{
-                  hideDisabledOptions: true,
-                  minuteStep: 5,
-                  showSecond: false,
-                }}
-              />
+            return (
+              <Form.Item
+                getValueProps={(value) => ({
+                  value: value && dayjs(Number(value)),
+                })}
+                normalize={(value) => value && `${dayjs(value).valueOf()}`}
+                {...rest}
+              >
+                <DatePicker
+                  disabled={disabled}
+                  disabledDate={disabledDate}
+                  disabledTime={disabledTime}
+                  format="YYYY-MM-DD HH:mm"
+                  showNow={false}
+                  showTime={{
+                    hideDisabledOptions: true,
+                    minuteStep: 5,
+                    showSecond: false,
+                  }}
+                />
+              </Form.Item>
             );
-
-            break;
           }
           default: {
-            element = <Input disabled={disabled} />;
-            break;
+            return (
+              <Form.Item {...rest}>
+                <Input disabled={disabled} />
+              </Form.Item>
+            );
           }
         }
-        break;
       }
     }
   }
-
-  return <Form.Item {...rest}>{element}</Form.Item>;
 };

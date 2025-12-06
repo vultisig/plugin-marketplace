@@ -6,11 +6,10 @@ import { useTheme } from "styled-components";
 
 import { AppItem } from "@/components/AppItem";
 import { useFilterParams } from "@/hooks/useFilterParams";
-import { useQueries } from "@/hooks/useQueries";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getApps } from "@/utils/api";
+import { getApps, getCategories } from "@/utils/api";
 import { App, AppFilters, Category } from "@/utils/types";
 
 type StateProps = {
@@ -27,7 +26,6 @@ export const MainPage = () => {
     apps: [],
   });
   const { categories, loading, apps } = state;
-  const { getCategoryList } = useQueries();
   const { filters, setFilters } = useFilterParams<AppFilters>();
   const colors = useTheme();
   const [newApp] = apps;
@@ -51,10 +49,12 @@ export const MainPage = () => {
   );
 
   useEffect(() => {
-    getCategoryList().then((categories) => {
-      setState((prevState) => ({ ...prevState, categories }));
-    });
-  }, [getCategoryList]);
+    getCategories()
+      .catch(() => [])
+      .then((categories) => {
+        setState((prevState) => ({ ...prevState, categories }));
+      });
+  }, []);
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1" }}>

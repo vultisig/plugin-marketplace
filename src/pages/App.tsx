@@ -29,7 +29,7 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { isAppInstalled, uninstallApp } from "@/utils/api";
+import { getRecipeSpecification, isAppInstalled, uninstallApp } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import {
@@ -62,7 +62,7 @@ export const AppPage = () => {
     loading,
     schema,
   } = state;
-  const { getAppData, getAppSchema } = useQueries();
+  const { getAppData } = useQueries();
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
   const { id = "" } = useParams<{ id: string }>();
@@ -150,14 +150,14 @@ export const AppPage = () => {
       return;
     }
 
-    const app = await getAppData(id);
+    const app = await getAppData(id).catch(() => undefined);
 
     if (!app) {
       goBack(routeTree.root.path);
       return;
     }
 
-    const schema = await getAppSchema(app.id);
+    const schema = await getRecipeSpecification(app.id).catch(() => undefined);
 
     const isFree = !app.pricing.length;
 
