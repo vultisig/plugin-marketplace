@@ -115,19 +115,27 @@ const post = async <T>(
 //     .then(({ data }) => toCamelCase(data.data));
 // };
 
-export const addPolicy = async (data: AppPolicy) => {
-  return post<AppPolicy>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
+export const addPolicy = async (data: AppPolicy): Promise<void> => {
+  return post<void>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
 };
 
-export const addReview = async (appId: string, data: ReviewForm) => {
-  return post<Review>(
+export const addReview = async (
+  appId: string,
+  data: ReviewForm
+): Promise<void> => {
+  return post<void>(
     `${storeApiUrl}/plugins/${appId}/reviews`,
     toSnakeCase(data)
   );
 };
 
-export const delPolicy = async (id: string, signature: string) => {
-  return del(`${storeApiUrl}/plugin/policy/${id}`, { data: { signature } });
+export const delPolicy = async (
+  id: string,
+  signature: string
+): Promise<void> => {
+  return del<void>(`${storeApiUrl}/plugin/policy/${id}`, {
+    data: { signature },
+  });
 };
 
 export const getAuthToken = async (data: AuthToken): Promise<string> => {
@@ -197,7 +205,7 @@ export const getBaseValue = async (currency: Currency): Promise<number> => {
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-  return await get<Category[]>(`${storeApiUrl}/categories`);
+  return get<Category[]>(`${storeApiUrl}/categories`);
 };
 
 export const getMyApps = async ({
@@ -287,9 +295,13 @@ export const getPolicies = async (
 export const getRecipeSpecification = async (
   appId: string
 ): Promise<RecipeSchema> => {
-  return await get<RecipeSchema>(
+  const { configurationExample, ...rest } = await get<RecipeSchema>(
     `${storeApiUrl}/plugins/${appId}/recipe-specification`
   );
+
+  if (appId !== "vultisig-dca-0000") return rest as RecipeSchema;
+
+  return { configurationExample, ...rest };
 };
 
 export const getRecipeSuggestion = async (
@@ -369,10 +381,10 @@ export const isAppInstalled = async (id: string): Promise<boolean> => {
   }
 };
 
-export const reshareVault = async (data: ReshareForm) => {
-  return post(`${storeApiUrl}/vault/reshare`, toSnakeCase(data));
+export const reshareVault = async (data: ReshareForm): Promise<void> => {
+  return post<void>(`${storeApiUrl}/vault/reshare`, toSnakeCase(data));
 };
 
-export const uninstallApp = async (appId: string) => {
-  return del(`${storeApiUrl}/plugin/${appId}`);
+export const uninstallApp = async (appId: string): Promise<void> => {
+  return del<void>(`${storeApiUrl}/plugin/${appId}`);
 };
