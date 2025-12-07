@@ -1,7 +1,8 @@
+import { randomBytes } from "crypto";
+
 import { reshareVault } from "@/utils/api";
-import { Chain, chains, evmChains } from "@/utils/chain";
-import { ReshareForm, Vault } from "@/utils/types";
-import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
+import { Chain, evmChains } from "@/utils/chain";
+import { Vault } from "@/utils/types";
 
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
@@ -48,7 +49,7 @@ export const getAccount = async (chain: Chain) => {
     const method = "get_accounts";
 
     switch (chain) {
-      case chains.Bitcoin: {
+      case "Bitcoin": {
         try {
           const [account]: string[] = await window.vultisig.bitcoin.request({
             method,
@@ -58,7 +59,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case chains.Solana: {
+      case "Solana": {
         try {
           const [account]: string[] = await window.vultisig.solana.request({
             method,
@@ -68,7 +69,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case chains.Ripple: {
+      case "Ripple": {
         try {
           const [account]: string[] = await window.vultisig.ripple.request({
             method,
@@ -78,7 +79,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case chains.Zcash: {
+      case "Zcash": {
         try {
           const [account]: string[] = await window.vultisig.zcash.request({
             method,
@@ -113,57 +114,6 @@ export const getVault = async () => {
   }
 };
 
-export const startReshareSession = async (pluginId: string) => {
-  await isAvailable();
-
-  try {
-    const response = await window.vultisig.plugin.request<string>({
-      method: "reshare_sign",
-      params: [{ id: pluginId }],
-    });
-    console.log("response", response);
-    // Example response: vultisig://vultisig.com?type=NewVault&tssType=Reshare&jsonData=...
-    const url = new URL(response);
-    console.log("url", url);
-    const jsonData = url.searchParams.get("jsonData");
-    // const tssType = url.searchParams.get("tssType");
-    // console.log("jsonData", jsonData);
-    if (!jsonData) throw new Error("jsonData param missing in deeplink");
-    // Decompress the payload
-    const payload = await decompressQrPayload(jsonData);
-
-    // Decode the binary using the schema and forward to verifier backend
-    const reshareMsg: any = decodeTssPayload(payload);
-
-    // Transform the payload to match backend ReshareRequest structure
-    const backendPayload: ReshareForm = {
-      email: "", // Not provided by extension, using empty string
-      hexChainCode: reshareMsg.hexChainCode,
-      hexEncryptionKey: reshareMsg.encryptionKeyHex,
-      localPartyId: reshareMsg.serviceName,
-      name: reshareMsg.vaultName,
-      oldParties: reshareMsg.oldParties,
-      pluginId, // Use the pluginId parameter passed to function
-      publicKey: reshareMsg.publicKeyEcdsa,
-      sessionId: reshareMsg.sessionId,
-    };
-
-    console.log("Transformed payload for backend:", backendPayload);
-
-    try {
-      await reshareVault(backendPayload);
-    } catch (err) {
-      console.error("Failed to call reshare endpoint", err);
-    }
-
-    return backendPayload;
-  } catch (error) {
-    console.error("Failed to process reshare session", error);
-
-    throw new Error("Failed to process reshare session");
-  }
-};
-
 export const personalSign = async (
   address: string,
   message: string,
@@ -182,4 +132,42 @@ export const personalSign = async (
     throw new Error(signature.error);
 
   return signature as string;
+};
+
+export const startReshareSession = async (pluginId: string) => {
+  await isAvailable();
+
+  try {
+    const vault = await getVault();
+
+    const dAppSessionId = crypto.randomUUID();
+    const encryptionKeyHex = randomBytes(32).toString("hex");
+
+    await reshareVault({
+      email: "", // Not provided by extension, using empty string
+      hexChainCode: vault.hexChainCode,
+      hexEncryptionKey: encryptionKeyHex,
+      localPartyId: vault.localPartyId,
+      name: vault.name,
+      oldParties: vault.parties,
+      pluginId, // Use the pluginId parameter passed to function
+      publicKey: vault.publicKeyEcdsa,
+      sessionId: dAppSessionId,
+    });
+
+    const { success } = await window.vultisig.plugin.request<{
+      success: boolean;
+    }>({
+      method: "reshare_sign",
+      params: [{ id: pluginId, dAppSessionId, encryptionKeyHex }],
+    });
+
+    // Example response: vultisig://vultisig.com?type=NewVault&tssType=Reshare&jsonData=...
+
+    // Transform the payload to match backend ReshareRequest structure
+
+    return success;
+  } catch {
+    return false;
+  }
 };

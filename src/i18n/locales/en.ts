@@ -88,6 +88,7 @@ export const en = {
   startDate: "Start Date",
   status: "Status",
   submit: "Submit",
+  successfulAppInstallation: "App successfully installed",
   successfulAppUninstallation: "App successfully uninstalled",
   successfulAuthenticated: "Successfully authenticated!",
   successfulPolicyDeletion: "Policy successfully deleted",
@@ -102,6 +103,7 @@ export const en = {
   type: "Type",
   // U
   uninstall: "Uninstall",
+  unsuccessfulAppInstallation: "App installation failed",
   unsuccessfulAppUninstallation: "App uninstallation failed",
   unsuccessfulPolicyDeletion: "Policy deletion failed",
   unsupportedMedia:
