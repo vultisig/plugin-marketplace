@@ -1,5 +1,5 @@
 import { reshareVault } from "@/utils/api";
-import { Chain, evmChains } from "@/utils/chain";
+import { Chain, chains, evmChains } from "@/utils/chain";
 import { ReshareForm, Vault } from "@/utils/types";
 import { decodeTssPayload, decompressQrPayload } from "@/utils/vultisigProto";
 
@@ -48,7 +48,7 @@ export const getAccount = async (chain: Chain) => {
     const method = "get_accounts";
 
     switch (chain) {
-      case "Bitcoin": {
+      case chains.Bitcoin: {
         try {
           const [account]: string[] = await window.vultisig.bitcoin.request({
             method,
@@ -58,7 +58,7 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case "Solana": {
+      case chains.Solana: {
         try {
           const [account]: string[] = await window.vultisig.solana.request({
             method,
@@ -68,9 +68,19 @@ export const getAccount = async (chain: Chain) => {
           return undefined;
         }
       }
-      case "Ripple": {
+      case chains.Ripple: {
         try {
           const [account]: string[] = await window.vultisig.ripple.request({
+            method,
+          });
+          return account;
+        } catch {
+          return undefined;
+        }
+      }
+      case chains.Zcash: {
+        try {
+          const [account]: string[] = await window.vultisig.zcash.request({
             method,
           });
           return account;
@@ -107,7 +117,7 @@ export const startReshareSession = async (pluginId: string) => {
   await isAvailable();
 
   try {
-    const response = await window.vultisig.plugin.request({
+    const response = await window.vultisig.plugin.request<string>({
       method: "reshare_sign",
       params: [{ id: pluginId }],
     });
@@ -161,12 +171,15 @@ export const personalSign = async (
 ) => {
   await isAvailable();
 
-  const signature = await window.vultisig.plugin.request({
+  const signature = await window.vultisig.plugin.request<
+    string | { error?: string }
+  >({
     method: "personal_sign",
     params: [message, address, type],
   });
 
-  if (signature?.error) throw new Error(signature.error);
+  if (typeof signature === "object" && signature?.error)
+    throw new Error(signature.error);
 
   return signature as string;
 };

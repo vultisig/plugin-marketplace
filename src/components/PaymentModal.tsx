@@ -25,7 +25,9 @@ export const PaymentModal = () => {
   const visible = useMemo(() => hash === modalHash.payment, [hash]);
 
   useEffect(() => {
-    getAppData(feeAppId).then(setApp);
+    getAppData(feeAppId)
+      .catch(() => undefined)
+      .then(setApp);
   }, []);
 
   return (

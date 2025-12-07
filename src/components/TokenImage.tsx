@@ -50,6 +50,7 @@ export const TokenImage: FC<TokenImageProps> = ({
       onLoad={() => setStatus("success")}
       $style={{
         borderRadius,
+        display: "block",
         height,
         opacity: status === "success" ? 1 : 0,
         transition: "opacity 0.3s ease-in-out",
