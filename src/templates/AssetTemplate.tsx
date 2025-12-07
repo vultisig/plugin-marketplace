@@ -28,10 +28,10 @@ type AssetProps = {
 };
 
 type DataProps = {
-  amount: string;
   endDate: number;
   frequency: string;
   from: AssetProps;
+  fromAmount: string;
   to: AssetProps;
 };
 
@@ -45,7 +45,7 @@ export const AssetTemplate: FC<AssetTemplateProps> = ({
   onSelect,
 }) => {
   const [data, setData] = useState<DataProps>(defaultValues as DataProps);
-  const { amount, frequency, from, to } = data;
+  const { frequency, from, fromAmount, to } = data;
   const { t } = useTranslation();
   const colors = useTheme();
 
@@ -125,7 +125,7 @@ export const AssetTemplate: FC<AssetTemplateProps> = ({
             {t("amount")}
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {amount} {tickers[from.chain]}
+            {fromAmount} {tickers[from.chain]}
           </Stack>
         </HStack>
       </VStack>
