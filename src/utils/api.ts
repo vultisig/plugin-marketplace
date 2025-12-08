@@ -14,6 +14,7 @@ import { chains, EvmChain, evmChainInfo } from "@/utils/chain";
 import {
   defaultPageSize,
   feeAppId,
+  recurringSwapsAppId,
   storeApiUrl,
   vultiApiUrl,
 } from "@/utils/constants";
@@ -299,7 +300,7 @@ export const getRecipeSpecification = async (
     `${storeApiUrl}/plugins/${appId}/recipe-specification`
   );
 
-  if (appId !== "vultisig-dca-0000") return rest as RecipeSchema;
+  if (appId !== recurringSwapsAppId) return rest as RecipeSchema;
 
   return { configurationExample, ...rest };
 };

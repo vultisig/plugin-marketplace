@@ -3,6 +3,7 @@ import { FC, Fragment, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { AppPolicyForm } from "@/components/AppPolicyForm";
+import { RecurringSwapsPolicyForm } from "@/components/appPolicyForms/RecurringSwaps";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useAntd } from "@/hooks/useAntd";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -12,6 +13,7 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { delPolicy, getPolicies } from "@/utils/api";
+import { recurringSwapsAppId } from "@/utils/constants";
 import {
   camelCaseToTitle,
   snakeCaseToTitle,
@@ -337,7 +339,15 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
         size="small"
         id="policies"
       />
-      <AppPolicyForm app={app} onClose={handleClose} schema={schema} />
+      {app.id === recurringSwapsAppId ? (
+        <RecurringSwapsPolicyForm
+          app={app}
+          onClose={handleClose}
+          schema={schema}
+        />
+      ) : (
+        <AppPolicyForm app={app} onClose={handleClose} schema={schema} />
+      )}
     </>
   );
 };

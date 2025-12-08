@@ -49,14 +49,14 @@ export const AppPage = () => {
   const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({});
   const { app, isFeeAppInstalled, isInstalled, loading, schema } = state;
-  const { getAppData } = useQueries();
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
   const { id = "" } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { getAppData } = useQueries();
   const goBack = useGoBack();
+  const navigate = useNavigate();
   const colors = useTheme();
-  const isFree = !app || !app.pricing.length;
+  const isFree = !app?.pricing.length;
 
   const informations = [
     {
@@ -103,11 +103,10 @@ export const AppPage = () => {
   const checkStatus = useCallback(async () => {
     if (!app) return;
 
-    const isFree = !app.pricing.length;
     let isInstalled = false;
     let isFeeAppInstalled = true;
 
-    if (!isFree) isFeeAppInstalled = await isAppInstalled(feeAppId);
+    if (!app.pricing.length) isFeeAppInstalled = await isAppInstalled(feeAppId);
     if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);
 
     setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
@@ -125,6 +124,8 @@ export const AppPage = () => {
     if (isInstalled) {
       if (id === feeAppId) {
         setState((prevState) => ({ ...prevState, isFeeAppInstalled: true }));
+
+        navigate(routeTree.app.link(id), { replace: true });
       } else {
         setState((prevState) => ({ ...prevState, isInstalled: true }));
 
@@ -144,6 +145,8 @@ export const AppPage = () => {
   };
 
   const handleUninstall = async () => {
+    if (loading) return;
+
     modalAPI.confirm({
       title: t("confirmAppUninstallation"),
       okText: t("yes"),
@@ -206,7 +209,9 @@ export const AppPage = () => {
       .catch(() => goBack(routeTree.root.path));
   }, [id]);
 
-  return app ? (
+  if (!app) return <Spin centered />;
+
+  return (
     <>
       <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
         <VStack
@@ -396,7 +401,9 @@ export const AppPage = () => {
                       flexGrow: "1",
                     }}
                   >
-                    {app.pricing.length ? (
+                    {isFree ? (
+                      <Stack as="span">{t("isFreeApp")}</Stack>
+                    ) : (
                       app.pricing.map(({ amount, frequency, type }, index) => (
                         <Stack as="span" key={index}>
                           {pricingText({
@@ -408,8 +415,6 @@ export const AppPage = () => {
                           })}
                         </Stack>
                       ))
-                    ) : (
-                      <Stack as="span">{t("isFreeApp")}</Stack>
                     )}
                   </VStack>
                 </VStack>
@@ -498,7 +503,7 @@ export const AppPage = () => {
                   </HStack>
                 ),
               }))}
-              offsetTop={76}
+              offsetTop={117}
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
@@ -693,29 +698,25 @@ export const AppPage = () => {
                       >
                         {t("audit")}
                       </Stack>
-                      {["Fully audited, check the certificate"].map(
-                        (item, index) => (
-                          <HStack key={index} $style={{ gap: "8px" }}>
-                            <Stack
-                              as={SubscriptionTickIcon}
-                              $style={{
-                                color: colors.success.toHex(),
-                                flex: "none",
-                                fontSize: "16px",
-                              }}
-                            />
-                            <Stack
-                              as="span"
-                              $style={{
-                                color: colors.textSecondary.toHex(),
-                                lineHeight: "16px",
-                              }}
-                            >
-                              {item}
-                            </Stack>
-                          </HStack>
-                        )
-                      )}
+                      <HStack $style={{ gap: "8px" }}>
+                        <Stack
+                          as={SubscriptionTickIcon}
+                          $style={{
+                            color: colors.success.toHex(),
+                            flex: "none",
+                            fontSize: "16px",
+                          }}
+                        />
+                        <Stack
+                          as="span"
+                          $style={{
+                            color: colors.textSecondary.toHex(),
+                            lineHeight: "16px",
+                          }}
+                        >
+                          {t("appAudited")}
+                        </Stack>
+                      </HStack>
                     </VStack>
                   )}
                 </VStack>
@@ -731,7 +732,5 @@ export const AppPage = () => {
         />
       )}
     </>
-  ) : (
-    <Spin centered />
   );
 };
