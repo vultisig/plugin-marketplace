@@ -182,7 +182,7 @@ export const DefaultLayout = () => {
     <>
       <GlobalStyle />
 
-      <HStack
+      <VStack
         $style={{
           alignItems: "center",
           backgroundColor: colors.bgPrimary.toHex(),
@@ -190,16 +190,27 @@ export const DefaultLayout = () => {
           borderBottomStyle: "solid",
           borderBottomWidth: "1px",
           justifyContent: "center",
-          height: "72px",
           position: "sticky",
           top: "0",
           zIndex: "2",
         }}
       >
+        <VStack
+          $style={{
+            alignItems: "center",
+            backgroundColor: colors.bgAlert.toHex(),
+            height: "40px",
+            justifyContent: "center",
+            width: "100%",
+          }}
+        >
+          {t("appStoreIsInBeta")}
+        </VStack>
         <HStack
           $style={{
             alignItems: "center",
             justifyContent: "space-between",
+            height: "72px",
             maxWidth: "1200px",
             padding: "0 16px",
             width: "100%",
@@ -307,7 +318,7 @@ export const DefaultLayout = () => {
             </HStack>
           </Dropdown>
         </HStack>
-      </HStack>
+      </VStack>
 
       <Outlet />
       <CurrencyModal />

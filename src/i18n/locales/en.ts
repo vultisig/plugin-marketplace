@@ -8,10 +8,13 @@ export const en = {
   appName: "App Name",
   appPermissions: "App Permissions",
   appStore: "App Store",
+  appStoreIsInBeta:
+    "This is an early-stage version of the platform. Do not rely on it for production use or real funds. Testing only.",
   apps: "Apps",
   audit: "Audit",
   // B
   backHome: "Back Home",
+  billingCycle: "Billing Cycle",
   billing: "Billing",
   // C
   category: "Category",
