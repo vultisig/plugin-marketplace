@@ -6,7 +6,7 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { createGlobalStyle, useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
-import { LanguageModal } from "@/components/LanguageModal";
+// import { LanguageModal } from "@/components/LanguageModal";
 import { useCore } from "@/hooks/useCore";
 import { ArrowBoxLeftIcon } from "@/icons/ArrowBoxLeftIcon";
 import { ArrowBoxRightIcon } from "@/icons/ArrowBoxRightIcon";
@@ -18,13 +18,13 @@ import { HistoryIcon } from "@/icons/HistoryIcon";
 import { MacbookIcon } from "@/icons/MacbookIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
 import { SunIcon } from "@/icons/SunIcon";
-import { TranslateIcon } from "@/icons/TranslateIcon";
+// import { TranslateIcon } from "@/icons/TranslateIcon";
 import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
 import { ZapIcon } from "@/icons/ZapIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants";
 import { getAccount } from "@/utils/extension";
-import { languageNames } from "@/utils/language";
+// import { languageNames } from "@/utils/language";
 import { routeTree } from "@/utils/routes";
 
 const GlobalStyle = createGlobalStyle`
@@ -41,7 +41,7 @@ export const DefaultLayout = () => {
     currency,
     disconnect,
     isConnected,
-    language,
+    // language,
     setTheme,
     theme,
     vault,
@@ -71,21 +71,21 @@ export const DefaultLayout = () => {
           },
         ]
       : []),
-    {
-      icon: <TranslateIcon />,
-      key: "3",
-      label: (
-        <HStack
-          $style={{ alignItems: "center", justifyContent: "space-between" }}
-        >
-          <span>{t("language")}</span>
-          <span>{languageNames[language]}</span>
-        </HStack>
-      ),
-      onClick: () => {
-        navigate(modalHash.language, { state: true });
-      },
-    },
+    // {
+    //   icon: <TranslateIcon />,
+    //   key: "3",
+    //   label: (
+    //     <HStack
+    //       $style={{ alignItems: "center", justifyContent: "space-between" }}
+    //     >
+    //       <span>{t("language")}</span>
+    //       <span>{languageNames[language]}</span>
+    //     </HStack>
+    //   ),
+    //   onClick: () => {
+    //     navigate(modalHash.language, { state: true });
+    //   },
+    // },
     {
       icon: <DollarIcon />,
       key: "4",
@@ -322,7 +322,7 @@ export const DefaultLayout = () => {
 
       <Outlet />
       <CurrencyModal />
-      <LanguageModal />
+      {/* <LanguageModal /> */}
     </>
   );
 };
