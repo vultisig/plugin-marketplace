@@ -27,6 +27,7 @@ export const AppPolicyFormTitle: FC<AppPolicyFormTitleProps> = ({
       <Stack
         as="img"
         src={app.logoUrl}
+        alt={app.title}
         $style={{ borderRadius: "4px", height: "24px", width: "24px" }}
       />
       <HStack
