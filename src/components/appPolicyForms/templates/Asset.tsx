@@ -18,6 +18,7 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { Chain, nativeTokens, tickers } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
+import { camelCaseToTitle } from "@/utils/functions";
 import { Token } from "@/utils/types";
 
 type AssetProps = {
@@ -116,7 +117,7 @@ export const AssetTemplate: FC<AssetTemplateProps> = ({
             {t("frequency")}
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {frequency}
+            {camelCaseToTitle(frequency)}
           </Stack>
         </HStack>
         <Divider light />

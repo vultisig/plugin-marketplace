@@ -1,8 +1,6 @@
 import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
-import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { Form, FormProps, Input, Modal, Select } from "antd";
-import dayjs from "dayjs";
 import { FC, Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -10,11 +8,13 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { DynamicFormItem } from "@/components/DynamicFormItem";
+import { AppPolicyFormConfiguration } from "@/components/appPolicyForms/components/Configuration";
+import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
+import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
+import { AssetTemplate } from "@/components/appPolicyForms/templates/Asset";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
-import { CheckmarkIcon } from "@/icons/CheckmarkIcon";
-import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
+import { useGoBack } from "@/hooks/useGoBack";
 import { CrossIcon } from "@/icons/CrossIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
 import {
@@ -23,15 +23,9 @@ import {
   MagicConstant,
 } from "@/proto/constraint_pb";
 import { ParameterConstraintSchema } from "@/proto/parameter_constraint_pb";
-import {
-  BillingFrequency,
-  FeePolicySchema,
-  FeeType,
-  PolicySchema,
-} from "@/proto/policy_pb";
+import { PolicySchema } from "@/proto/policy_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
-import { AssetTemplate } from "@/templates/AssetTemplate";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -40,19 +34,18 @@ import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import {
   camelCaseToTitle,
-  getFieldRef,
+  getConfiguration,
+  getFeePolicies,
   policyToHexMessage,
   snakeCaseToTitle,
-  toTimestamp,
 } from "@/utils/functions";
-import { App, AppPolicy, Configuration, RecipeSchema } from "@/utils/types";
-import { AssetWidget } from "@/widgets/Asset";
+import { App, AppPolicy, RecipeSchema } from "@/utils/types";
 
 type FormFieldType = { rules: JsonObject[] } & JsonObject;
 
-type AppPolicyFormProps = {
+export type DefaultPolicyFormProps = {
   app: App;
-  onClose: (reload?: boolean) => void;
+  onFinish: () => void;
   schema: RecipeSchema;
 };
 
@@ -61,9 +54,9 @@ type StateProps = {
   submitting?: boolean;
 };
 
-export const AppPolicyForm: FC<AppPolicyFormProps> = ({
+export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   app,
-  onClose,
+  onFinish,
   schema,
 }) => {
   const { t } = useTranslation();
@@ -71,7 +64,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   const { step, submitting } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
-  const { id, pricing, title } = app;
+  const { id, pricing } = app;
   const {
     configuration,
     configurationExample,
@@ -83,8 +76,8 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   } = schema;
   const { hash } = useLocation();
   const [form] = Form.useForm<FormFieldType>();
+  const goBack = useGoBack();
   const colors = useTheme();
-  const definitions = configuration?.definitions;
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.policy;
 
@@ -96,34 +89,11 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     ];
   }, [configuration, configurationExample]);
 
-  const getConfiguration = (
-    configuration: Configuration,
-    values: JsonObject
-  ): JsonObject => {
-    return Object.fromEntries(
-      Object.entries(configuration.properties).flatMap(([key, field]) => {
-        const value = values[key];
-
-        if (value === undefined) return [];
-
-        if (field.$ref) {
-          const fieldRef = getFieldRef(field, definitions);
-
-          if (!fieldRef) return [];
-
-          return [[key, getConfiguration(fieldRef, value as JsonObject)]];
-        }
-
-        return [[key, value]];
-      })
-    );
-  };
-
   const handleBack = () => {
     if (step > 1) {
       setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
     } else {
-      onClose();
+      goBack();
     }
   };
 
@@ -133,49 +103,10 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     const jsonData = create(PolicySchema, {
       author: "",
       configuration: configuration
-        ? getConfiguration(configuration, values)
+        ? getConfiguration(configuration, values, configuration.definitions)
         : undefined,
       description: "",
-      feePolicies: pricing.map((price) => {
-        let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
-        let type = FeeType.FEE_TYPE_UNSPECIFIED;
-
-        switch (price.frequency) {
-          case "daily":
-            frequency = BillingFrequency.DAILY;
-            break;
-          case "weekly":
-            frequency = BillingFrequency.WEEKLY;
-            break;
-          case "biweekly":
-            frequency = BillingFrequency.BIWEEKLY;
-            break;
-          case "monthly":
-            frequency = BillingFrequency.MONTHLY;
-            break;
-        }
-
-        switch (price.type) {
-          case "once":
-            type = FeeType.ONCE;
-            break;
-          case "recurring":
-            type = FeeType.RECURRING;
-            break;
-          case "per-tx":
-            type = FeeType.TRANSACTION;
-            break;
-        }
-
-        return create(FeePolicySchema, {
-          amount: BigInt(price.amount),
-          description: "",
-          frequency,
-          id: uuidv4(),
-          startDate: create(TimestampSchema, toTimestamp(dayjs())),
-          type,
-        });
-      }),
+      feePolicies: getFeePolicies(pricing),
       id: pluginId,
       name: pluginName,
       rules: rules
@@ -258,7 +189,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
           .then(() => {
             form.resetFields();
 
-            onClose(true);
+            onFinish();
           })
           .catch((error: Error) => {
             messageAPI.error(error.message);
@@ -279,7 +210,11 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
 
     setState((prevState) => ({ ...prevState, submitting: true }));
 
-    const configurationData = getConfiguration(configuration, values);
+    const configurationData = getConfiguration(
+      configuration,
+      values,
+      configuration.definitions
+    );
 
     // TODO: move amount to asset widget
     if ("from" in values) {
@@ -357,59 +292,6 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
     }
   };
 
-  const renderConfiguration = (
-    { properties, required }: Configuration,
-    parentKey: string[] = []
-  ) => {
-    return Object.entries(properties).map(([key, field]) => {
-      const fullKey = [...parentKey, key];
-      const fieldRef = getFieldRef(field, definitions);
-
-      if (fieldRef) {
-        switch (field.$ref) {
-          case "#/definitions/asset": {
-            return (
-              <AssetWidget
-                configuration={fieldRef}
-                form={form}
-                fullKey={fullKey}
-                key={key}
-                supportedChains={supportedChains}
-              />
-            );
-          }
-          default: {
-            return (
-              <VStack key={key} $style={{ gap: "16px", gridColumn: "1 / -1" }}>
-                <Divider text={camelCaseToTitle(key)} />
-                <Stack
-                  $style={{
-                    columnGap: "24px",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
-                >
-                  {renderConfiguration(fieldRef, fullKey)}
-                </Stack>
-              </VStack>
-            );
-          }
-        }
-      }
-
-      return (
-        <DynamicFormItem
-          key={key}
-          label={camelCaseToTitle(key)}
-          name={fullKey}
-          rules={[{ required: required.includes(key) }]}
-          tooltip={properties[key]?.description}
-          {...field}
-        />
-      );
-    });
-  };
-
   useEffect(() => {
     if (!visible) return;
 
@@ -421,7 +303,7 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
   return (
     <Modal
       centered={true}
-      closeIcon={step > 1 ? <ChevronLeftIcon /> : <CrossIcon />}
+      closeIcon={<CrossIcon />}
       footer={
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
@@ -450,79 +332,10 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
         footer: { display: "flex", gap: 65, marginTop: 24 },
         header: { marginBottom: 32 },
       }}
-      title={
-        <HStack $style={{ gap: "8px" }}>
-          <Stack
-            as="img"
-            src={app.logoUrl}
-            $style={{ height: "24px", width: "24px" }}
-          />
-          <HStack
-            $style={{
-              fontSize: "22px",
-              fontWeight: "500",
-              gap: "4px",
-              lineHeight: "24px",
-            }}
-          >
-            <Stack as="span">{title}</Stack>
-            <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
-              {`/ ${t("addAutomation")}`}
-            </Stack>
-          </HStack>
-        </HStack>
-      }
+      title={<AppPolicyFormTitle app={app} step={step} onBack={handleBack} />}
       width={992}
     >
-      <VStack $style={{ flex: "none", gap: "16px", width: "218px" }}>
-        {steps.map((item, index) => {
-          const disabled = step < index + 1;
-          const passed = step > index + 1;
-
-          return (
-            <Fragment key={index}>
-              {index > 0 && <Divider light />}
-              <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                <HStack
-                  as="span"
-                  $style={{
-                    alignItems: "center",
-                    backgroundColor: passed
-                      ? colors.success.toHex()
-                      : colors.bgSecondary.toHex(),
-                    border:
-                      disabled || passed
-                        ? undefined
-                        : `solid 1px ${colors.accentFour.toHex()}`,
-                    borderRadius: "50%",
-                    color: passed
-                      ? colors.neutral50.toHex()
-                      : disabled
-                      ? colors.textTertiary.toHex()
-                      : colors.accentFour.toHex(),
-                    height: "24px",
-                    justifyContent: "center",
-                    width: "24px",
-                  }}
-                >
-                  {passed ? <CheckmarkIcon /> : index + 1}
-                </HStack>
-                <Stack
-                  as="span"
-                  $style={{
-                    color:
-                      disabled || passed
-                        ? colors.textTertiary.toHex()
-                        : colors.textPrimary.toHex(),
-                  }}
-                >
-                  {item}
-                </Stack>
-              </HStack>
-            </Fragment>
-          );
-        })}
-      </VStack>
+      <AppPolicyFormSidebar step={step} steps={steps} />
       <Divider light vertical />
       <VStack
         $style={{
@@ -564,7 +377,12 @@ export const AppPolicyForm: FC<AppPolicyFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              {renderConfiguration(configuration)}
+              <AppPolicyFormConfiguration
+                chains={supportedChains}
+                configuration={configuration}
+                definitions={configuration.definitions}
+                form={form}
+              />
             </Stack>
           )}
           <Stack $style={{ display: step === steps.length ? "block" : "none" }}>

@@ -14,7 +14,7 @@ import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, chains, decimals, evmChains, tickers } from "@/utils/chain";
+import { Chain, chains, decimals, ethL2Chains, tickers } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Configuration, Token } from "@/utils/types";
@@ -51,7 +51,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
   const nativeTokens = useMemo(() => {
     return supportedChains.reduce((acc, chain) => {
-      const isEvm = chain in evmChains;
+      const isEvm = chain in ethL2Chains;
 
       acc[chain] = isEvm
         ? {

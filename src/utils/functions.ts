@@ -1,10 +1,14 @@
-import { Dayjs } from "dayjs";
+import { create, JsonObject } from "@bufbuild/protobuf";
+import { TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { v4 as uuidv4 } from "uuid";
 
+import { BillingFrequency, FeePolicySchema, FeeType } from "@/proto/policy_pb";
 import { Currency, currencySymbols } from "@/utils/currency";
 import {
   App,
   AppPolicy,
   AppPricing,
+  Configuration,
   CSSProperties,
   Definitions,
   FieldProps,
@@ -53,6 +57,75 @@ export const cssPropertiesToString = (styles: CSSProperties) => {
     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     .map(([key, value]) => `${toKebab(key)}: ${value};`)
     .join("\n");
+};
+
+export const getConfiguration = (
+  configuration: Configuration,
+  values: JsonObject,
+  definitions?: Definitions
+): JsonObject => {
+  return Object.fromEntries(
+    Object.entries(configuration.properties).flatMap(([key, field]) => {
+      const value = values[key];
+
+      if (value === undefined) return [];
+
+      if (field.$ref) {
+        const fieldRef = getFieldRef(field, definitions);
+
+        if (!fieldRef) return [];
+
+        return [
+          [key, getConfiguration(fieldRef, value as JsonObject, definitions)],
+        ];
+      }
+
+      return [[key, value]];
+    })
+  );
+};
+
+export const getFeePolicies = (pricing: AppPricing[]) => {
+  return pricing.map((price) => {
+    let frequency = BillingFrequency.BILLING_FREQUENCY_UNSPECIFIED;
+    let type = FeeType.FEE_TYPE_UNSPECIFIED;
+
+    switch (price.frequency) {
+      case "daily":
+        frequency = BillingFrequency.DAILY;
+        break;
+      case "weekly":
+        frequency = BillingFrequency.WEEKLY;
+        break;
+      case "biweekly":
+        frequency = BillingFrequency.BIWEEKLY;
+        break;
+      case "monthly":
+        frequency = BillingFrequency.MONTHLY;
+        break;
+    }
+
+    switch (price.type) {
+      case "once":
+        type = FeeType.ONCE;
+        break;
+      case "recurring":
+        type = FeeType.RECURRING;
+        break;
+      case "per-tx":
+        type = FeeType.TRANSACTION;
+        break;
+    }
+
+    return create(FeePolicySchema, {
+      amount: BigInt(price.amount),
+      description: "",
+      frequency,
+      id: uuidv4(),
+      startDate: create(TimestampSchema, toTimestamp(new Date())),
+      type,
+    });
+  });
 };
 
 export const getFieldRef = (field: FieldProps, definitions?: Definitions) => {
@@ -223,8 +296,7 @@ export const toSnakeCase = <T>(obj: T): T => {
   return obj;
 };
 
-export const toTimestamp = (input: Date | Dayjs) => {
-  const date = input instanceof Date ? input : input.toDate();
+export const toTimestamp = (date: Date) => {
   const millis = date.getTime();
 
   return {

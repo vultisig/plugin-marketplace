@@ -118,7 +118,7 @@ export type RecipeSchema = Omit<
   ProtoRecipeSchema,
   "configuration" | "requirements"
 > & {
-  configuration?: Configuration & { definitions: Definitions };
+  configuration?: Configuration & { definitions?: Definitions };
   requirements?: Omit<PluginRequirements, "supportedChains"> & {
     supportedChains: Chain[];
   };
