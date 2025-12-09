@@ -154,7 +154,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     form.resetFields();
   }, [form, visible]);
 
-  if (!configuration || !configurationExample) return;
+  if (!configuration || !configurationExample) return null;
 
   return (
     <Modal
