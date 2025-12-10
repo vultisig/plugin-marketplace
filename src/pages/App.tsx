@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
+import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
+import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
@@ -27,7 +29,12 @@ import {
   isAppInstalled,
   uninstallApp,
 } from "@/utils/api";
-import { feeAppId, modalHash } from "@/utils/constants";
+import {
+  feeAppId,
+  modalHash,
+  recurringSendsAppId,
+  recurringSwapsAppId,
+} from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import {
   pricingText,
@@ -225,7 +232,7 @@ export const AppPage = () => {
           $media={{ xl: { $style: { flexDirection: "row" } } }}
         >
           <VStack
-            $style={{ gap: "32px", paddingTop: "24px" }}
+            $style={{ gap: "32px", overflow: "hidden", paddingTop: "24px" }}
             $media={{
               xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
             }}
@@ -362,7 +369,17 @@ export const AppPage = () => {
                               navigate(modalHash.payment, { state: true })
                             }
                           >
-                            {t("install")}
+                            {t("get")}
+                            <Stack
+                              as="span"
+                              $style={{
+                                backgroundColor: colors.textPrimary.toHex(),
+                                borderRadius: "50%",
+                                height: "2px",
+                                width: "2px",
+                              }}
+                            />
+                            {t("free")}
                           </Button>
                         ) : isInstalled ? (
                           <>
@@ -386,7 +403,17 @@ export const AppPage = () => {
                             loading={loading}
                             onClick={() => handleInstall(app.id)}
                           >
-                            {t("install")}
+                            {t("get")}
+                            <Stack
+                              as="span"
+                              $style={{
+                                backgroundColor: colors.textPrimary.toHex(),
+                                borderRadius: "50%",
+                                height: "2px",
+                                width: "2px",
+                              }}
+                            />
+                            {t("free")}
                           </Button>
                         )
                       ) : (
@@ -515,6 +542,8 @@ export const AppPage = () => {
               </>
             )}
             <Stack id="overview">{app.description}</Stack>
+            {app.id === recurringSendsAppId && <RecurringSendsImages />}
+            {app.id === recurringSwapsAppId && <RecurringSwapsImages />}
             <Divider light />
             <VStack id="features" $style={{ gap: "24px" }}>
               <Stack

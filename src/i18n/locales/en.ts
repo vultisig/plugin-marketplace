@@ -5,7 +5,7 @@ export const en = {
   addRule: "Add Rule",
   addToVault: "Add to Vault",
   amount: "Amount",
-  appAudited: "Fully audited, check the certificate",
+  appAudited: "Fully audited",
   appName: "App Name",
   appPermissions: "App Permissions",
   appStore: "App Store",
@@ -45,8 +45,10 @@ export const en = {
   features: "Features",
   feeStructure: "Fee Structure",
   feeType: "Fee Type",
+  free: "Free",
   frequency: "Frequency",
   // G
+  get: "Get",
   goBack: "Go back",
   // H
   // I
@@ -61,6 +63,7 @@ export const en = {
   lastUpdate: "Last Update",
   light: "Light",
   // M
+  marketplace: "Marketplace",
   maxTransactions: "Max Txs",
   myApps: "My Apps",
   // N
@@ -93,9 +96,11 @@ export const en = {
   startDate: "Start Date",
   status: "Status",
   submit: "Submit",
+  success: "Success",
   successfulAppInstallation: "App successfully installed",
   successfulAppUninstallation: "App successfully uninstalled",
   successfulAuthenticated: "Successfully authenticated!",
+  successfulPolicyAdded: "New Automation is added",
   successfulPolicyDeletion: "Policy successfully deleted",
   support: "Support",
   supportedResource: "Supported Resource",
