@@ -1,5 +1,5 @@
 import { Modal } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -11,10 +11,14 @@ import { Button } from "@/toolkits/Button";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { feeAppId, modalHash } from "@/utils/constants";
-import { startReshareSession } from "@/utils/extension";
 import { App } from "@/utils/types";
 
-export const PaymentModal = () => {
+type PaymentModalProps = {
+  loading?: boolean;
+  onInstall: () => void;
+};
+
+export const PaymentModal: FC<PaymentModalProps> = ({ loading, onInstall }) => {
   const { t } = useTranslation();
   const [app, setApp] = useState<App | undefined>(undefined);
   const { hash } = useLocation();
@@ -22,12 +26,15 @@ export const PaymentModal = () => {
   const goBack = useGoBack();
   const colors = useTheme();
 
-  const visible = useMemo(() => hash === modalHash.payment, [hash]);
+  const visible = useMemo(
+    () => !!app && hash === modalHash.payment,
+    [app, hash]
+  );
 
   useEffect(() => {
     getAppData(feeAppId)
-      .catch(() => undefined)
-      .then(setApp);
+      .then(setApp)
+      .catch(() => goBack());
   }, []);
 
   return (
@@ -82,8 +89,10 @@ export const PaymentModal = () => {
               </Stack>
             </VStack>
             <Button
+              disabled={loading}
               icon={<CirclePlusIcon fontSize={16} />}
-              onClick={() => startReshareSession(feeAppId)}
+              loading={loading}
+              onClick={onInstall}
             >
               {t("addToVault")}
             </Button>

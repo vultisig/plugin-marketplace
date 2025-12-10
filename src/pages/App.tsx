@@ -1,13 +1,6 @@
 import { Anchor, Collapse } from "antd";
 import dayjs from "dayjs";
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -29,7 +22,11 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getRecipeSpecification, isAppInstalled, uninstallApp } from "@/utils/api";
+import {
+  getRecipeSpecification,
+  isAppInstalled,
+  uninstallApp,
+} from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import {
@@ -43,9 +40,7 @@ import { App, RecipeSchema } from "@/utils/types";
 type StateProps = {
   app?: App;
   isFeeAppInstalled?: boolean;
-  isFree?: boolean;
   isInstalled?: boolean;
-  isInstalling?: boolean;
   loading?: boolean;
   schema?: RecipeSchema;
 };
@@ -53,15 +48,7 @@ type StateProps = {
 export const AppPage = () => {
   const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({});
-  const {
-    app,
-    isFeeAppInstalled,
-    isFree,
-    isInstalled,
-    isInstalling,
-    loading,
-    schema,
-  } = state;
+  const { app, isFeeAppInstalled, isInstalled, loading, schema } = state;
   const { getAppData } = useQueries();
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
@@ -69,15 +56,16 @@ export const AppPage = () => {
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFree = !app || !app.pricing.length;
 
   const informations = [
     {
       label: t("feeStructure"),
       value: (
         <>
-          {app?.pricing.length
-            ? app.pricing.map(({ amount, frequency, type }, index) => (
+          {isFree
+            ? t("isFreeApp")
+            : app.pricing.map(({ amount, frequency, type }, index) => (
                 <Stack as="span" key={index}>
                   {pricingText({
                     amount,
@@ -87,8 +75,7 @@ export const AppPage = () => {
                     type,
                   })}
                 </Stack>
-              ))
-            : t("isFreeApp")}
+              ))}
         </>
       ),
     },
@@ -116,70 +103,47 @@ export const AppPage = () => {
   const checkStatus = useCallback(async () => {
     if (!app) return;
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    if (isFree || isFeeAppInstalled) {
-      const isInstalled = await isAppInstalled(app.id);
-
-      setState((prevState) => ({ ...prevState, isInstalled }));
-
-      if (isInstalled) {
-        if (isInstalling) navigate(modalHash.policy, { state: true });
-      } else {
-        timeoutRef.current = setTimeout(checkStatus, 1000);
-      }
-    } else {
-      const isFeeAppInstalled = await isAppInstalled(feeAppId);
-
-      setState((prevState) => ({
-        ...prevState,
-        isFeeAppInstalled,
-        isInstalled: isFeeAppInstalled ? undefined : false,
-      }));
-
-      timeoutRef.current = setTimeout(checkStatus, 1000);
-    }
-  }, [app, isFeeAppInstalled, isFree, isInstalling, navigate]);
-
-  const fetchApp = useCallback(async () => {
-    if (id === feeAppId) {
-      goBack(routeTree.root.path);
-      return;
-    }
-
-    const app = await getAppData(id).catch(() => undefined);
-
-    if (!app) {
-      goBack(routeTree.root.path);
-      return;
-    }
-
-    const schema = await getRecipeSpecification(app.id).catch(() => undefined);
-
     const isFree = !app.pricing.length;
+    let isInstalled = false;
+    let isFeeAppInstalled = true;
 
-    setState((prevState) => ({
-      ...prevState,
-      app,
-      isFeeAppInstalled: isFree ? true : undefined,
-      isFree,
-      permissions,
-      schema,
-    }));
-  }, [feeAppId, goBack, id, isConnected]);
+    if (!isFree) isFeeAppInstalled = await isAppInstalled(feeAppId);
+    if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);
 
-  const handleInstall = () => {
-    setState((prevState) => ({ ...prevState, isInstalling: true }));
+    setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
+  }, [app]);
 
-    startReshareSession(id).catch(() => {
-      setState((prevState) => ({ ...prevState, isInstalling: false }));
-    });
+  const handleInstall = async (id: string) => {
+    if (loading) return;
+
+    setState((prevState) => ({ ...prevState, loading: true }));
+
+    const isInstalled = await startReshareSession(id);
+
+    setState((prevState) => ({ ...prevState, loading: false }));
+
+    if (isInstalled) {
+      if (id === feeAppId) {
+        setState((prevState) => ({ ...prevState, isFeeAppInstalled: true }));
+      } else {
+        setState((prevState) => ({ ...prevState, isInstalled: true }));
+
+        navigate(modalHash.policy, { state: true });
+      }
+
+      messageAPI.open({
+        type: "success",
+        content: t("successfulAppInstallation"),
+      });
+    } else {
+      messageAPI.open({
+        type: "error",
+        content: t("unsuccessfulAppInstallation"),
+      });
+    }
   };
 
-  const handleUninstall = () => {
+  const handleUninstall = async () => {
     modalAPI.confirm({
       title: t("confirmAppUninstallation"),
       okText: t("yes"),
@@ -195,8 +159,6 @@ export const AppPage = () => {
               isInstalled: false,
               loading: false,
             }));
-
-            checkStatus();
 
             messageAPI.open({
               type: "success",
@@ -221,23 +183,28 @@ export const AppPage = () => {
     } else {
       setState((prevState) => ({
         ...prevState,
-        isFeeAppInstalled: isFree ? true : undefined,
+        isFeeAppInstalled: undefined,
         isInstalled: undefined,
-        isInstalling: false,
       }));
     }
   }, [checkStatus, isConnected]);
 
   useEffect(() => {
-    fetchApp();
+    if (id === feeAppId) {
+      goBack(routeTree.root.path);
+      return;
+    }
 
-    return () => {
-      if (timeoutRef.current !== null) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, []);
+    getAppData(id)
+      .then((app) => {
+        getRecipeSpecification(app.id)
+          .catch(() => undefined)
+          .then((schema) => {
+            setState((prevState) => ({ ...prevState, app, schema }));
+          });
+      })
+      .catch(() => goBack(routeTree.root.path));
+  }, [id]);
 
   return app ? (
     <>
@@ -409,7 +376,10 @@ export const AppPage = () => {
                             </Button>
                           </>
                         ) : (
-                          <Button loading={loading} onClick={handleInstall}>
+                          <Button
+                            loading={loading}
+                            onClick={() => handleInstall(app.id)}
+                          >
                             {t("install")}
                           </Button>
                         )
@@ -754,7 +724,12 @@ export const AppPage = () => {
           )}
         </VStack>
       </VStack>
-      {!isFeeAppInstalled && <PaymentModal />}
+      {isFeeAppInstalled === false && (
+        <PaymentModal
+          loading={loading}
+          onInstall={() => handleInstall(feeAppId)}
+        />
+      )}
     </>
   ) : (
     <Spin centered />
