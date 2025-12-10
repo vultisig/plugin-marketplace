@@ -78,8 +78,8 @@ jobs:
           VITE_APP_STORE_URL: ${{ secrets.VITE_APP_STORE_URL }}
           VITE_FEE_APP_ID: ${{ secrets.VITE_FEE_APP_ID }}
           VITE_VULTISIG_SERVER: ${{ secrets.VITE_VULTISIG_SERVER }}
-          VITE_RECURRING_SENDS_APP_ID: vultisig-recurring-sends-0000
-          VITE_RECURRING_SWAPS_APP_ID: vultisig-dca-0000
+          VITE_RECURRING_SENDS_APP_ID: ${{ secrets.VITE_RECURRING_SENDS_APP_ID }}
+          VITE_RECURRING_SWAPS_APP_ID: ${{ secrets.VITE_RECURRING_SWAPS_APP_ID }}
         run: npm run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -112,6 +112,8 @@ jobs:
           VITE_APP_STORE_URL: ${{ secrets.VITE_APP_STORE_URL }}
           VITE_FEE_APP_ID: ${{ secrets.VITE_FEE_APP_ID }}
           VITE_VULTISIG_SERVER: ${{ secrets.VITE_VULTISIG_SERVER }}
+          VITE_RECURRING_SENDS_APP_ID: ${{ secrets.VITE_RECURRING_SENDS_APP_ID }}
+          VITE_RECURRING_SWAPS_APP_ID: ${{ secrets.VITE_RECURRING_SWAPS_APP_ID }}
         run: npm run build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
