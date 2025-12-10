@@ -105,9 +105,9 @@ export const AppPage = () => {
     if (!app) return;
 
     let isInstalled = false;
-    let isFeeAppInstalled = true;
+    let isFeeAppInstalled = !app.pricing.length;
 
-    if (!app.pricing.length) isFeeAppInstalled = await isAppInstalled(feeAppId);
+    if (!isFeeAppInstalled) isFeeAppInstalled = await isAppInstalled(feeAppId);
     if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);
 
     setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
