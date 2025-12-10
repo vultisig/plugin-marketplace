@@ -36,6 +36,15 @@ const toSnake = (value: string) => {
   return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 };
 
+const toTimestamp = (date: Date) => {
+  const millis = date.getTime();
+
+  return {
+    nanos: (millis % 1000) * 1_000_000,
+    seconds: BigInt(Math.floor(millis / 1000)),
+  };
+};
+
 const toValueFormat = (
   value: number | string,
   currency: Currency,
@@ -294,13 +303,4 @@ export const toSnakeCase = <T>(obj: T): T => {
   }
 
   return obj;
-};
-
-export const toTimestamp = (date: Date) => {
-  const millis = date.getTime();
-
-  return {
-    nanos: (millis % 1000) * 1_000_000,
-    seconds: BigInt(Math.floor(millis / 1000)),
-  };
 };
