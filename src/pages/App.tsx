@@ -99,7 +99,7 @@ export const AppPage = () => {
       ...(isFree ? [] : ["Fee deduction authorization"]),
       "Vault balance visibility",
     ];
-  }, [schema]);
+  }, [isFree, schema]);
 
   const checkStatus = useCallback(async () => {
     if (!app) return;
