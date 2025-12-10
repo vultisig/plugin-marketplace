@@ -77,7 +77,7 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
             return (
               <Form.Item
                 getValueProps={(value) => ({
-                  value: value && dayjs(Number(value)),
+                  value: value && dayjs(isNaN(value) ? value : Number(value)),
                 })}
                 normalize={(value) => value && `${dayjs(value).valueOf()}`}
                 {...rest}

@@ -5,6 +5,7 @@ export const en = {
   addRule: "Add Rule",
   addToVault: "Add to Vault",
   amount: "Amount",
+  appAudited: "Fully audited, check the certificate",
   appName: "App Name",
   appPermissions: "App Permissions",
   appStore: "App Store",
@@ -12,6 +13,7 @@ export const en = {
     "This is an early-stage version of the platform. Do not rely on it for production use or real funds. Testing only.",
   apps: "Apps",
   audit: "Audit",
+  automations: "Automations",
   // B
   backHome: "Back Home",
   billingCycle: "Billing Cycle",

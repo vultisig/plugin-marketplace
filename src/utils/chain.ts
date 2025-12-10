@@ -31,7 +31,7 @@ const cosmosChains = {
   THORChain: "THORChain",
 } as const;
 
-const ethL2Chains = {
+export const ethL2Chains = {
   Arbitrum: "Arbitrum",
   Base: "Base",
   Blast: "Blast",

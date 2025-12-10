@@ -2,16 +2,17 @@ import { Table, TableProps } from "antd";
 import { FC, Fragment, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { AppPolicyForm } from "@/components/AppPolicyForm";
+import { DefaultPolicyForm } from "@/components/appPolicyForms/Default";
+import { RecurringSwapsPolicyForm } from "@/components/appPolicyForms/RecurringSwaps";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useAntd } from "@/hooks/useAntd";
-import { useGoBack } from "@/hooks/useGoBack";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { Policy } from "@/proto/policy_pb";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { delPolicy, getPolicies } from "@/utils/api";
+import { recurringSwapsAppId } from "@/utils/constants";
 import {
   camelCaseToTitle,
   snakeCaseToTitle,
@@ -38,7 +39,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   const { loading, policies } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { id } = app;
-  const goBack = useGoBack();
 
   const columns: TableProps<CustomAppPolicy>["columns"] = [
     Table.EXPAND_COLUMN,
@@ -101,12 +101,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
     },
     [id]
   );
-
-  const handleClose = (reload?: boolean) => {
-    if (reload) fetchPolicies(0);
-
-    goBack();
-  };
 
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
@@ -337,7 +331,19 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
         size="small"
         id="policies"
       />
-      <AppPolicyForm app={app} onClose={handleClose} schema={schema} />
+      {app.id === recurringSwapsAppId ? (
+        <RecurringSwapsPolicyForm
+          app={app}
+          onFinish={() => fetchPolicies(0)}
+          schema={schema}
+        />
+      ) : (
+        <DefaultPolicyForm
+          app={app}
+          onFinish={() => fetchPolicies(0)}
+          schema={schema}
+        />
+      )}
     </>
   );
 };
