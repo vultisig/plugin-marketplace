@@ -10,6 +10,7 @@ import { parseUnits } from "viem";
 
 import { AppPolicyFormConfiguration } from "@/components/appPolicyForms/components/Configuration";
 import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
+import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
 import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
 import { DefaultPolicyFormProps } from "@/components/appPolicyForms/Default";
 import { AssetTemplate } from "@/components/appPolicyForms/templates/Asset";
@@ -38,8 +39,12 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   schema,
 }) => {
   const { t } = useTranslation();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState({
+    isAdded: false,
+    loading: false,
+    step: 1,
+  });
+  const { isAdded, loading, step } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
@@ -61,7 +66,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   const handleSubmit = (values: JsonObject) => {
     if (!configuration) return;
 
-    setLoading(true);
+    setState((prevState) => ({ ...prevState, loading: true }));
 
     const configurationData = getConfiguration(
       configuration,
@@ -109,7 +114,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
         .then((signature) => {
           addPolicy({ ...policy, signature })
             .then(() => {
-              form.resetFields();
+              setState((prevState) => ({ ...prevState, isAdded: true }));
 
               onFinish();
             })
@@ -117,13 +122,13 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               messageAPI.error(error.message);
             })
             .finally(() => {
-              setLoading(false);
+              setState((prevState) => ({ ...prevState, loading: false }));
             });
         })
         .catch((error: Error) => {
           messageAPI.error(error.message);
 
-          setLoading(false);
+          setState((prevState) => ({ ...prevState, loading: false }));
         });
     });
   };
@@ -132,7 +137,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     form.setFieldsValue(data);
 
     if (edit) {
-      setStep(2);
+      setState((prevState) => ({ ...prevState, step: 2 }));
     } else {
       handleSubmit(data);
     }
@@ -141,14 +146,14 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
-    setStep(1);
-
-    form.resetFields();
+    setState({ isAdded: false, loading: false, step: 1 });
   }, [form, visible]);
 
   if (!configuration || !configurationExample) return null;
 
-  return (
+  return isAdded ? (
+    <AppPolicyFormSuccess visible={visible} />
+  ) : (
     <Modal
       centered={true}
       closeIcon={<CrossIcon />}
@@ -158,7 +163,11 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button
               loading={loading}
-              onClick={() => (step > 1 ? form.submit() : setStep(2))}
+              onClick={() =>
+                step > 1
+                  ? form.submit()
+                  : setState((prevState) => ({ ...prevState, step: 2 }))
+              }
             >
               {step > 1 ? t("submit") : t("createOwnAutomations")}
             </Button>
@@ -176,7 +185,12 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
       title={
         <AppPolicyFormTitle
           app={app}
-          onBack={() => setStep((prevStep) => prevStep - 1)}
+          onBack={() =>
+            setState((prevState) => ({
+              ...prevState,
+              step: prevState.step - 1,
+            }))
+          }
           step={step}
         />
       }

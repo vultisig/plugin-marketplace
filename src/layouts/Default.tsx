@@ -251,7 +251,7 @@ export const DefaultLayout = () => {
               to={routeTree.root.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
-              {t("apps")}
+              {t("marketplace")}
             </Stack>
             {isConnected && (
               <Stack

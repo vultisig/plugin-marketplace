@@ -10,6 +10,7 @@ import { parseUnits } from "viem";
 
 import { AppPolicyFormConfiguration } from "@/components/appPolicyForms/components/Configuration";
 import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
+import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
 import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
 import { AssetTemplate } from "@/components/appPolicyForms/templates/Asset";
 import { useAntd } from "@/hooks/useAntd";
@@ -49,19 +50,18 @@ export type DefaultPolicyFormProps = {
   schema: RecipeSchema;
 };
 
-type StateProps = {
-  step: number;
-  submitting?: boolean;
-};
-
 export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   app,
   onFinish,
   schema,
 }) => {
   const { t } = useTranslation();
-  const [state, setState] = useState<StateProps>({ step: 1 });
-  const { step, submitting } = state;
+  const [state, setState] = useState({
+    isAdded: false,
+    loading: false,
+    step: 1,
+  });
+  const { isAdded, loading, step } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
@@ -98,7 +98,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   };
 
   const handleSign = (values: JsonObject, rules: JsonObject[]) => {
-    setState((prevState) => ({ ...prevState, submitting: true }));
+    setState((prevState) => ({ ...prevState, loading: true }));
 
     const jsonData = create(PolicySchema, {
       author: "",
@@ -187,7 +187,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
       .then((signature) => {
         addPolicy({ ...policy, signature })
           .then(() => {
-            form.resetFields();
+            setState((prevState) => ({ ...prevState, isAdded: true }));
 
             onFinish();
           })
@@ -195,20 +195,20 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
             messageAPI.error(error.message);
           })
           .finally(() => {
-            setState((prevState) => ({ ...prevState, submitting: false }));
+            setState((prevState) => ({ ...prevState, loading: false }));
           });
       })
       .catch((error: Error) => {
         messageAPI.error(error.message);
 
-        setState((prevState) => ({ ...prevState, submitting: false }));
+        setState((prevState) => ({ ...prevState, loading: false }));
       });
   };
 
   const handleSuggest = (values: JsonObject) => {
     if (!configuration) return;
 
-    setState((prevState) => ({ ...prevState, submitting: true }));
+    setState((prevState) => ({ ...prevState, loading: true }));
 
     const configurationData = getConfiguration(
       configuration,
@@ -262,8 +262,8 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
       } else {
         setState((prevState) => ({
           ...prevState,
+          loading: false,
           step: steps.length,
-          submitting: false,
         }));
       }
     });
@@ -295,12 +295,17 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
-    setState((prevState) => ({ ...prevState, step: 1 }));
-
-    form.resetFields();
+    setState((prevState) => ({
+      ...prevState,
+      isAdded: false,
+      loading: false,
+      step: 1,
+    }));
   }, [form, visible]);
 
-  return (
+  return isAdded ? (
+    <AppPolicyFormSuccess visible={visible} />
+  ) : (
     <Modal
       centered={true}
       closeIcon={<CrossIcon />}
@@ -308,7 +313,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-            <Button loading={submitting} onClick={() => form.submit()}>
+            <Button loading={loading} onClick={() => form.submit()}>
               {configurationExample
                 ? step > 2
                   ? t("submit")
