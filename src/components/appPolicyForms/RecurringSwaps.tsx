@@ -70,19 +70,11 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     );
 
     // TODO: move amount to asset widget
-    if ("from" in values) {
-      if ("amount" in values) {
-        configurationData["amount"] = parseUnits(
-          values.amount as string,
-          (values.from as JsonObject).decimals as number
-        ).toString();
-      }
-      if ("fromAmount" in values) {
-        configurationData["fromAmount"] = parseUnits(
-          values.fromAmount as string,
-          (values.from as JsonObject).decimals as number
-        ).toString();
-      }
+    if ("from" in values && "fromAmount" in values) {
+      configurationData["fromAmount"] = parseUnits(
+        values.fromAmount as string,
+        (values.from as JsonObject).decimals as number
+      ).toString();
     }
 
     getRecipeSuggestion(id, configurationData).then(({ rules = [] }) => {

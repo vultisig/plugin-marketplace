@@ -277,16 +277,9 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
         >
           <Select {...tokenSelectProps} />
         </Form.Item>
-        <Stack
-          as={Form.Item}
-          label="Address"
-          name={addressField}
-          rules={[{ required: required.includes("address") }]}
-          tooltip={properties.address?.description}
-          $style={{ gridColumn: "1 / -1" }}
-        >
-          <Input disabled={!chain} />
-        </Stack>
+        <Form.Item name={addressField} noStyle>
+          <Input type="hidden" />
+        </Form.Item>
         <Form.Item name={decimalsField} noStyle>
           <Input type="hidden" />
         </Form.Item>

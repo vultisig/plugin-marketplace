@@ -86,8 +86,8 @@ export const AppPage = () => {
   const permissions = useMemo(() => {
     if (!schema) return [];
 
-    return schema.supportedResources.reduce<string[]>(
-      (acc, { resourcePath }) => {
+    return [
+      ...schema.supportedResources.reduce<string[]>((acc, { resourcePath }) => {
         if (!resourcePath || !resourcePath.functionId) return acc;
 
         const id = resourcePath.functionId;
@@ -95,9 +95,10 @@ export const AppPage = () => {
         if (!acc.includes(id)) acc.push(id);
 
         return acc;
-      },
-      []
-    );
+      }, []),
+      ...(isFree ? [] : ["Fee deduction authorization"]),
+      "Vault balance visibility",
+    ];
   }, [schema]);
 
   const checkStatus = useCallback(async () => {
@@ -617,112 +618,106 @@ export const AppPage = () => {
             <Divider light />
             <AppReviews {...app} />
           </VStack>
-          {(permissions.length > 0 || app.audited) && (
-            <>
-              <Stack
-                as="span"
-                $style={{
-                  backgroundColor: colors.borderLight.toHex(),
-                  height: "1px",
-                }}
-                $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
-              />
+          <Stack
+            as="span"
+            $style={{
+              backgroundColor: colors.borderLight.toHex(),
+              height: "1px",
+            }}
+            $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
+          />
+          <VStack
+            $style={{ paddingBottom: "24px" }}
+            $media={{
+              xl: {
+                $style: {
+                  flex: "none",
+                  paddingTop: "84px",
+                  width: "322px",
+                },
+              },
+            }}
+          >
+            <VStack
+              $style={{ gap: "20px" }}
+              $media={{
+                xl: { $style: { position: "sticky", top: "136px" } },
+              }}
+            >
               <VStack
-                $style={{ paddingBottom: "24px" }}
-                $media={{
-                  xl: {
-                    $style: {
-                      flex: "none",
-                      paddingTop: "84px",
-                      width: "322px",
-                    },
-                  },
+                $style={{
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "24px",
+                  gap: "12px",
+                  padding: "32px",
                 }}
               >
+                <Stack
+                  as="span"
+                  $style={{ fontSize: "16px", lineHeight: "24px" }}
+                >
+                  {t("appPermissions")}
+                </Stack>
+                {permissions.map((item, index) => (
+                  <HStack key={index} $style={{ gap: "8px" }}>
+                    <Stack
+                      as={ShieldCheckIcon}
+                      $style={{
+                        color: colors.warning.toHex(),
+                        flex: "none",
+                        fontSize: "16px",
+                      }}
+                    />
+                    <Stack
+                      as="span"
+                      $style={{
+                        color: colors.textSecondary.toHex(),
+                        lineHeight: "16px",
+                      }}
+                    >
+                      {item}
+                    </Stack>
+                  </HStack>
+                ))}
+              </VStack>
+              {app.audited && (
                 <VStack
-                  $style={{ gap: "20px" }}
-                  $media={{
-                    xl: { $style: { position: "sticky", top: "96px" } },
+                  $style={{
+                    border: `solid 1px ${colors.borderNormal.toHex()}`,
+                    borderRadius: "24px",
+                    gap: "12px",
+                    padding: "32px",
                   }}
                 >
-                  {permissions.length > 0 && (
-                    <VStack
+                  <Stack
+                    as="span"
+                    $style={{ fontSize: "16px", lineHeight: "24px" }}
+                  >
+                    {t("audit")}
+                  </Stack>
+                  <HStack $style={{ gap: "8px" }}>
+                    <Stack
+                      as={SubscriptionTickIcon}
                       $style={{
-                        border: `solid 1px ${colors.borderNormal.toHex()}`,
-                        borderRadius: "24px",
-                        gap: "12px",
-                        padding: "32px",
+                        color: colors.success.toHex(),
+                        flex: "none",
+                        fontSize: "16px",
+                      }}
+                    />
+                    <Stack
+                      as="span"
+                      $style={{
+                        color: colors.textSecondary.toHex(),
+                        lineHeight: "16px",
                       }}
                     >
-                      <Stack
-                        as="span"
-                        $style={{ fontSize: "16px", lineHeight: "24px" }}
-                      >
-                        {t("appPermissions")}
-                      </Stack>
-                      {permissions.map((item, index) => (
-                        <HStack key={index} $style={{ gap: "8px" }}>
-                          <Stack
-                            as={ShieldCheckIcon}
-                            $style={{
-                              color: colors.warning.toHex(),
-                              flex: "none",
-                              fontSize: "16px",
-                            }}
-                          />
-                          <Stack
-                            as="span"
-                            $style={{
-                              color: colors.textSecondary.toHex(),
-                              lineHeight: "16px",
-                            }}
-                          >
-                            {item}
-                          </Stack>
-                        </HStack>
-                      ))}
-                    </VStack>
-                  )}
-                  {app.audited && (
-                    <VStack
-                      $style={{
-                        border: `solid 1px ${colors.borderNormal.toHex()}`,
-                        borderRadius: "24px",
-                        gap: "12px",
-                        padding: "32px",
-                      }}
-                    >
-                      <Stack
-                        as="span"
-                        $style={{ fontSize: "16px", lineHeight: "24px" }}
-                      >
-                        {t("audit")}
-                      </Stack>
-                      <HStack $style={{ gap: "8px" }}>
-                        <Stack
-                          as={SubscriptionTickIcon}
-                          $style={{
-                            color: colors.success.toHex(),
-                            flex: "none",
-                            fontSize: "16px",
-                          }}
-                        />
-                        <Stack
-                          as="span"
-                          $style={{
-                            color: colors.textSecondary.toHex(),
-                            lineHeight: "16px",
-                          }}
-                        >
-                          {t("appAudited")}
-                        </Stack>
-                      </HStack>
-                    </VStack>
-                  )}
+                      {t("appAudited")}
+                    </Stack>
+                  </HStack>
                 </VStack>
-              </VStack>
-            </>
-          )}
+              )}
+            </VStack>
+          </VStack>
         </VStack>
       </VStack>
       {isFeeAppInstalled === false && (
