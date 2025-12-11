@@ -222,11 +222,11 @@ export const pricingText = ({
 
   switch (type) {
     case "once":
-      return `${value} one time installation fee`;
+      return `${value} one time installation`;
     case "recurring":
-      return `${value} ${frequency} recurring fee`;
+      return `${value} ${frequency} recurring`;
     case "per-tx":
-      return `${value} per transaction fee`;
+      return `${value} per transaction`;
     default:
       return "Unknown pricing type";
   }
