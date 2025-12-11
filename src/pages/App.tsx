@@ -419,32 +419,35 @@ export const AppPage = () => {
                       ) : (
                         <Button onClick={connect}>{t("connect")}</Button>
                       )}
+                      <VStack
+                        as="span"
+                        $style={{
+                          alignItems: "center",
+                          color: colors.textSecondary.toHex(),
+                          flexGrow: "1",
+                          fontSize: "12px",
+                        }}
+                      >
+                        {isFree ? (
+                          <Stack as="span">{t("isFreeApp")}</Stack>
+                        ) : (
+                          app.pricing.map(
+                            ({ amount, frequency, type }, index) => (
+                              <Stack as="span" key={index}>
+                                {pricingText({
+                                  amount,
+                                  baseValue,
+                                  currency,
+                                  frequency,
+                                  type,
+                                })}
+                              </Stack>
+                            )
+                          )
+                        )}
+                      </VStack>
                     </VStack>
                   </HStack>
-                  <VStack
-                    as="span"
-                    $style={{
-                      alignItems: "center",
-                      color: colors.textSecondary.toHex(),
-                      flexGrow: "1",
-                    }}
-                  >
-                    {isFree ? (
-                      <Stack as="span">{t("isFreeApp")}</Stack>
-                    ) : (
-                      app.pricing.map(({ amount, frequency, type }, index) => (
-                        <Stack as="span" key={index}>
-                          {pricingText({
-                            amount,
-                            baseValue,
-                            currency,
-                            frequency,
-                            type,
-                          })}
-                        </Stack>
-                      ))
-                    )}
-                  </VStack>
                 </VStack>
                 <HStack $style={{ justifyContent: "center", gap: "56px" }}>
                   {[
