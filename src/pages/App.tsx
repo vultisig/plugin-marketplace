@@ -31,6 +31,7 @@ import {
 } from "@/utils/api";
 import {
   feeAppId,
+  freeMode,
   modalHash,
   recurringSendsAppId,
   recurringSwapsAppId,
@@ -63,7 +64,7 @@ export const AppPage = () => {
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
-  const isFree = !app?.pricing.length;
+  const isFree = freeMode || !app?.pricing.length;
 
   const informations = [
     {
@@ -112,7 +113,7 @@ export const AppPage = () => {
     if (!app) return;
 
     let isInstalled = false;
-    let isFeeAppInstalled = !app.pricing.length;
+    let isFeeAppInstalled = freeMode || !app.pricing.length;
 
     if (!isFeeAppInstalled) isFeeAppInstalled = await isAppInstalled(feeAppId);
     if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);

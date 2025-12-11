@@ -1,4 +1,4 @@
-import { Empty, Select } from "antd";
+import { Empty } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -82,62 +82,40 @@ export const MainPage = () => {
               {t("discoverApps")}
             </Stack>
             <Divider light />
-            <HStack $style={{ gap: "12px" }}>
-              <HStack $style={{ flexGrow: "1", gap: "12px" }}>
-                {categories.map(({ id, name }) => (
-                  <VStack
-                    as="span"
-                    key={id}
-                    onClick={() => setFilters({ ...filters, categoryId: id })}
-                    $hover={{
-                      backgroundColor: colors.textSecondary.toHex(),
-                      color: colors.buttonTextLight.toHex(),
-                    }}
-                    $style={{
-                      alignItems: "center",
-                      backgroundColor:
-                        filters.categoryId === id
-                          ? colors.textSecondary.toHex()
-                          : colors.bgSecondary.toHex(),
-                      border: `solid 1px ${colors.borderNormal.toHex()}`,
-                      borderRadius: "8px",
-                      color:
-                        filters.categoryId === id
-                          ? colors.buttonTextLight.toHex()
-                          : colors.textPrimary.toHex(),
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      gap: "8px",
-                      justifyContent: "center",
-                      height: "40px",
-                      padding: "0 24px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {name}
-                  </VStack>
-                ))}
-              </HStack>
-              <HStack
-                $style={{
-                  alignItems: "center",
-                  gap: "12px",
-                  width: "200px",
-                }}
-              >
-                <Stack as="span" $style={{ whiteSpace: "nowrap" }}>
-                  {t("sortBy")}
-                </Stack>
-                <Select
-                  options={[
-                    { value: "-created_at", label: "Newest" },
-                    { value: "created_at", label: "Oldest" },
-                  ]}
-                  value={filters.sort}
-                  onChange={(sort) => setFilters({ ...filters, sort })}
-                  allowClear
-                />
-              </HStack>
+            <HStack $style={{ flexGrow: "1", gap: "12px" }}>
+              {categories.map(({ id, name }) => (
+                <VStack
+                  as="span"
+                  key={id}
+                  onClick={() => setFilters({ ...filters, categoryId: id })}
+                  $hover={{
+                    backgroundColor: colors.textSecondary.toHex(),
+                    color: colors.buttonTextLight.toHex(),
+                  }}
+                  $style={{
+                    alignItems: "center",
+                    backgroundColor:
+                      filters.categoryId === id
+                        ? colors.textSecondary.toHex()
+                        : colors.bgSecondary.toHex(),
+                    border: `solid 1px ${colors.borderNormal.toHex()}`,
+                    borderRadius: "8px",
+                    color:
+                      filters.categoryId === id
+                        ? colors.buttonTextLight.toHex()
+                        : colors.textPrimary.toHex(),
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    gap: "8px",
+                    justifyContent: "center",
+                    height: "40px",
+                    padding: "0 24px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {name}
+                </VStack>
+              ))}
             </HStack>
           </VStack>
 
@@ -161,7 +139,7 @@ export const MainPage = () => {
                   as="span"
                   $style={{ fontSize: "17px", lineHeight: "20px" }}
                 >
-                  {t("apps")}
+                  {t("allApps")}
                 </Stack>
                 <Stack
                   $style={{
