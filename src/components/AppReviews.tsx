@@ -82,6 +82,8 @@ export const AppReviews: FC<App> = ({
           form.resetFields();
 
           fetchReviews(0);
+
+          goBack();
         })
         .catch(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));
@@ -286,21 +288,21 @@ export const AppReviews: FC<App> = ({
               >
                 {t("rating")}
               </Stack>
-              <Form.Item<ReviewForm>
-                name="rating"
-                rules={[{ required: true }]}
-                noStyle
+              <Stack
+                $style={{
+                  backgroundColor: colors.bgPrimary.toHex(),
+                  borderRadius: "16px",
+                  padding: "6px 12px 4px",
+                }}
               >
-                <Stack
-                  as={Rate}
-                  count={5}
-                  $style={{
-                    backgroundColor: colors.bgPrimary.toHex(),
-                    borderRadius: "16px",
-                    padding: "6px 12px 4px",
-                  }}
-                />
-              </Form.Item>
+                <Form.Item<ReviewForm>
+                  name="rating"
+                  rules={[{ required: true }]}
+                  noStyle
+                >
+                  <Rate count={5} />
+                </Form.Item>
+              </Stack>
             </VStack>
             <VStack $style={{ gap: "8px" }}>
               <Stack
