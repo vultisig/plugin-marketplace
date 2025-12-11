@@ -14,6 +14,7 @@ import { chains, EvmChain, evmChainInfo } from "@/utils/chain";
 import {
   defaultPageSize,
   feeAppId,
+  freeMode,
   recurringSwapsAppId,
   storeApiUrl,
   vultiApiUrl,
@@ -21,6 +22,7 @@ import {
 import { Currency } from "@/utils/currency";
 import { normalizeApp, toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
+import { faqs } from "@/utils/mockData";
 import {
   APIResponse,
   App,
@@ -38,8 +40,6 @@ import {
   ReviewForm,
   Token,
 } from "@/utils/types";
-
-import { faqs } from "./mockData";
 
 const api = axios.create({ headers: { "Content-Type": "application/json" } });
 
@@ -175,7 +175,9 @@ export const getApps = async ({
     if (!totalCount) return { apps: [], totalCount: 0 };
 
     return {
-      apps: plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
+      apps: freeMode
+        ? plugins.map(normalizeApp)
+        : plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
       totalCount,
     };
   } catch {

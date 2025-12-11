@@ -31,6 +31,7 @@ import {
 } from "@/utils/api";
 import {
   feeAppId,
+  freeMode,
   modalHash,
   recurringSendsAppId,
   recurringSwapsAppId,
@@ -362,7 +363,7 @@ export const AppPage = () => {
                           <Button disabled loading>
                             {t("checking")}
                           </Button>
-                        ) : !isFree && !isFeeAppInstalled ? (
+                        ) : !isFree && !isFeeAppInstalled && !freeMode ? (
                           <Button
                             loading={loading}
                             onClick={() =>

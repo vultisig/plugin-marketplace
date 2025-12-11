@@ -1,5 +1,6 @@
 export const en = {
   // A
+  allApps: "All Apps",
   action: "Action",
   addAutomation: "Add Automation",
   addRule: "Add Rule",
@@ -122,6 +123,7 @@ export const en = {
   useTemplate: "Use Template",
   // V
   version: "Version",
+  vultisigVerified: "Vultisig Verified",
   // W
   writeReview: "Write Review",
   writeReviewPlaceholder: "How do you feel about this app?",

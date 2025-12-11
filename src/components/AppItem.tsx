@@ -6,6 +6,7 @@ import { useTheme } from "styled-components";
 import { useCore } from "@/hooks/useCore";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
+import { SubscriptionTickIcon } from "@/icons/SubscriptionTickIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { pricingText, toNumberFormat } from "@/utils/functions";
@@ -42,15 +43,54 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
         padding: "16px",
       }}
     >
-      <Stack
-        as="img"
-        alt={title}
-        src={thumbnailUrl}
-        $style={{
-          borderRadius: "12px",
-          ...(horizontal ? { height: "224px" } : { width: "100%" }),
-        }}
-      />
+      <Stack $style={{ position: "relative" }}>
+        <Stack
+          as="img"
+          alt={title}
+          src={thumbnailUrl}
+          $style={{
+            borderRadius: "12px",
+            ...(horizontal ? { height: "224px" } : { width: "100%" }),
+          }}
+        />
+        {horizontal && (
+          <Stack
+            as="span"
+            $style={{
+              backgroundColor: colors.bgPrimary.toHex(),
+              borderRadius: "16px",
+              fontSize: "12px",
+              left: "16px",
+              lineHeight: "26px",
+              padding: "0 8px",
+              position: "absolute",
+              textTransform: "uppercase",
+              top: "16px",
+            }}
+          >
+            {t("new")}
+          </Stack>
+        )}
+        <HStack
+          as="span"
+          $style={{
+            alignItems: "center",
+            backgroundColor: colors.neutral900.toRgba(0.5),
+            borderRadius: "16px",
+            color: colors.neutral100.toHex(),
+            fontSize: "12px",
+            gap: "4px",
+            lineHeight: "26px",
+            padding: "0 8px",
+            position: "absolute",
+            right: "16px",
+            top: "16px",
+          }}
+        >
+          <SubscriptionTickIcon color={colors.success.toHex()} fontSize={16} />
+          {t("vultisigVerified")}
+        </HStack>
+      </Stack>
       <VStack
         $style={{
           alignItems: horizontal ? "flex-start" : "normal",

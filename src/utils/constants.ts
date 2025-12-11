@@ -10,6 +10,7 @@ export const modalHash = {
 } as const;
 
 export const feeAppId: string = import.meta.env.VITE_FEE_APP_ID;
+export const freeMode: boolean = import.meta.env.VITE_FREE_MODE === "true";
 export const recurringSendsAppId: string = import.meta.env
   .VITE_RECURRING_SENDS_APP_ID;
 export const recurringSwapsAppId: string = import.meta.env

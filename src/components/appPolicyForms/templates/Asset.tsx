@@ -16,9 +16,9 @@ import { PencilLineIcon } from "@/icons/PencilLineIcon";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, nativeTokens, tickers } from "@/utils/chain";
+import { Chain, nativeTokens } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
-import { camelCaseToTitle } from "@/utils/functions";
+import { camelCaseToTitle, toNumberFormat } from "@/utils/functions";
 import { Token } from "@/utils/types";
 
 type AssetProps = {
@@ -126,7 +126,7 @@ export const AssetTemplate: FC<AssetTemplateProps> = ({
             {t("amount")}
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {fromAmount} {tickers[from.chain]}
+            {toNumberFormat(fromAmount)}
           </Stack>
         </HStack>
       </VStack>
