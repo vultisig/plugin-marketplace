@@ -146,6 +146,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
+    form.resetFields();
     setState({ isAdded: false, loading: false, step: 1 });
   }, [form, visible]);
 
