@@ -9,7 +9,6 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { FC, ReactNode, useRef, useState } from "react";
-
 import { camelCaseToTitle } from "@/utils/functions";
 import { FieldProps } from "@/utils/types";
 
@@ -22,6 +21,7 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
   type,
   ...rest
 }) => {
+  const form = Form.useFormInstance();
   let element: ReactNode;
 
   const disabledDate: DatePickerProps["disabledDate"] = (current) => {
@@ -70,14 +70,16 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
   const initialValue = firstAvailable.subtract(1, "day");
 
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState<dayjs.Dayjs | null>(null);
+  const [value, setValue] = useState<dayjs.Dayjs | null>(null); // committed
+  const [draft, setDraft] = useState<dayjs.Dayjs | null>(null); // internal
   const [initial, setInitial] = useState<dayjs.Dayjs>(initialValue);
 
   const allPartsChanged = (init: dayjs.Dayjs, curr: dayjs.Dayjs) => {
-    const dayChanged = !init.isSame(curr, "day");
-    const hourChanged = init.hour() !== curr.hour();
-    const minuteChanged = init.minute() !== curr.minute();
-    return dayChanged && hourChanged && minuteChanged;
+    return (
+      !init.isSame(curr, "day") &&
+      init.hour() !== curr.hour() &&
+      init.minute() !== curr.minute()
+    );
   };
 
   switch (type) {
@@ -105,31 +107,46 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
                 disabled={disabled}
                 open={open}
                 value={value}
-                onOpenChange={(o) => setOpen(o)}
+                onOpenChange={setOpen}
                 disabledDate={disabledDate}
                 disabledTime={disabledTime}
                 format="YYYY-MM-DD HH:mm"
                 showNow={false}
+                needConfirm
                 showTime={{
                   hideDisabledOptions: true,
                   minuteStep: 5,
                   showSecond: false,
-                  defaultValue: undefined,
-                }}
-                onChange={(newValue) => {
-                  setValue(newValue);
                 }}
                 defaultPickerValue={initialValue}
-                needConfirm={true}
-                onCalendarChange={(newValue) => {
-                  // Auto-close when both date and time are selected
-                  if (newValue && allPartsChanged(initial, newValue)) {
-                    console.log("✔ All parts changed → closing");
-                    console.log("Selected date-time:", newValue);
-                    setValue(newValue);
-                    setInitial(newValue);
+                // Draft updates (preview only)
+                onCalendarChange={(next) => {
+                  if (!next) return;
+
+                  setDraft(next);
+
+                  if (allPartsChanged(initial, next)) {
+                    if (rest.name) {
+                      form.setFieldValue(rest.name as string, next);
+                    }else{
+                      console.log("No field name specified for DynamicFormItem: ", rest);
+                    }
+
+                    // ✅ Auto-confirm path
+                    setValue(next);
+                    setInitial(next);
+                    setDraft(null);
                     setOpen(false);
                   }
+                }}
+                // OK button path
+                onChange={(confirmed) => {
+                  if (!confirmed) return;
+
+                  setValue(confirmed);
+                  setInitial(confirmed);
+                  setDraft(null);
+                  setOpen(false);
                 }}
               />
             );
