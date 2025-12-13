@@ -14,7 +14,6 @@ import { chains, EvmChain, evmChainInfo } from "@/utils/chain";
 import {
   defaultPageSize,
   feeAppId,
-  freeMode,
   recurringSwapsAppId,
   storeApiUrl,
   vultiApiUrl,
@@ -31,6 +30,7 @@ import {
   AuthToken,
   Category,
   CustomAppPolicy,
+  FeeAppStatus,
   JupiterToken,
   ListFilters,
   OneInchToken,
@@ -175,9 +175,7 @@ export const getApps = async ({
     if (!totalCount) return { apps: [], totalCount: 0 };
 
     return {
-      apps: freeMode
-        ? plugins.map(normalizeApp)
-        : plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
+      apps: plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
       totalCount,
     };
   } catch {
@@ -208,7 +206,14 @@ export const getBaseValue = async (currency: Currency): Promise<number> => {
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-  return get<Category[]>(`${storeApiUrl}/categories`);
+  return get<Category[]>(`${storeApiUrl}/categories`).then((categories) => [
+    { id: "", name: "All" },
+    ...categories,
+  ]);
+};
+
+export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
+  return get<FeeAppStatus>(`${storeApiUrl}/fee-app/status`);
 };
 
 export const getMyApps = async ({
@@ -223,7 +228,12 @@ export const getMyApps = async ({
       params: toSnakeCase({ skip, take }),
     });
 
-    return { apps: plugins, totalCount };
+    if (!totalCount) return { apps: [], totalCount: 0 };
+
+    return {
+      apps: plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
+      totalCount,
+    };
   } catch {
     return { apps: [], totalCount: 0 };
   }

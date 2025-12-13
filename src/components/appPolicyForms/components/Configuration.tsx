@@ -1,4 +1,3 @@
-import { FormInstance } from "antd";
 import { FC } from "react";
 
 import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
@@ -13,13 +12,12 @@ type AppPolicyFormConfigurationProps = {
   chains: Chain[];
   configuration: Configuration;
   definitions?: Definitions;
-  form: FormInstance;
   parentKey?: string[];
 };
 
 export const AppPolicyFormConfiguration: FC<
   AppPolicyFormConfigurationProps
-> = ({ chains, configuration, definitions, form, parentKey = [] }) => {
+> = ({ chains, configuration, definitions, parentKey = [] }) => {
   const { properties, required } = configuration;
 
   return Object.entries(properties).map(([key, field]) => {
@@ -32,7 +30,6 @@ export const AppPolicyFormConfiguration: FC<
           return (
             <AssetWidget
               configuration={fieldRef}
-              form={form}
               fullKey={fullKey}
               key={key}
               supportedChains={chains}
@@ -54,7 +51,6 @@ export const AppPolicyFormConfiguration: FC<
                   chains={chains}
                   configuration={fieldRef}
                   definitions={definitions}
-                  form={form}
                   parentKey={fullKey}
                 />
               </Stack>

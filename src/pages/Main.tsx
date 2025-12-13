@@ -83,39 +83,45 @@ export const MainPage = () => {
             </Stack>
             <Divider light />
             <HStack $style={{ flexGrow: "1", gap: "12px" }}>
-              {categories.map(({ id, name }) => (
-                <VStack
-                  as="span"
-                  key={id}
-                  onClick={() => setFilters({ ...filters, categoryId: id })}
-                  $hover={{
-                    backgroundColor: colors.textSecondary.toHex(),
-                    color: colors.buttonTextLight.toHex(),
-                  }}
-                  $style={{
-                    alignItems: "center",
-                    backgroundColor:
-                      filters.categoryId === id
-                        ? colors.textSecondary.toHex()
+              {categories.map(({ id, name }) => {
+                const isActive =
+                  (!id && !filters.categoryId) || id === filters.categoryId;
+
+                return (
+                  <VStack
+                    as="span"
+                    key={id}
+                    onClick={() =>
+                      setFilters({
+                        ...filters,
+                        categoryId: isActive ? "" : id,
+                      })
+                    }
+                    $hover={{
+                      backgroundColor: colors.bgTertiary.toHex(),
+                      color: colors.buttonTextLight.toHex(),
+                    }}
+                    $style={{
+                      alignItems: "center",
+                      backgroundColor: isActive
+                        ? colors.bgTertiary.toHex()
                         : colors.bgSecondary.toHex(),
-                    border: `solid 1px ${colors.borderNormal.toHex()}`,
-                    borderRadius: "8px",
-                    color:
-                      filters.categoryId === id
-                        ? colors.buttonTextLight.toHex()
-                        : colors.textPrimary.toHex(),
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    gap: "8px",
-                    justifyContent: "center",
-                    height: "40px",
-                    padding: "0 24px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {name}
-                </VStack>
-              ))}
+                      border: `solid 1px ${colors.borderNormal.toHex()}`,
+                      borderRadius: "8px",
+                      color: colors.textPrimary.toHex(),
+                      cursor: "pointer",
+                      fontSize: "12px",
+                      gap: "8px",
+                      justifyContent: "center",
+                      height: "40px",
+                      padding: "0 24px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {name}
+                  </VStack>
+                );
+              })}
             </HStack>
           </VStack>
 

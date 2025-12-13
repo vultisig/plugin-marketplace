@@ -7,7 +7,6 @@ import { useCore } from "@/hooks/useCore";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { SubscriptionTickIcon } from "@/icons/SubscriptionTickIcon";
-import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { pricingText, toNumberFormat } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
@@ -43,7 +42,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
         padding: "16px",
       }}
     >
-      <Stack $style={{ position: "relative" }}>
+      <Stack $style={{ overflow: "hidden", position: "relative" }}>
         <Stack
           as="img"
           alt={title}
@@ -189,7 +188,21 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               <Stack as="span">{t("isFreeApp")}</Stack>
             )}
           </VStack>
-          <Button>{t("seeDetails")}</Button>
+          <HStack
+            as="span"
+            $style={{
+              alignItems: "center",
+              backgroundColor: colors.buttonPrimary.toHex(),
+              borderRadius: "44px",
+              color: colors.buttonTextLight.toHex(),
+              gap: "8px",
+              height: "44px",
+              justifyContent: "center",
+              padding: "0 24px",
+            }}
+          >
+            {t("seeDetails")}
+          </HStack>
         </VStack>
       </VStack>
     </Stack>

@@ -15,8 +15,7 @@ import {
 } from "viem/chains";
 
 import { vultiApiUrl } from "@/utils/constants";
-
-import { Token } from "./types";
+import { Token } from "@/utils/types";
 
 const cosmosChains = {
   Akash: "Akash",
