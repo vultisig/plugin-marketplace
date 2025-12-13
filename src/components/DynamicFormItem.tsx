@@ -125,7 +125,10 @@ const DatePickerFormItem: FC<FieldProps & FormItemProps> = ({
               form.setFieldValue(name, next);
               setOpen(false);
             }
-          } else if (next.day() > 0 && next.hour() > 0 && next.minute() > 0) {
+          } else if (next.hour() > 0 && next.minute() > 0) {
+            form.setFieldValue(name, next);
+            setOpen(false);
+          }
             form.setFieldValue(name, next);
             setOpen(false);
           }
