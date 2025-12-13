@@ -4,7 +4,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Form, FormInstance, Input, Select, SelectProps } from "antd";
+import { Form, Input, Select, SelectProps } from "antd";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
@@ -21,7 +21,6 @@ import { Configuration, Token } from "@/utils/types";
 
 type AssetWidgetProps = {
   configuration: Configuration;
-  form: FormInstance;
   fullKey: string[];
   supportedChains: Chain[];
 };
@@ -33,7 +32,6 @@ type StateProps = {
 
 export const AssetWidget: FC<AssetWidgetProps> = ({
   configuration: { properties, required },
-  form,
   fullKey,
   supportedChains,
 }) => {
@@ -47,7 +45,8 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const chainField = [...fullKey, "chain"];
   const decimalsField = [...fullKey, "decimals"];
   const tokenField = [...fullKey, "token"];
-  const chain: Chain = Form.useWatch(chainField, form);
+  const form = Form.useFormInstance();
+  const chain = Form.useWatch<Chain>(chainField, form);
 
   const nativeTokens = useMemo(() => {
     return supportedChains.reduce((acc, chain) => {

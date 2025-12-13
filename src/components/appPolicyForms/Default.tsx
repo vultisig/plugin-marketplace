@@ -387,7 +387,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                 chains={supportedChains}
                 configuration={configuration}
                 definitions={configuration.definitions}
-                form={form}
               />
             </Stack>
           )}

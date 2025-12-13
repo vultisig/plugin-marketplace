@@ -8,20 +8,64 @@ import {
   Select,
 } from "antd";
 import dayjs from "dayjs";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { camelCaseToTitle } from "@/utils/functions";
 import { FieldProps } from "@/utils/types";
 
-type DynamicFormItemProps = FieldProps & FormItemProps & { disabled?: boolean };
-
-export const DynamicFormItem: FC<DynamicFormItemProps> = ({
-  disabled,
+export const DynamicFormItem: FC<FieldProps & FormItemProps> = ({
   enum: enumerable,
   format,
   type,
   ...rest
 }) => {
+  switch (type) {
+    case "int": {
+      return (
+        <Form.Item {...rest}>
+          <InputNumber />
+        </Form.Item>
+      );
+    }
+    default: {
+      if (enumerable) {
+        return (
+          <Form.Item {...rest}>
+            <Select
+              options={enumerable.map((value) => ({
+                label: camelCaseToTitle(value),
+                value,
+              }))}
+            />
+          </Form.Item>
+        );
+      } else {
+        switch (format) {
+          case "date-time": {
+            return <DatePickerFormItem {...rest} />;
+          }
+          default: {
+            return (
+              <Form.Item {...rest}>
+                <Input />
+              </Form.Item>
+            );
+          }
+        }
+      }
+    }
+  }
+};
+
+const DatePickerFormItem: FC<FieldProps & FormItemProps> = ({
+  name,
+  ...rest
+}) => {
+  const [open, setOpen] = useState(false);
+  const form = Form.useFormInstance();
+  const date = Form.useWatch<number>(name, form);
+  const isValid = !date || !isNaN(date);
+
   const disabledDate: DatePickerProps["disabledDate"] = (current) => {
     return current && current.isBefore(dayjs(), "day");
   };
@@ -50,62 +94,46 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
     return { disabledHours, disabledMinutes };
   };
 
-  switch (type) {
-    case "int": {
-      return (
-        <Form.Item {...rest}>
-          <InputNumber disabled={disabled} />
-        </Form.Item>
-      );
-    }
-    default: {
-      if (enumerable) {
-        return (
-          <Form.Item {...rest}>
-            <Select
-              disabled={disabled}
-              options={enumerable.map((value) => ({
-                label: camelCaseToTitle(value),
-                value,
-              }))}
-            />
-          </Form.Item>
-        );
-      } else {
-        switch (format) {
-          case "date-time": {
-            return (
-              <Form.Item
-                getValueProps={(value) => ({
-                  value: value && dayjs(isNaN(value) ? value : Number(value)),
-                })}
-                normalize={(value) => value && `${dayjs(value).valueOf()}`}
-                {...rest}
-              >
-                <DatePicker
-                  disabled={disabled}
-                  disabledDate={disabledDate}
-                  disabledTime={disabledTime}
-                  format="YYYY-MM-DD HH:mm"
-                  showNow={false}
-                  showTime={{
-                    hideDisabledOptions: true,
-                    minuteStep: 5,
-                    showSecond: false,
-                  }}
-                />
-              </Form.Item>
-            );
+  useEffect(() => {
+    if (!isValid) form.setFieldValue(name, dayjs(date).valueOf());
+  }, [isValid]);
+
+  if (!isValid) return null;
+
+  return (
+    <Form.Item
+      getValueProps={(value) => ({ value: value && dayjs(value) })}
+      name={name}
+      normalize={(value) => value && dayjs(value).valueOf()}
+      {...rest}
+    >
+      <DatePicker
+        disabledDate={disabledDate}
+        disabledTime={disabledTime}
+        format="YYYY-MM-DD HH:mm"
+        onCalendarChange={(next) => {
+          if (!date || !next || Array.isArray(next)) return;
+
+          const current = dayjs(date);
+
+          if (
+            !current.isSame(next, "day") &&
+            current.hour() !== next.hour() &&
+            current.minute() !== next.minute()
+          ) {
+            form.setFieldValue(name, next);
+            setOpen(false);
           }
-          default: {
-            return (
-              <Form.Item {...rest}>
-                <Input disabled={disabled} />
-              </Form.Item>
-            );
-          }
-        }
-      }
-    }
-  }
+        }}
+        onOpenChange={setOpen}
+        open={open}
+        showNow={false}
+        showTime={{
+          hideDisabledOptions: true,
+          minuteStep: 5,
+          showSecond: false,
+        }}
+      />
+    </Form.Item>
+  );
 };
