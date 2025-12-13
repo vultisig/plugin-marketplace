@@ -295,6 +295,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   useEffect(() => {
     if (!visible) return;
 
+    form.resetFields();
     setState((prevState) => ({
       ...prevState,
       isAdded: false,
