@@ -5,11 +5,11 @@ import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { useGoBack } from "@/hooks/useGoBack";
-import { useQueries } from "@/hooks/useQueries";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { Button } from "@/toolkits/Button";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { getApp } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { App } from "@/utils/types";
 
@@ -22,7 +22,6 @@ export const PaymentModal: FC<PaymentModalProps> = ({ loading, onInstall }) => {
   const { t } = useTranslation();
   const [app, setApp] = useState<App | undefined>(undefined);
   const { hash } = useLocation();
-  const { getAppData } = useQueries();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -32,7 +31,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ loading, onInstall }) => {
   );
 
   useEffect(() => {
-    getAppData(feeAppId)
+    getApp(feeAppId)
       .then(setApp)
       .catch(() => goBack());
   }, []);

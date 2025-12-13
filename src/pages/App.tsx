@@ -13,7 +13,6 @@ import { PaymentModal } from "@/components/PaymentModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
-import { useQueries } from "@/hooks/useQueries";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
@@ -25,6 +24,7 @@ import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import {
+  getApp,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
@@ -60,7 +60,6 @@ export const AppPage = () => {
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
   const { id = "" } = useParams<{ id: string }>();
-  const { getAppData } = useQueries();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
@@ -120,6 +119,22 @@ export const AppPage = () => {
 
     setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
   }, [app]);
+
+  const fetchApp = useCallback(async () => {
+    getApp(id)
+      .then((app) => {
+        if (schema) {
+          setState((prevState) => ({ ...prevState, app }));
+        } else {
+          getRecipeSpecification(app.id)
+            .catch(() => undefined)
+            .then((schema) => {
+              setState((prevState) => ({ ...prevState, app, schema }));
+            });
+        }
+      })
+      .catch(() => goBack(routeTree.root.path));
+  }, [id, schema]);
 
   const handleInstall = async (id: string) => {
     if (loading) return;
@@ -207,15 +222,7 @@ export const AppPage = () => {
       return;
     }
 
-    getAppData(id)
-      .then((app) => {
-        getRecipeSpecification(app.id)
-          .catch(() => undefined)
-          .then((schema) => {
-            setState((prevState) => ({ ...prevState, app, schema }));
-          });
-      })
-      .catch(() => goBack(routeTree.root.path));
+    fetchApp();
   }, [id]);
 
   if (!app) return <Spin centered />;
@@ -649,7 +656,7 @@ export const AppPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <AppReviews {...app} />
+            <AppReviews app={app} onReload={fetchApp} />
           </VStack>
           <Stack
             as="span"
