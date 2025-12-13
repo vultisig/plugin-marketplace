@@ -129,9 +129,6 @@ const DatePickerFormItem: FC<FieldProps & FormItemProps> = ({
             form.setFieldValue(name, next);
             setOpen(false);
           }
-            form.setFieldValue(name, next);
-            setOpen(false);
-          }
         }}
         onOpenChange={setOpen}
         open={open}
