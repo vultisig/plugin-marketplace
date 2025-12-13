@@ -1,7 +1,8 @@
 import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { Form, Modal } from "antd";
-import { FC, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { FC, Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -17,21 +18,35 @@ import { AssetTemplate } from "@/components/appPolicyForms/templates/Asset";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
+import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
 import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
+import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
+import { Chain, nativeTokens } from "@/utils/chain";
 import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import {
+  camelCaseToTitle,
   getConfiguration,
   getFeePolicies,
   policyToHexMessage,
+  toNumberFormat,
 } from "@/utils/functions";
-import { AppPolicy } from "@/utils/types";
+import { AppPolicy, Token } from "@/utils/types";
+
+import { TokenImage } from "../TokenImage";
+
+type AssetProps = {
+  address: string;
+  chain: Chain;
+  decimals: number;
+  token: string;
+};
 
 export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   app,
@@ -62,6 +77,16 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.policy;
+
+  const handleStep = () => {
+    if (step < 3) {
+      setState((prevState) => ({ ...prevState, step: prevState.step + 1 }));
+    } else {
+      form.validateFields().then((values) => {
+        handleSubmit(values);
+      });
+    }
+  };
 
   const handleSubmit = (values: JsonObject) => {
     if (!configuration) return;
@@ -136,11 +161,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   const handleTemplate = (data: JsonObject, edit?: boolean) => {
     form.setFieldsValue(data);
 
-    if (edit) {
-      setState((prevState) => ({ ...prevState, step: 2 }));
-    } else {
-      handleSubmit(data);
-    }
+    setState((prevState) => ({ ...prevState, step: edit ? 2 : 3 }));
   };
 
   useEffect(() => {
@@ -162,15 +183,12 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
         <>
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-            <Button
-              loading={loading}
-              onClick={() =>
-                step > 1
-                  ? form.submit()
-                  : setState((prevState) => ({ ...prevState, step: 2 }))
-              }
-            >
-              {step > 1 ? t("submit") : t("createOwnAutomations")}
+            <Button loading={loading} onClick={handleStep}>
+              {step > 2
+                ? t("submit")
+                : step > 1
+                ? t("continue")
+                : t("createOwnAutomations")}
             </Button>
           </HStack>
         </>
@@ -198,7 +216,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
       width={992}
     >
       <AppPolicyFormSidebar
-        steps={[t("templates"), t("automations")]}
+        steps={[t("templates"), t("automations"), t("overview")]}
         step={step}
       />
       <Divider light vertical />
@@ -211,12 +229,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
           padding: "32px",
         }}
       >
-        <Form
-          autoComplete="off"
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
+        <Form autoComplete="off" form={form} layout="vertical">
           <Stack
             $style={{
               columnGap: "24px",
@@ -245,8 +258,139 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               definitions={configuration.definitions}
             />
           </Stack>
+          {step === 3 && (
+            <VStack $style={{ gap: "16px" }}>
+              <Overview />
+            </VStack>
+          )}
         </Form>
       </VStack>
     </Modal>
+  );
+};
+
+const Overview = () => {
+  const colors = useTheme();
+  const form = Form.useFormInstance();
+  const endDate = Form.useWatch<number>("endDate", form);
+  const startDate = Form.useWatch<number>("startDate", form);
+
+  return [
+    ...(startDate
+      ? [
+          {
+            label: "Start Date",
+            value: dayjs(startDate).format("MM-DD-YYYY"),
+          },
+        ]
+      : []),
+    ...(endDate
+      ? [
+          {
+            label: "End Date",
+            value: dayjs(endDate).format("MM-DD-YYYY"),
+          },
+        ]
+      : []),
+    {
+      label: "Frequency",
+      value: (
+        <Stack
+          as="span"
+          $style={{
+            backgroundColor: colors.accentFour.toRgba(0.1),
+            borderRadius: "4px",
+            color: colors.accentFour.toHex(),
+            lineHeight: "20px",
+            padding: "0 8px",
+          }}
+        >
+          {camelCaseToTitle(form.getFieldValue("frequency"))}
+        </Stack>
+      ),
+    },
+    {
+      label: "From",
+      value: <OverviewItem name="from" />,
+    },
+    {
+      label: "Amount",
+      value: toNumberFormat(form.getFieldValue("fromAmount")),
+    },
+    {
+      label: "To",
+      value: <OverviewItem name="to" />,
+    },
+  ].map(({ label, value }, index) => (
+    <Fragment key={index}>
+      {index > 0 && <Divider />}
+      <HStack
+        $style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack as="span">{label}</Stack>
+
+        {value}
+      </HStack>
+    </Fragment>
+  ));
+};
+
+const OverviewItem: FC<{ name: string }> = ({ name }) => {
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const { getTokenData } = useQueries();
+  const form = Form.useFormInstance();
+  const asset = Form.useWatch<AssetProps>(name, form);
+
+  useEffect(() => {
+    if (!asset) return;
+
+    if (asset.token) {
+      getTokenData(asset.chain, asset.token)
+        .catch(() => undefined)
+        .then(setToken);
+    } else {
+      setToken(nativeTokens[asset.chain]);
+    }
+  }, [asset]);
+
+  if (!token) return <Spin size="small" />;
+
+  return (
+    <HStack
+      $style={{
+        alignItems: "center",
+        gap: "8px",
+        justifyContent: "center",
+      }}
+    >
+      <Stack $style={{ position: "relative" }}>
+        <TokenImage
+          alt={token.ticker}
+          borderRadius="50%"
+          height="20px"
+          src={token.logo}
+          width="20px"
+        />
+        {!!token.id && (
+          <Stack
+            $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
+          >
+            <TokenImage
+              alt={token.chain}
+              borderRadius="50%"
+              height="12px"
+              src={`/tokens/${token.chain.toLowerCase()}.svg`}
+              width="12px"
+            />
+          </Stack>
+        )}
+      </Stack>
+      <Stack as="span" $style={{ lineHeight: "20px" }}>
+        {token.ticker}
+      </Stack>
+    </HStack>
   );
 };
