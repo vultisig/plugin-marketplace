@@ -67,13 +67,19 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
   }
 
   // Initial value = yesterday at first available time
+  //const initialValue = firstAvailable.subtract(1, "day");
   const initialValue = firstAvailable.subtract(1, "day");
+  const lastSelectedValue = initialValue.hour(0).minute(0).second(0)
+  console.log("initialValue: ",  initialValue.format("YYYY-MM-DD HH:mm"));
+  console.log("lastSelectedValue: ",  lastSelectedValue.format("YYYY-MM-DD HH:mm"));
+
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<dayjs.Dayjs | null>(null); // committed
   const [draft, setDraft] = useState<dayjs.Dayjs | null>(null); // internal
   const [initial, setInitial] = useState<dayjs.Dayjs>(initialValue);
-
+  const [lastSelected, setLastSelected] = useState<dayjs.Dayjs>(lastSelectedValue);
+  const isDefaultTime = (d: dayjs.Dayjs) => d.hour() === 0 || d.minute() === 0;
   const allPartsChanged = (init: dayjs.Dayjs, curr: dayjs.Dayjs) => {
     return (
       !init.isSame(curr, "day") &&
@@ -124,17 +130,20 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
                   if (!next) return;
 
                   setDraft(next);
-
-                  if (allPartsChanged(initial, next)) {
+                  debugger;
+                  if (isDefaultTime(next)) return;
+                  if (allPartsChanged(initial, next) && allPartsChanged(lastSelected, next)) {
                     if (rest.name) {
                       form.setFieldValue(rest.name as string, next);
-                    }else{
-                      console.log("No field name specified for DynamicFormItem: ", rest);
+                    } else {
+                      console.log(
+                        "No field name specified for DynamicFormItem: ",
+                        rest
+                      );
                     }
-
                     // ✅ Auto-confirm path
                     setValue(next);
-                    setInitial(next);
+                    setLastSelected(next);
                     setDraft(null);
                     setOpen(false);
                   }
@@ -144,7 +153,7 @@ export const DynamicFormItem: FC<DynamicFormItemProps> = ({
                   if (!confirmed) return;
 
                   setValue(confirmed);
-                  setInitial(confirmed);
+                  setLastSelected(confirmed);
                   setDraft(null);
                   setOpen(false);
                 }}
