@@ -16,7 +16,7 @@ import { PencilLineIcon } from "@/icons/PencilLineIcon";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, nativeTokens } from "@/utils/chain";
+import { Chain, chains, nativeTokens } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle, toNumberFormat } from "@/utils/functions";
 import { Token } from "@/utils/types";
@@ -188,7 +188,7 @@ const AssetItem: FC<{
     getAccount(chain).then((address) => {
       if (cancelled) return;
       if (address) {
-        if (chain === "Solana") {
+        if (chain === chains.Solana) {
           const mint = new PublicKey(asset.token);
           const owner = new PublicKey(address);
 

@@ -96,7 +96,7 @@ const DatePickerFormItem: FC<FieldProps & FormItemProps> = ({
 
   useEffect(() => {
     if (!isValid) form.setFieldValue(name, dayjs(date).valueOf());
-  }, [isValid]);
+  }, [date, form, isValid, name]);
 
   if (!isValid) return null;
 
@@ -112,15 +112,20 @@ const DatePickerFormItem: FC<FieldProps & FormItemProps> = ({
         disabledTime={disabledTime}
         format="YYYY-MM-DD HH:mm"
         onCalendarChange={(next) => {
-          if (!date || !next || Array.isArray(next)) return;
+          if (!next || Array.isArray(next)) return;
 
-          const current = dayjs(date);
+          if (date) {
+            const current = dayjs(date);
 
-          if (
-            !current.isSame(next, "day") &&
-            current.hour() !== next.hour() &&
-            current.minute() !== next.minute()
-          ) {
+            if (
+              !current.isSame(next, "day") &&
+              current.hour() !== next.hour() &&
+              current.minute() !== next.minute()
+            ) {
+              form.setFieldValue(name, next);
+              setOpen(false);
+            }
+          } else if (next.day() > 0 && next.hour() > 0 && next.minute() > 0) {
             form.setFieldValue(name, next);
             setOpen(false);
           }

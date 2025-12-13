@@ -58,11 +58,11 @@ export const BillingPage = () => {
       const app = await getApp(feeAppId);
       const isInstalled = await isAppInstalled(feeAppId);
 
-      setState({ app, isInstalled });
+      setState((prevState) => ({ ...prevState, app, isInstalled }));
     } catch {
       goBack(routeTree.root.path);
     }
-  }, []);
+  }, [goBack]);
 
   const handleInstall = async () => {
     if (loading) return;
@@ -88,7 +88,7 @@ export const BillingPage = () => {
 
   useEffect(() => {
     fetchApp();
-  }, []);
+  }, [fetchApp]);
   if (!app) return <Spin centered />;
 
   return (
