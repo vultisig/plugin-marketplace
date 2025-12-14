@@ -147,6 +147,15 @@ export const getFieldRef = (field: FieldProps, definitions?: Definitions) => {
   return definitions[key];
 };
 
+export const kebabCaseToTitle = (input: string) => {
+  if (!input) return input;
+
+  return input
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 export const match = <T extends string | number | symbol, V>(
   value: T,
   handlers: { [key in T]: () => V }

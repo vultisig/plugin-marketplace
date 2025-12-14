@@ -43,6 +43,7 @@ import {
   camelCaseToTitle,
   getConfiguration,
   getFeePolicies,
+  kebabCaseToTitle,
   policyToHexMessage,
   toNumberFormat,
 } from "@/utils/functions";
@@ -184,60 +185,64 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     // TODO: move amount to asset widget
     if ("from" in values && "fromAmount" in values) {
       configurationData["fromAmount"] = parseUnits(
-        values.fromAmount,
+        String(values.fromAmount),
         values.from.decimals
       ).toString();
     }
 
-    getRecipeSuggestion(id, configurationData).then(({ rules = [] }) => {
-      const jsonData = create(PolicySchema, {
-        author: "",
-        configuration: configurationData,
-        description: "",
-        feePolicies: getFeePolicies(pricing),
-        id: pluginId,
-        name: pluginName,
-        rules,
-        version: pluginVersion,
-      });
-
-      const binary = toBinary(PolicySchema, jsonData);
-
-      const recipe = base64Encode(binary);
-
-      const policy: AppPolicy = {
-        active: true,
-        id: uuidv4(),
-        pluginId: id,
-        pluginVersion: String(pluginVersion),
-        policyVersion: 0,
-        publicKey: getVaultId(),
-        recipe,
-      };
-
-      const message = policyToHexMessage(policy);
-
-      personalSign(address, message, "policy")
-        .then((signature) => {
-          addPolicy({ ...policy, signature })
-            .then(() => {
-              setState((prevState) => ({ ...prevState, isAdded: true }));
-
-              onFinish();
-            })
-            .catch((error: Error) => {
-              messageAPI.error(error.message);
-            })
-            .finally(() => {
-              setState((prevState) => ({ ...prevState, loading: false }));
-            });
-        })
-        .catch((error: Error) => {
-          messageAPI.error(error.message);
-
-          setState((prevState) => ({ ...prevState, loading: false }));
+    getRecipeSuggestion(id, configurationData).then(
+      ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
+        const jsonData = create(PolicySchema, {
+          author: "",
+          configuration: configurationData,
+          description: "",
+          feePolicies: getFeePolicies(pricing),
+          id: pluginId,
+          maxTxsPerWindow,
+          name: pluginName,
+          rateLimitWindow,
+          rules,
+          version: pluginVersion,
         });
-    });
+
+        const binary = toBinary(PolicySchema, jsonData);
+
+        const recipe = base64Encode(binary);
+
+        const policy: AppPolicy = {
+          active: true,
+          id: uuidv4(),
+          pluginId: id,
+          pluginVersion: String(pluginVersion),
+          policyVersion: 0,
+          publicKey: getVaultId(),
+          recipe,
+        };
+
+        const message = policyToHexMessage(policy);
+
+        personalSign(address, message, "policy")
+          .then((signature) => {
+            addPolicy({ ...policy, signature })
+              .then(() => {
+                setState((prevState) => ({ ...prevState, isAdded: true }));
+
+                onFinish();
+              })
+              .catch((error: Error) => {
+                messageAPI.error(error.message);
+              })
+              .finally(() => {
+                setState((prevState) => ({ ...prevState, loading: false }));
+              });
+          })
+          .catch((error: Error) => {
+            messageAPI.error(error.message);
+
+            setState((prevState) => ({ ...prevState, loading: false }));
+          });
+      }
+    );
   };
 
   const handleTemplate = (data: DataProps, edit?: boolean) => {
@@ -324,7 +329,6 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               gridTemplateColumns: "repeat(2, 1fr)",
             }}
           >
-            <DatePickerFormItem label="Start Date" name="startDate" />
             <DatePickerFormItem label="End Date" name="endDate" />
             <Form.Item
               label="Frequency"
@@ -332,14 +336,22 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               rules={[{ required: true }]}
             >
               <Select
-                options={["daily", "weekly", "biweekly", "monthly"].map(
-                  (value) => ({
-                    label: camelCaseToTitle(value),
-                    value,
-                  })
-                )}
+                options={[
+                  "one-time",
+                  "minutely",
+                  "hourly",
+                  "daily",
+                  "weekly",
+                  "bi-weekly",
+                  "monthly",
+                ].map((value) => ({
+                  label: kebabCaseToTitle(value),
+                  value,
+                }))}
               />
             </Form.Item>
+            <DatePickerFormItem label="Start Date" name="startDate" />
+            <AssetWidget chains={supportedChains} fullKey={["from"]} />
             <Form.Item
               label="Amount"
               name="fromAmount"
@@ -347,7 +359,6 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
             >
               <InputNumber min={0} />
             </Form.Item>
-            <AssetWidget chains={supportedChains} fullKey={["from"]} />
             <AssetWidget chains={supportedChains} fullKey={["to"]} />
           </Stack>
           {step === 3 && <Overview {...form.getFieldsValue()} />}
