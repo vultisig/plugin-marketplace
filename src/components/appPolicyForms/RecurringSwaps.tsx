@@ -2,7 +2,7 @@ import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { Form, Modal } from "antd";
 import dayjs from "dayjs";
-import { FC, Fragment, useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -258,11 +258,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               definitions={configuration.definitions}
             />
           </Stack>
-          {step === 3 && (
-            <VStack $style={{ gap: "16px" }}>
-              <Overview />
-            </VStack>
-          )}
+          {step === 3 && <Overview />}
         </Form>
       </VStack>
     </Modal>
@@ -275,26 +271,43 @@ const Overview = () => {
   const endDate = Form.useWatch<number>("endDate", form);
   const startDate = Form.useWatch<number>("startDate", form);
 
-  return [
-    ...(startDate
-      ? [
-          {
-            label: "Start Date",
-            value: dayjs(startDate).format("MM-DD-YYYY"),
-          },
-        ]
-      : []),
-    ...(endDate
-      ? [
-          {
-            label: "End Date",
-            value: dayjs(endDate).format("MM-DD-YYYY"),
-          },
-        ]
-      : []),
-    {
-      label: "Frequency",
-      value: (
+  return (
+    <VStack $style={{ gap: "16px" }}>
+      {!!startDate && (
+        <>
+          <HStack
+            $style={{
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Stack as="span">Start Date</Stack>
+            <Stack as="span">{dayjs(startDate).format("MM-DD-YYYY")}</Stack>
+          </HStack>
+          <Divider />
+        </>
+      )}
+      {!!endDate && (
+        <>
+          <HStack
+            $style={{
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Stack as="span">End Date</Stack>
+            <Stack as="span">{dayjs(endDate).format("MM-DD-YYYY")}</Stack>
+          </HStack>
+          <Divider />
+        </>
+      )}
+      <HStack
+        $style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack as="span">Frequency</Stack>
         <Stack
           as="span"
           $style={{
@@ -307,35 +320,42 @@ const Overview = () => {
         >
           {camelCaseToTitle(form.getFieldValue("frequency"))}
         </Stack>
-      ),
-    },
-    {
-      label: "From",
-      value: <OverviewItem name="from" />,
-    },
-    {
-      label: "Amount",
-      value: toNumberFormat(form.getFieldValue("fromAmount")),
-    },
-    {
-      label: "To",
-      value: <OverviewItem name="to" />,
-    },
-  ].map(({ label, value }, index) => (
-    <Fragment key={index}>
-      {index > 0 && <Divider />}
+      </HStack>
+      <Divider />
       <HStack
         $style={{
           alignItems: "center",
           justifyContent: "space-between",
         }}
       >
-        <Stack as="span">{label}</Stack>
-
-        {value}
+        <Stack as="span">From</Stack>
+        <OverviewItem name="from" />
       </HStack>
-    </Fragment>
-  ));
+      <Divider />
+      <HStack
+        $style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack as="span">Amount</Stack>
+        <Stack as="span">
+          {toNumberFormat(form.getFieldValue("fromAmount"))}
+        </Stack>
+      </HStack>
+      <Divider />
+      <HStack
+        $style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack as="span">From</Stack>
+        <OverviewItem name="to" />
+      </HStack>
+      <Divider />
+    </VStack>
+  );
 };
 
 const OverviewItem: FC<{ name: string }> = ({ name }) => {
