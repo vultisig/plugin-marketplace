@@ -12,7 +12,6 @@ import { AppPolicyFormConfiguration } from "@/components/appPolicyForms/componen
 import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
 import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
 import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
-import { AssetTemplate } from "@/components/appPolicyForms/templates/Asset";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -67,7 +66,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   const { id, pricing } = app;
   const {
     configuration,
-    configurationExample,
     pluginId,
     pluginName,
     pluginVersion,
@@ -82,12 +80,8 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   const visible = hash === modalHash.policy;
 
   const steps = useMemo(() => {
-    return [
-      ...(configurationExample ? [t("templates")] : []),
-      ...(configuration ? [t("configuration")] : []),
-      t("rules"),
-    ];
-  }, [configuration, configurationExample]);
+    return [...(configuration ? [t("configuration")] : []), t("rules")];
+  }, [configuration]);
 
   const handleBack = () => {
     if (step > 1) {
@@ -269,16 +263,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
     });
   };
 
-  const handleTemplate = (data: JsonObject, edit?: boolean) => {
-    form.setFieldsValue(data);
-
-    if (edit) {
-      setState((prevState) => ({ ...prevState, step: steps.length - 1 }));
-    } else {
-      handleSuggest(data);
-    }
-  };
-
   const onFinishSuccess: FormProps<FormFieldType>["onFinish"] = ({
     rules = [],
     ...values
@@ -287,8 +271,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
       handleSign(values, rules);
     } else if (steps.length - 1 === step) {
       handleSuggest(values);
-    } else if (steps.length - 2 === step) {
-      setState((prevState) => ({ ...prevState, step: prevState.step + 1 }));
     }
   };
 
@@ -315,13 +297,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button loading={loading} onClick={() => form.submit()}>
-              {configurationExample
-                ? step > 2
-                  ? t("submit")
-                  : step > 1
-                  ? t("continue")
-                  : t("createOwnAutomations")
-                : configuration
+              {configuration
                 ? step > 1
                   ? t("submit")
                   : t("continue")
@@ -358,23 +334,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
           layout="vertical"
           onFinish={onFinishSuccess}
         >
-          {configurationExample && (
-            <Stack
-              $style={{
-                columnGap: "24px",
-                display: step === steps.length - 2 ? "grid" : "none",
-                gridTemplateColumns: "repeat(2, 1fr)",
-              }}
-            >
-              {configurationExample.map((example, index) => (
-                <AssetTemplate
-                  defaultValues={example}
-                  key={index}
-                  onSelect={handleTemplate}
-                />
-              ))}
-            </Stack>
-          )}
           {configuration && (
             <Stack
               $style={{

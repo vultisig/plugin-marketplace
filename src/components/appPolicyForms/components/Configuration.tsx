@@ -27,14 +27,7 @@ export const AppPolicyFormConfiguration: FC<
     if (fieldRef) {
       switch (field.$ref) {
         case "#/definitions/asset": {
-          return (
-            <AssetWidget
-              configuration={fieldRef}
-              fullKey={fullKey}
-              key={key}
-              supportedChains={chains}
-            />
-          );
+          return <AssetWidget chains={chains} fullKey={fullKey} key={key} />;
         }
         default: {
           return (

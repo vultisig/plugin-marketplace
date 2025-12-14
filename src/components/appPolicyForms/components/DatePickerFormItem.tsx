@@ -1,6 +1,6 @@
 import { DatePicker, DatePickerProps, Form, FormItemProps } from "antd";
 import dayjs from "dayjs";
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 
 export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
   disabled,
@@ -9,8 +9,7 @@ export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const form = Form.useFormInstance();
-  const date = Form.useWatch<number>(name, form);
-  const isValid = !date || !isNaN(date);
+  const date = Form.useWatch<string>(name, form);
 
   const disabledDate: DatePickerProps["disabledDate"] = (current) => {
     return current && current.isBefore(dayjs(), "day");
@@ -40,17 +39,11 @@ export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
     return { disabledHours, disabledMinutes };
   };
 
-  useEffect(() => {
-    if (!isValid) form.setFieldValue(name, dayjs(date).valueOf());
-  }, [date, form, isValid, name]);
-
-  if (!isValid) return null;
-
   return (
     <Form.Item
       getValueProps={(value) => ({ value: value && dayjs(value) })}
       name={name}
-      normalize={(value) => value && dayjs(value).valueOf()}
+      normalize={(value) => value && dayjs(value).utc().format()}
       {...rest}
     >
       <DatePicker

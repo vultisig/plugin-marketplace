@@ -114,6 +114,8 @@ export const en = {
   type: "Type",
   // U
   uninstall: "Uninstall",
+  unsavedChangesContent: "Are you sure you want to leave?",
+  unsavedChangesTitle: "Unsaved Changes",
   unsuccessfulAppInstallation: "App installation failed",
   unsuccessfulAppUninstallation: "App uninstallation failed",
   unsuccessfulPolicyDeletion: "Policy deletion failed",
