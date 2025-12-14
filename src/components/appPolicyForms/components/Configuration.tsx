@@ -1,7 +1,7 @@
 import { FC } from "react";
 
-import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
 import { DynamicFormItem } from "@/components/appPolicyForms/components/DynamicFormItem";
+import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 import { Chain } from "@/utils/chain";
