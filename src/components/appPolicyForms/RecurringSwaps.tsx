@@ -162,7 +162,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     } else {
       form.validateFields().then((values) => {
         if (step === 2) {
-          setState((prevState) => ({ ...prevState, step: 2 }));
+          setState((prevState) => ({ ...prevState, step: 3 }));
         } else {
           handleSubmit(values);
         }
