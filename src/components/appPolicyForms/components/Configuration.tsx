@@ -1,8 +1,7 @@
-import { FormInstance } from "antd";
 import { FC } from "react";
 
+import { DynamicFormItem } from "@/components/appPolicyForms/components/DynamicFormItem";
 import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
-import { DynamicFormItem } from "@/components/DynamicFormItem";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 import { Chain } from "@/utils/chain";
@@ -13,13 +12,12 @@ type AppPolicyFormConfigurationProps = {
   chains: Chain[];
   configuration: Configuration;
   definitions?: Definitions;
-  form: FormInstance;
   parentKey?: string[];
 };
 
 export const AppPolicyFormConfiguration: FC<
   AppPolicyFormConfigurationProps
-> = ({ chains, configuration, definitions, form, parentKey = [] }) => {
+> = ({ chains, configuration, definitions, parentKey = [] }) => {
   const { properties, required } = configuration;
 
   return Object.entries(properties).map(([key, field]) => {
@@ -29,15 +27,7 @@ export const AppPolicyFormConfiguration: FC<
     if (fieldRef) {
       switch (field.$ref) {
         case "#/definitions/asset": {
-          return (
-            <AssetWidget
-              configuration={fieldRef}
-              form={form}
-              fullKey={fullKey}
-              key={key}
-              supportedChains={chains}
-            />
-          );
+          return <AssetWidget chains={chains} fullKey={fullKey} key={key} />;
         }
         default: {
           return (
@@ -54,7 +44,6 @@ export const AppPolicyFormConfiguration: FC<
                   chains={chains}
                   configuration={fieldRef}
                   definitions={definitions}
-                  form={form}
                   parentKey={fullKey}
                 />
               </Stack>

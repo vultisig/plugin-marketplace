@@ -85,6 +85,15 @@ export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type Definitions = Record<string, Configuration>;
 
+export type FeeAppStatus = {
+  balance: number;
+  fees: string[];
+  isTrialActive: boolean;
+  publicKey: string;
+  trialRemaining: number;
+  unpaidAmount: number;
+};
+
 export type FieldProps = {
   description?: string;
   enum?: string[];
