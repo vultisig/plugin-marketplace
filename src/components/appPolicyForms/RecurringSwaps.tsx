@@ -463,14 +463,21 @@ const OverviewItem: FC<AssetProps> = (asset) => {
 
   useEffect(() => {
     if (!asset) return;
+    let cancelled = false;
 
     if (asset.token) {
       getTokenData(asset.chain, asset.token)
         .catch(() => undefined)
-        .then(setToken);
+        .then((token) => {
+          if (!cancelled) setToken(token);
+        });
     } else {
       setToken(nativeTokens[asset.chain]);
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [asset]);
 
   if (!token) return <Spin size="small" />;
@@ -671,12 +678,11 @@ const TemplateItem: FC<{
             ASSOCIATED_TOKEN_PROGRAM_ID
           )
             .then((address) => {
-              if (cancelled) return;
-              setAsset({ ...asset, address: address.toBase58(), decimals });
+              if (!cancelled)
+                setAsset({ ...asset, address: address.toBase58(), decimals });
             })
             .catch(() => {
-              if (cancelled) return;
-              setAsset({ ...asset, decimals });
+              if (!cancelled) setAsset({ ...asset, decimals });
             });
         } else {
           setAsset({ ...asset, address, decimals });
