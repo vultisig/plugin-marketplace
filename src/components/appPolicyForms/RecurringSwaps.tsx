@@ -449,7 +449,7 @@ const Overview: FC<DataProps> = ({
             justifyContent: "space-between",
           }}
         >
-          <Stack as="span">From</Stack>
+          <Stack as="span">To</Stack>
           <OverviewItem {...to} />
         </HStack>
       )}
