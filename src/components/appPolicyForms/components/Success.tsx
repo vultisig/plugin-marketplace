@@ -33,7 +33,7 @@ export const AppPolicyFormSuccess: FC<{ visible: boolean }> = ({ visible }) => {
       title={
         <Stack
           as="img"
-          src="/images/success-policy.jpg"
+          src="/images/success-banner.jpg"
           $style={{ display: "block", width: "100%" }}
         />
       }

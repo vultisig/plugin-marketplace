@@ -18,10 +18,10 @@ import { parseUnits } from "viem";
 import { DateCheckboxFormItem } from "@/components/appPolicyForms/components/DateCheckboxFormItem";
 import { DatePickerFormItem } from "@/components/appPolicyForms/components/DatePickerFormItem";
 import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
-import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
 import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
 import { DefaultPolicyFormProps } from "@/components/appPolicyForms/Default";
 import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
+import { SuccessModal } from "@/components/SuccessModal";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
@@ -268,102 +268,114 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
 
   if (!configuration || !configurationExample) return null;
 
-  return isAdded ? (
-    <AppPolicyFormSuccess visible={visible} />
-  ) : (
-    <Modal
-      centered={true}
-      closeIcon={<CrossIcon />}
-      footer={
-        <>
-          <Stack $style={{ flex: "none", width: "218px" }} />
-          <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-            <Button loading={loading} onClick={handleStep}>
-              {step > 2
-                ? t("submit")
-                : step > 1
-                ? t("continue")
-                : t("createOwnAutomations")}
-            </Button>
-          </HStack>
-        </>
-      }
-      maskClosable={false}
-      onCancel={handleCancel}
-      open={visible}
-      styles={{
-        body: { display: "flex", gap: 32 },
-        footer: { display: "flex", gap: 65, marginTop: 24 },
-        header: { marginBottom: 32 },
-      }}
-      title={<AppPolicyFormTitle app={app} onBack={handleBack} step={step} />}
-      width={992}
-    >
-      <AppPolicyFormSidebar
-        steps={[t("templates"), t("automations"), t("overview")]}
-        step={step}
-      />
-      <Divider light vertical />
-      <VStack
-        $style={{
-          justifyContent: "center",
-          backgroundColor: colors.bgTertiary.toHex(),
-          borderRadius: "24px",
-          flexGrow: 1,
-          padding: "32px",
+  return (
+    <>
+      <SuccessModal onClose={() => goBack()} visible={visible && isAdded}>
+        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
+          Success!
+        </Stack>
+        <Stack
+          as="span"
+          $style={{ color: colors.textTertiary.toHex(), lineHeight: "18px" }}
+        >
+          New Automation is added
+        </Stack>
+      </SuccessModal>
+
+      <Modal
+        centered={true}
+        closeIcon={<CrossIcon />}
+        footer={
+          <>
+            <Stack $style={{ flex: "none", width: "218px" }} />
+            <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
+              <Button loading={loading} onClick={handleStep}>
+                {step > 2
+                  ? t("submit")
+                  : step > 1
+                  ? t("continue")
+                  : t("createOwnAutomations")}
+              </Button>
+            </HStack>
+          </>
+        }
+        maskClosable={false}
+        onCancel={handleCancel}
+        open={visible && !isAdded}
+        styles={{
+          body: { display: "flex", gap: 32 },
+          footer: { display: "flex", gap: 65, marginTop: 24 },
+          header: { marginBottom: 32 },
         }}
+        title={<AppPolicyFormTitle app={app} onBack={handleBack} step={step} />}
+        width={992}
       >
-        <Form autoComplete="off" form={form} layout="vertical">
-          <Stack
-            $style={{
-              columnGap: "24px",
-              display: step === 1 ? "grid" : "none",
-              gridTemplateColumns: "repeat(2, 1fr)",
-            }}
-          >
-            {configurationExample.map((example, index) => (
-              <Template
-                key={index}
-                setValues={handleTemplate}
-                values={example as DataProps}
-              />
-            ))}
-          </Stack>
-          <Stack
-            $style={{
-              columnGap: "24px",
-              display: step === 2 ? "grid" : "none",
-              gridTemplateColumns: "repeat(2, 1fr)",
-            }}
-          >
-            <DatePickerFormItem label="End Date" name="endDate" />
-            <Form.Item
-              label="Frequency"
-              name="frequency"
-              rules={[{ required: true }]}
+        <AppPolicyFormSidebar
+          steps={[t("templates"), t("automations"), t("overview")]}
+          step={step}
+        />
+        <Divider light vertical />
+        <VStack
+          $style={{
+            justifyContent: "center",
+            backgroundColor: colors.bgTertiary.toHex(),
+            borderRadius: "24px",
+            flexGrow: 1,
+            padding: "32px",
+          }}
+        >
+          <Form autoComplete="off" form={form} layout="vertical">
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: step === 1 ? "grid" : "none",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
             >
-              <Select
-                options={frequencies.map((value) => ({
-                  label: kebabCaseToTitle(value),
-                  value,
-                }))}
-              />
-            </Form.Item>
-            <DateCheckboxFormItem name="startDate" />
-            <AssetWidget chains={supportedChains} fullKey={["from"]} />
-            <Form.Item
-              label="Amount"
-              name="fromAmount"
-              rules={[{ required: true }]}
+              {configurationExample.map((example, index) => (
+                <Template
+                  key={index}
+                  setValues={handleTemplate}
+                  values={example as DataProps}
+                />
+              ))}
+            </Stack>
+            <Stack
+              $style={{
+                columnGap: "24px",
+                display: step === 2 ? "grid" : "none",
+                gridTemplateColumns: "repeat(2, 1fr)",
+              }}
             >
-              <InputNumber min={0} />
-            </Form.Item>
-            <AssetWidget chains={supportedChains} fullKey={["to"]} />
-          </Stack>
-          {step === 3 && <Overview {...values} />}
-        </Form>
-      </VStack>
-    </Modal>
+              <DatePickerFormItem label="End Date" name="endDate" />
+              <Form.Item
+                label="Frequency"
+                name="frequency"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  options={frequencies.map((value) => ({
+                    label: kebabCaseToTitle(value),
+                    value,
+                  }))}
+                />
+              </Form.Item>
+              <DateCheckboxFormItem name="startDate" />
+              <AssetWidget chains={supportedChains} fullKey={["from"]} />
+              <Form.Item
+                label="Amount"
+                name="fromAmount"
+                rules={[{ required: true }]}
+              >
+                <InputNumber min={0} />
+              </Form.Item>
+              <AssetWidget chains={supportedChains} fullKey={["to"]} />
+            </Stack>
+            {step === 3 && <Overview {...values} />}
+          </Form>
+        </VStack>
+      </Modal>
+    </>
   );
 };
 
