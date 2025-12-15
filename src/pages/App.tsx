@@ -763,7 +763,7 @@ export const AppPage = () => {
         visible={hash === modalHash.success && isInstalled}
       >
         <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
-          Installation Succesful
+          Installation Successful
         </Stack>
         <VStack $style={{ alignItems: "center", gap: "4px" }}>
           <Stack
