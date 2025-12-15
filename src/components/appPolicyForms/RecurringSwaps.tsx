@@ -6,7 +6,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Form, InputNumber, Modal, Select } from "antd";
+import { Form, Input, InputNumber, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -63,6 +63,7 @@ type DataProps = {
   frequency: string;
   from: AssetProps;
   fromAmount: string;
+  name: string;
   startDate: number;
   to: AssetProps;
 };
@@ -86,7 +87,6 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     configuration,
     configurationExample,
     pluginId,
-    pluginName,
     pluginVersion,
     requirements,
   } = schema;
@@ -206,7 +206,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
           feePolicies: getFeePolicies(pricing),
           id: pluginId,
           maxTxsPerWindow,
-          name: pluginName,
+          name: values.name || "",
           rateLimitWindow,
           rules,
           version: pluginVersion,
@@ -379,6 +379,23 @@ const Overview: FC<DataProps> = ({
 
   return (
     <VStack $style={{ gap: "16px" }}>
+      <HStack
+        $style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack as="span">Name</Stack>
+        <Form.Item name="name" noStyle>
+          <Stack
+            as={Input}
+            placeholder="Automation Name"
+            size="small"
+            $style={{ height: "34px", width: "140px" }}
+          />
+        </Form.Item>
+      </HStack>
+      <Divider />
       {!!startDate && (
         <>
           <HStack
