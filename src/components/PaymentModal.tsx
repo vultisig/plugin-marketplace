@@ -59,7 +59,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
     <>
       <SuccessModal onClose={() => goBack()} visible={visible && isInstalled}>
         <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
-          Installation Succesful
+          Installation Successful
         </Stack>
         <VStack $style={{ alignItems: "center", gap: "4px" }}>
           <Stack
