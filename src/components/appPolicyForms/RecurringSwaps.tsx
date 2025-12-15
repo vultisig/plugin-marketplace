@@ -15,6 +15,7 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
+import { DateCheckboxFormItem } from "@/components/appPolicyForms/components/DateCheckboxFormItem";
 import { DatePickerFormItem } from "@/components/appPolicyForms/components/DatePickerFormItem";
 import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
 import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
@@ -39,6 +40,7 @@ import { addPolicy, getRecipeSuggestion } from "@/utils/api";
 import { Chain, chains, nativeTokens } from "@/utils/chain";
 import { modalHash } from "@/utils/constants";
 import { getAccount, personalSign } from "@/utils/extension";
+import { frequencies } from "@/utils/frequencies";
 import {
   camelCaseToTitle,
   getConfiguration,
@@ -90,6 +92,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   } = schema;
   const { hash } = useLocation();
   const [form] = Form.useForm<DataProps>();
+  const values = Form.useWatch([], form);
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -102,6 +105,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   const handleCancel = () => {
     if (step === 3) {
       const confirm = modalAPI.confirm({
+        centered: true,
         content: (
           <VStack $style={{ gap: "24px" }}>
             <VStack $style={{ gap: "12px" }}>
@@ -161,17 +165,20 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
 
       setState((prevState) => ({ ...prevState, step: 2 }));
     } else {
-      form.validateFields().then((values) => {
-        if (step === 2) {
-          setState((prevState) => ({ ...prevState, step: 3 }));
-        } else {
-          handleSubmit(values);
-        }
-      });
+      form
+        .validateFields()
+        .then(() => {
+          if (step === 2) {
+            setState((prevState) => ({ ...prevState, step: 3 }));
+          } else {
+            handleSubmit();
+          }
+        })
+        .catch(() => {});
     }
   };
 
-  const handleSubmit = (values: DataProps) => {
+  const handleSubmit = () => {
     if (!configuration) return;
 
     setState((prevState) => ({ ...prevState, loading: true }));
@@ -336,21 +343,13 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               rules={[{ required: true }]}
             >
               <Select
-                options={[
-                  "one-time",
-                  "minutely",
-                  "hourly",
-                  "daily",
-                  "weekly",
-                  "bi-weekly",
-                  "monthly",
-                ].map((value) => ({
+                options={frequencies.map((value) => ({
                   label: kebabCaseToTitle(value),
                   value,
                 }))}
               />
             </Form.Item>
-            <DatePickerFormItem label="Start Date" name="startDate" />
+            <DateCheckboxFormItem name="startDate" />
             <AssetWidget chains={supportedChains} fullKey={["from"]} />
             <Form.Item
               label="Amount"
@@ -361,7 +360,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
             </Form.Item>
             <AssetWidget chains={supportedChains} fullKey={["to"]} />
           </Stack>
-          {step === 3 && <Overview {...form.getFieldsValue()} />}
+          {step === 3 && <Overview {...values} />}
         </Form>
       </VStack>
     </Modal>
@@ -389,7 +388,9 @@ const Overview: FC<DataProps> = ({
             }}
           >
             <Stack as="span">Start Date</Stack>
-            <Stack as="span">{dayjs(startDate).format("MM-DD-YYYY")}</Stack>
+            <Stack as="span">
+              {dayjs(startDate).format("YYYY-MM-DD HH:mm")}
+            </Stack>
           </HStack>
           <Divider />
         </>
@@ -403,7 +404,7 @@ const Overview: FC<DataProps> = ({
             }}
           >
             <Stack as="span">End Date</Stack>
-            <Stack as="span">{dayjs(endDate).format("MM-DD-YYYY")}</Stack>
+            <Stack as="span">{dayjs(endDate).format("YYYY-MM-DD HH:mm")}</Stack>
           </HStack>
           <Divider />
         </>
