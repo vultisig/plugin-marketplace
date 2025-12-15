@@ -2,7 +2,7 @@ import { Anchor, Collapse } from "antd";
 import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
@@ -10,6 +10,7 @@ import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
+import { SuccessModal } from "@/components/SuccessModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -47,6 +48,7 @@ import { App, RecipeSchema } from "@/utils/types";
 
 type StateProps = {
   app?: App;
+  feeApp?: App;
   isFeeAppInstalled?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
@@ -59,7 +61,8 @@ export const AppPage = () => {
   const { app, isFeeAppInstalled, isInstalled, loading, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
-  const { id = "" } = useParams<{ id: string }>();
+  const { hash } = useLocation();
+  const { id = "" } = useParams();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
@@ -141,31 +144,24 @@ export const AppPage = () => {
       .catch(() => goBack(routeTree.root.path));
   }, [id, schema]);
 
-  const handleInstall = async (id: string) => {
+  const handleInstall = async () => {
     if (loading) return;
 
     setState((prevState) => ({ ...prevState, loading: true }));
 
     const isInstalled = await startReshareSession(id);
 
-    setState((prevState) => ({ ...prevState, loading: false }));
-
     if (isInstalled) {
-      if (id === feeAppId) {
-        setState((prevState) => ({ ...prevState, isFeeAppInstalled: true }));
+      setState((prevState) => ({
+        ...prevState,
+        isInstalled: true,
+        loading: false,
+      }));
 
-        navigate(routeTree.app.link(id), { replace: true });
-      } else {
-        setState((prevState) => ({ ...prevState, isInstalled: true }));
-
-        navigate(modalHash.policy, { state: true });
-      }
-
-      messageAPI.open({
-        type: "success",
-        content: t("successfulAppInstallation"),
-      });
+      navigate(modalHash.success);
     } else {
+      setState((prevState) => ({ ...prevState, loading: false }));
+
       messageAPI.open({
         type: "error",
         content: t("unsuccessfulAppInstallation"),
@@ -411,10 +407,7 @@ export const AppPage = () => {
                           </Button>
                         </>
                       ) : (
-                        <Button
-                          loading={loading}
-                          onClick={() => handleInstall(app.id)}
-                        >
+                        <Button loading={loading} onClick={handleInstall}>
                           {t("get")}
                           <Stack
                             as="span"
@@ -762,12 +755,45 @@ export const AppPage = () => {
           </VStack>
         </VStack>
       </VStack>
-      {isFeeAppInstalled === false && (
-        <PaymentModal
-          loading={loading}
-          onInstall={() => handleInstall(feeAppId)}
-        />
-      )}
+
+      <PaymentModal onFinish={checkStatus} />
+
+      <SuccessModal
+        onClose={() => goBack()}
+        visible={hash === modalHash.success && isInstalled}
+      >
+        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
+          Installation Succesful
+        </Stack>
+        <VStack $style={{ alignItems: "center", gap: "4px" }}>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              lineHeight: "18px",
+            }}
+          >
+            {`${app.title} app was successfully installed.`}
+          </Stack>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              lineHeight: "18px",
+            }}
+          >
+            You can now create app automations.
+          </Stack>
+        </VStack>
+        <HStack $style={{ gap: "12px", marginTop: "12px" }}>
+          <Button onClick={() => navigate(modalHash.policy)}>
+            Create Automation
+          </Button>
+          <Button href={routeTree.myApps.path} kind="secondary">
+            My apps
+          </Button>
+        </HStack>
+      </SuccessModal>
     </>
   );
 };
