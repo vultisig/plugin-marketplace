@@ -1,5 +1,4 @@
 import { Table, TableProps } from "antd";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useGoBack } from "@/hooks/useGoBack";
@@ -8,7 +7,6 @@ import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { routeTree } from "@/utils/routes";
 
 export const TransactionsPage = () => {
-  const { t } = useTranslation();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -16,31 +14,31 @@ export const TransactionsPage = () => {
     {
       dataIndex: "date",
       key: "date",
-      title: t("date"),
+      title: "Date",
     },
     {
       align: "center",
       dataIndex: "appName",
       key: "appName",
-      title: t("appName"),
+      title: "App Name",
     },
     {
       align: "center",
       dataIndex: "type",
       key: "type",
-      title: t("type"),
+      title: "Type",
     },
     {
       align: "center",
       dataIndex: "amount",
       key: "amount",
-      title: t("amount"),
+      title: "Amount",
     },
     {
       align: "center",
       dataIndex: "status",
       key: "status",
-      title: t("status"),
+      title: "Status",
     },
   ];
 
@@ -71,13 +69,13 @@ export const TransactionsPage = () => {
           onClick={() => goBack(routeTree.root.path)}
         >
           <ChevronLeftIcon fontSize={16} />
-          {t("goBack")}
+          Go Back
         </HStack>
         <Stack
           as="span"
           $style={{ fontSize: "22px", gap: "8px", lineHeight: "24px" }}
         >
-          {t("transactionHistory")}
+          Transaction History
         </Stack>
         <Table
           columns={columns}

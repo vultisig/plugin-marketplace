@@ -44,12 +44,10 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
   useEffect(() => {
     if (!visible) return;
 
-    getApp(feeAppId)
-      .then((app) => {
-        isAppInstalled(feeAppId).then((isInstalled) => {
-          setState((prevState) => ({ ...prevState, app, isInstalled }));
-        });
-      })
+    Promise.all([getApp(feeAppId), isAppInstalled(feeAppId)])
+      .then(([app, isInstalled]) =>
+        setState((prevState) => ({ ...prevState, app, isInstalled }))
+      )
       .catch(() => goBack());
   }, [visible]);
 
@@ -78,7 +76,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
               lineHeight: "18px",
             }}
           >
-            You can now install apps.
+            You can now install other apps.
           </Stack>
         </VStack>
       </SuccessModal>

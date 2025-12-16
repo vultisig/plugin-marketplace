@@ -1,5 +1,4 @@
 import { Layout, Result } from "antd";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useGoBack } from "@/hooks/useGoBack";
@@ -8,7 +7,6 @@ import { HStack, VStack } from "@/toolkits/Stack";
 import { routeTree } from "@/utils/routes";
 
 export const NotFoundPage = () => {
-  const { t } = useTranslation();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -25,11 +23,11 @@ export const NotFoundPage = () => {
       <Result
         status="404"
         title="404"
-        subTitle={t("pageNotFound")}
+        subTitle="Sorry, the page you visited does not exist."
         extra={
           <HStack $style={{ justifyContent: "center" }}>
             <Button onClick={() => goBack(routeTree.root.path)}>
-              {t("backHome")}
+              Back Home
             </Button>
           </HStack>
         }

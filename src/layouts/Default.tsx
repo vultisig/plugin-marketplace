@@ -1,12 +1,10 @@
 import { Dropdown, MenuProps } from "antd";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useMediaQuery } from "react-responsive";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { createGlobalStyle, useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
-// import { LanguageModal } from "@/components/LanguageModal";
 import { useCore } from "@/hooks/useCore";
 import { ArrowBoxLeftIcon } from "@/icons/ArrowBoxLeftIcon";
 import { ArrowBoxRightIcon } from "@/icons/ArrowBoxRightIcon";
@@ -18,13 +16,11 @@ import { HistoryIcon } from "@/icons/HistoryIcon";
 import { MacbookIcon } from "@/icons/MacbookIcon";
 import { MoonIcon } from "@/icons/MoonIcon";
 import { SunIcon } from "@/icons/SunIcon";
-// import { TranslateIcon } from "@/icons/TranslateIcon";
 import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
 import { ZapIcon } from "@/icons/ZapIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants";
 import { getAccount } from "@/utils/extension";
-// import { languageNames } from "@/utils/language";
 import { routeTree } from "@/utils/routes";
 
 const GlobalStyle = createGlobalStyle`
@@ -35,17 +31,8 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 export const DefaultLayout = () => {
-  const { t } = useTranslation();
-  const {
-    connect,
-    currency,
-    disconnect,
-    isConnected,
-    // language,
-    setTheme,
-    theme,
-    vault,
-  } = useCore();
+  const { connect, currency, disconnect, isConnected, setTheme, theme, vault } =
+    useCore();
   const navigate = useNavigate();
   const colors = useTheme();
   const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
@@ -56,7 +43,7 @@ export const DefaultLayout = () => {
           {
             icon: <CreditCardIcon />,
             key: "1",
-            label: t("billing"),
+            label: "Billing",
             onClick: () => {
               navigate(routeTree.billing.path, { state: true });
             },
@@ -64,36 +51,21 @@ export const DefaultLayout = () => {
           {
             icon: <HistoryIcon />,
             key: "2",
-            label: t("transactionHistory"),
+            label: "Transaction History",
             onClick: () => {
               navigate(routeTree.transactions.path, { state: true });
             },
           },
         ]
       : []),
-    // {
-    //   icon: <TranslateIcon />,
-    //   key: "3",
-    //   label: (
-    //     <HStack
-    //       $style={{ alignItems: "center", justifyContent: "space-between" }}
-    //     >
-    //       <span>{t("language")}</span>
-    //       <span>{languageNames[language]}</span>
-    //     </HStack>
-    //   ),
-    //   onClick: () => {
-    //     navigate(modalHash.language, { state: true });
-    //   },
-    // },
     {
       icon: <DollarIcon />,
-      key: "4",
+      key: "3",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
         >
-          <span>{t("currency")}</span>
+          <span>Currency</span>
           <span>{currency.toUpperCase()}</span>
         </HStack>
       ),
@@ -103,13 +75,13 @@ export const DefaultLayout = () => {
     },
     {
       icon: theme === "light" ? <MoonIcon /> : <SunIcon />,
-      key: "5",
+      key: "4",
       label: (
         <HStack
           $style={{ alignItems: "center", justifyContent: "space-between" }}
         >
-          <span>{t("theme")}</span>
-          <span>{theme === "light" ? t("dark") : t("light")}</span>
+          <span>Theme</span>
+          <span>{theme === "light" ? "Dark" : "Light"}</span>
         </HStack>
       ),
       onClick: () => {
@@ -121,7 +93,7 @@ export const DefaultLayout = () => {
           {
             icon: <ArrowBoxLeftIcon color={colors.accentFour.toHex()} />,
             key: "6",
-            label: t("signOut"),
+            label: "Sign out",
             onClick: disconnect,
           },
         ]
@@ -129,7 +101,7 @@ export const DefaultLayout = () => {
           {
             icon: <ArrowBoxRightIcon color={colors.accentFour.toHex()} />,
             key: "7",
-            label: t("connectVault"),
+            label: "Connect Vault",
             onClick: connect,
           },
         ]),
@@ -175,7 +147,7 @@ export const DefaultLayout = () => {
           width: "264px",
         }}
       >
-        {t("unsupportedMedia")}
+        The Vultisig App Store is currently only available on desktop.
       </Stack>
     </VStack>
   ) : (
@@ -204,7 +176,8 @@ export const DefaultLayout = () => {
             width: "100%",
           }}
         >
-          {t("appStoreIsInBeta")}
+          This is an early-stage version of the platform. Do not rely on it for
+          production use or real funds. Testing only.
         </VStack>
         <HStack
           $style={{
@@ -242,7 +215,7 @@ export const DefaultLayout = () => {
               />
             </HStack>
             <Stack $style={{ fontSize: "22px", lineHeight: "40px" }}>
-              {t("appStore")}
+              App Store
             </Stack>
           </HStack>
           <HStack $style={{ gap: "48px", lineHeight: "20px" }}>
@@ -251,7 +224,7 @@ export const DefaultLayout = () => {
               to={routeTree.root.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
-              {t("marketplace")}
+              Marketplace
             </Stack>
             {isConnected && (
               <Stack
@@ -259,7 +232,7 @@ export const DefaultLayout = () => {
                 to={routeTree.myApps.path}
                 $hover={{ color: colors.accentThree.toHex() }}
               >
-                {t("myApps")}
+                My Apps
               </Stack>
             )}
             <Stack
@@ -267,7 +240,7 @@ export const DefaultLayout = () => {
               to={routeTree.faq.path}
               $hover={{ color: colors.accentThree.toHex() }}
             >
-              {t("faq")}
+              FAQ
             </Stack>
           </HStack>
           <Dropdown
@@ -311,7 +284,7 @@ export const DefaultLayout = () => {
                   maxWidth: "110px",
                 }}
               >
-                {vault?.name || t("connectVault")}
+                {vault?.name || "Connect Vault"}
               </Stack>
 
               <DotGridVerticalIcon />

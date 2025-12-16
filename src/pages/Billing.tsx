@@ -1,7 +1,6 @@
 import { Table, TableProps } from "antd";
 import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useAntd } from "@/hooks/useAntd";
@@ -20,7 +19,6 @@ import { App } from "@/utils/types";
 type StateProps = { app?: App; isInstalled?: boolean; loading?: boolean };
 
 export const BillingPage = () => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({});
   const { app, isInstalled, loading } = state;
   const { messageAPI } = useAntd();
@@ -31,25 +29,25 @@ export const BillingPage = () => {
     {
       dataIndex: "date",
       key: "date",
-      title: t("date"),
+      title: "Date",
     },
     {
       align: "center",
       dataIndex: "type",
       key: "type",
-      title: t("type"),
+      title: "Type",
     },
     {
       align: "center",
       dataIndex: "amount",
       key: "amount",
-      title: t("amount"),
+      title: "Amount",
     },
     {
       align: "center",
       dataIndex: "status",
       key: "status",
-      title: t("status"),
+      title: "Status",
     },
   ];
 
@@ -76,12 +74,12 @@ export const BillingPage = () => {
     if (isInstalled) {
       messageAPI.open({
         type: "success",
-        content: t("successfulAppInstallation"),
+        content: "App successfully installed",
       });
     } else {
       messageAPI.open({
         type: "error",
-        content: t("unsuccessfulAppInstallation"),
+        content: "App installation failed",
       });
     }
   };
@@ -118,7 +116,7 @@ export const BillingPage = () => {
           onClick={() => goBack(routeTree.root.path)}
         >
           <ChevronLeftIcon fontSize={16} />
-          {t("goBack")}
+          Go back
         </HStack>
         <HStack
           $style={{
@@ -154,12 +152,12 @@ export const BillingPage = () => {
             </HStack>
             {isInstalled === undefined ? (
               <Button disabled loading>
-                {t("checking")}
+                Checking
               </Button>
             ) : (
               !isInstalled && (
                 <Button loading={loading} onClick={handleInstall}>
-                  {t("get")}
+                  Get
                   <Stack
                     as="span"
                     $style={{
@@ -169,17 +167,17 @@ export const BillingPage = () => {
                       width: "2px",
                     }}
                   />
-                  {t("free")}
+                  Free
                 </Button>
               )
             )}
           </HStack>
           <HStack $style={{ justifyContent: "center" }}>
             {[
-              { lable: t("createdBy"), value: "Vultisig" },
-              { lable: t("version"), value: "2.1.0" },
+              { lable: "Created by", value: "Vultisig" },
+              { lable: "Version", value: "2.1.0" },
               {
-                lable: t("installedOn"),
+                lable: "Installed on",
                 value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
               },
             ].map(({ lable, value }, index) => (
@@ -224,7 +222,7 @@ export const BillingPage = () => {
           as="span"
           $style={{ fontSize: "22px", gap: "8px", lineHeight: "24px" }}
         >
-          {t("billing")}
+          Billing
         </Stack>
         <Table
           columns={columns}

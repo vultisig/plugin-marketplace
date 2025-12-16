@@ -1,6 +1,5 @@
 import { Dropdown, Empty } from "antd";
 import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -21,7 +20,6 @@ type StateProps = {
 };
 
 export const MyAppsPage = () => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({ loading: true, apps: [] });
   const { loading, apps } = state;
   const { messageAPI, modalAPI } = useAntd();
@@ -29,10 +27,10 @@ export const MyAppsPage = () => {
 
   const handleUninstall = (app: App) => {
     modalAPI.confirm({
-      title: t("confirmAppUninstallation"),
-      okText: t("yes"),
+      title: "Are you sure you want to uninstall this app?",
+      okText: "Yes",
       okType: "danger",
-      cancelText: t("no"),
+      cancelText: "No",
       onOk() {
         setState((prevState) => ({ ...prevState, loading: true }));
 
@@ -46,7 +44,7 @@ export const MyAppsPage = () => {
 
             messageAPI.open({
               type: "success",
-              content: t("successfulAppUninstallation"),
+              content: "App successfully uninstalled",
             });
           })
           .catch(() => {
@@ -54,7 +52,7 @@ export const MyAppsPage = () => {
 
             messageAPI.open({
               type: "error",
-              content: t("unsuccessfulAppUninstallation"),
+              content: "App uninstallation failed",
             });
           });
       },
@@ -85,7 +83,7 @@ export const MyAppsPage = () => {
           as="span"
           $style={{ fontSize: "22px", gap: "8px", lineHeight: "24px" }}
         >
-          <Stack as="span">{t("installedApps")}</Stack>
+          <Stack as="span">Installed Apps</Stack>
           <Stack
             as="span"
             $style={{ color: colors.textTertiary.toHex() }}
@@ -161,7 +159,7 @@ export const MyAppsPage = () => {
                             }`}
                             state={true}
                           >
-                            {t("addAutomation")}
+                            Add Automation
                           </Link>
                         ),
                       },
@@ -169,7 +167,7 @@ export const MyAppsPage = () => {
                         danger: true,
                         icon: <TrashIcon />,
                         key: "2",
-                        label: t("uninstall"),
+                        label: "Uninstall",
                         onClick: () => {
                           handleUninstall(app);
                         },
