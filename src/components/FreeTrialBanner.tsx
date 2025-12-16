@@ -15,7 +15,8 @@ export const FreeTrialBanner = () => {
   const trialRemaining = useMemo(() => {
     if (!feeAppStatus) return "";
 
-    const d = dayjs.duration(feeAppStatus.trialRemaining);
+    // Convert nanoseconds to milliseconds for dayjs
+    const d = dayjs.duration(feeAppStatus.trialRemaining / 1_000_000);
 
     let message = "";
 
