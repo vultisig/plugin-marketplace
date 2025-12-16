@@ -15,7 +15,7 @@ export type Currency = (typeof currencies)[number];
 export const defaultCurrency: Currency = "usd";
 
 export const currencySymbols: Record<Currency, string> = {
-  usd: "US$",
+  usd: "$",
   eur: "€",
   gbp: "£",
   chf: "CHF",

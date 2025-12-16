@@ -2,7 +2,7 @@ import { Anchor, Collapse } from "antd";
 import dayjs from "dayjs";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
@@ -10,10 +10,10 @@ import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { PaymentModal } from "@/components/PaymentModal";
+import { SuccessModal } from "@/components/SuccessModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
-import { useQueries } from "@/hooks/useQueries";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
@@ -25,6 +25,8 @@ import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import {
+  getApp,
+  getFeeAppStatus,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
@@ -46,6 +48,7 @@ import { App, RecipeSchema } from "@/utils/types";
 
 type StateProps = {
   app?: App;
+  feeApp?: App;
   isFeeAppInstalled?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
@@ -58,8 +61,8 @@ export const AppPage = () => {
   const { app, isFeeAppInstalled, isInstalled, loading, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { baseValue, connect, currency, isConnected } = useCore();
-  const { id = "" } = useParams<{ id: string }>();
-  const { getAppData } = useQueries();
+  const { hash } = useLocation();
+  const { id = "" } = useParams();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
@@ -115,36 +118,50 @@ export const AppPage = () => {
     let isFeeAppInstalled = !app.pricing.length;
 
     if (!isFeeAppInstalled) isFeeAppInstalled = await isAppInstalled(feeAppId);
+    if (!isFeeAppInstalled) {
+      isFeeAppInstalled = await getFeeAppStatus().then(
+        ({ isTrialActive }) => isTrialActive
+      );
+    }
     if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);
 
     setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
   }, [app]);
 
-  const handleInstall = async (id: string) => {
+  const fetchApp = useCallback(async () => {
+    getApp(id)
+      .then((app) => {
+        if (schema) {
+          setState((prevState) => ({ ...prevState, app }));
+        } else {
+          getRecipeSpecification(app.id)
+            .catch(() => undefined)
+            .then((schema) => {
+              setState((prevState) => ({ ...prevState, app, schema }));
+            });
+        }
+      })
+      .catch(() => goBack(routeTree.root.path));
+  }, [id, schema]);
+
+  const handleInstall = async () => {
     if (loading) return;
 
     setState((prevState) => ({ ...prevState, loading: true }));
 
     const isInstalled = await startReshareSession(id);
 
-    setState((prevState) => ({ ...prevState, loading: false }));
-
     if (isInstalled) {
-      if (id === feeAppId) {
-        setState((prevState) => ({ ...prevState, isFeeAppInstalled: true }));
+      setState((prevState) => ({
+        ...prevState,
+        isInstalled: true,
+        loading: false,
+      }));
 
-        navigate(routeTree.app.link(id), { replace: true });
-      } else {
-        setState((prevState) => ({ ...prevState, isInstalled: true }));
-
-        navigate(modalHash.policy, { state: true });
-      }
-
-      messageAPI.open({
-        type: "success",
-        content: t("successfulAppInstallation"),
-      });
+      navigate(modalHash.success);
     } else {
+      setState((prevState) => ({ ...prevState, loading: false }));
+
       messageAPI.open({
         type: "error",
         content: t("unsuccessfulAppInstallation"),
@@ -206,15 +223,7 @@ export const AppPage = () => {
       return;
     }
 
-    getAppData(id)
-      .then((app) => {
-        getRecipeSpecification(app.id)
-          .catch(() => undefined)
-          .then((schema) => {
-            setState((prevState) => ({ ...prevState, app, schema }));
-          });
-      })
-      .catch(() => goBack(routeTree.root.path));
+    fetchApp();
   }, [id]);
 
   if (!app) return <Spin centered />;
@@ -237,269 +246,266 @@ export const AppPage = () => {
               xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
             }}
           >
-            <VStack $style={{ gap: "24px" }}>
-              <HStack
-                as="span"
-                $style={{
-                  alignItems: "center",
-                  border: `solid 1px ${colors.borderNormal.toHex()}`,
-                  borderRadius: "18px",
-                  cursor: "pointer",
-                  fontSize: "12px",
-                  gap: "4px",
-                  height: "36px",
-                  padding: "0 12px",
-                  width: "fit-content",
-                }}
-                $hover={{ color: colors.textTertiary.toHex() }}
-                onClick={() => goBack(routeTree.root.path)}
-              >
-                <ChevronLeftIcon fontSize={16} />
-                {t("goBack")}
-              </HStack>
+            <HStack
+              as="span"
+              $style={{
+                alignItems: "center",
+                border: `solid 1px ${colors.borderNormal.toHex()}`,
+                borderRadius: "18px",
+                cursor: "pointer",
+                fontSize: "12px",
+                gap: "4px",
+                height: "36px",
+                padding: "0 12px",
+                width: "fit-content",
+              }}
+              $hover={{ color: colors.textTertiary.toHex() }}
+              onClick={() => goBack(routeTree.root.path)}
+            >
+              <ChevronLeftIcon fontSize={16} />
+              {t("goBack")}
+            </HStack>
+            <VStack
+              $style={{
+                backgroundColor: colors.bgTertiary.toHex(),
+                borderRadius: "32px",
+                gap: "16px",
+                padding: "16px",
+              }}
+            >
               <VStack
                 $style={{
-                  backgroundColor: colors.bgTertiary.toHex(),
-                  borderRadius: "32px",
+                  backgroundColor: colors.bgPrimary.toHex(),
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "24px",
                   gap: "16px",
-                  padding: "16px",
+                  padding: "24px",
                 }}
               >
-                <VStack
+                <HStack
                   $style={{
-                    backgroundColor: colors.bgPrimary.toHex(),
-                    border: `solid 1px ${colors.borderNormal.toHex()}`,
-                    borderRadius: "24px",
+                    alignItems: "center",
                     gap: "16px",
-                    padding: "24px",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <HStack
-                    $style={{
-                      alignItems: "center",
-                      gap: "16px",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <HStack $style={{ alignItems: "center", gap: "16px" }}>
+                  <HStack $style={{ alignItems: "center", gap: "16px" }}>
+                    <Stack
+                      as="img"
+                      alt={app.title}
+                      src={app.logoUrl}
+                      $style={{
+                        borderRadius: "16px",
+                        height: "72px",
+                        width: "72px",
+                      }}
+                    />
+                    <VStack $style={{ gap: "8px", justifyContent: "center" }}>
                       <Stack
-                        as="img"
-                        alt={app.title}
-                        src={app.logoUrl}
-                        $style={{
-                          borderRadius: "16px",
-                          height: "72px",
-                          width: "72px",
-                        }}
-                      />
-                      <VStack $style={{ gap: "8px", justifyContent: "center" }}>
-                        <Stack
-                          as="span"
-                          $style={{ fontSize: "22px", lineHeight: "24px" }}
-                        >
-                          {app.title}
-                        </Stack>
-                        <HStack $style={{ alignItems: "center", gap: "8px" }}>
-                          <HStack $style={{ alignItems: "center", gap: "2px" }}>
-                            <Stack
-                              as={CircleArrowDownIcon}
-                              $style={{
-                                color: colors.textTertiary.toHex(),
-                                fontSize: "16px",
-                              }}
-                            />
-                            <Stack
-                              as="span"
-                              $style={{
-                                color: colors.textTertiary.toHex(),
-                                lineHeight: "20px",
-                              }}
-                            >
-                              {toNumberFormat(app.installations)}
-                            </Stack>
-                          </HStack>
+                        as="span"
+                        $style={{ fontSize: "22px", lineHeight: "24px" }}
+                      >
+                        {app.title}
+                      </Stack>
+                      <HStack $style={{ alignItems: "center", gap: "8px" }}>
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
                           <Stack
+                            as={CircleArrowDownIcon}
                             $style={{
-                              backgroundColor: colors.borderLight.toHex(),
-                              height: "3px",
-                              width: "3px",
+                              color: colors.textTertiary.toHex(),
+                              fontSize: "16px",
                             }}
                           />
-                          <HStack $style={{ alignItems: "center", gap: "2px" }}>
-                            <Stack
-                              as={StarIcon}
-                              $style={{
-                                color: colors.warning.toHex(),
-                                fill: colors.warning.toHex(),
-                                fontSize: "16px",
-                              }}
-                            />
-                            <Stack
-                              as="span"
-                              $style={{
-                                color: colors.textTertiary.toHex(),
-                                lineHeight: "20px",
-                              }}
-                            >
-                              {app.ratesCount
-                                ? `${app.avgRating}/5 (${app.ratesCount})`
-                                : t("noRating")}
-                            </Stack>
-                          </HStack>
+                          <Stack
+                            as="span"
+                            $style={{
+                              color: colors.textTertiary.toHex(),
+                              lineHeight: "20px",
+                            }}
+                          >
+                            {toNumberFormat(app.installations)}
+                          </Stack>
                         </HStack>
-                      </VStack>
-                    </HStack>
-                    <VStack
-                      $style={{
-                        alignItems: "center",
-                        color: colors.textTertiary.toHex(),
-                        gap: "12px",
-                      }}
-                    >
-                      {isConnected ? (
-                        isInstalled === undefined ||
-                        isFeeAppInstalled === undefined ? (
-                          <Button disabled loading>
-                            {t("checking")}
-                          </Button>
-                        ) : !isFree && !isFeeAppInstalled ? (
-                          <Button
-                            loading={loading}
-                            onClick={() =>
-                              navigate(modalHash.payment, { state: true })
-                            }
+                        <Stack
+                          $style={{
+                            backgroundColor: colors.borderLight.toHex(),
+                            height: "3px",
+                            width: "3px",
+                          }}
+                        />
+                        <HStack $style={{ alignItems: "center", gap: "2px" }}>
+                          <Stack
+                            as={StarIcon}
+                            $style={{
+                              color: colors.warning.toHex(),
+                              fill: colors.warning.toHex(),
+                              fontSize: "16px",
+                            }}
+                          />
+                          <Stack
+                            as="span"
+                            $style={{
+                              color: colors.textTertiary.toHex(),
+                              lineHeight: "20px",
+                            }}
                           >
-                            {t("get")}
-                            <Stack
-                              as="span"
-                              $style={{
-                                backgroundColor: colors.textPrimary.toHex(),
-                                borderRadius: "50%",
-                                height: "2px",
-                                width: "2px",
-                              }}
-                            />
-                            {t("free")}
-                          </Button>
-                        ) : isInstalled ? (
-                          <>
-                            <Button
-                              disabled={loading || !schema}
-                              href={modalHash.policy}
-                            >
-                              {t("addAutomation")}
-                            </Button>
-                            <Button
-                              loading={loading}
-                              onClick={handleUninstall}
-                              kind="danger"
-                              ghost
-                            >
-                              {t("uninstall")}
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            loading={loading}
-                            onClick={() => handleInstall(app.id)}
-                          >
-                            {t("get")}
-                            <Stack
-                              as="span"
-                              $style={{
-                                backgroundColor: colors.textPrimary.toHex(),
-                                borderRadius: "50%",
-                                height: "2px",
-                                width: "2px",
-                              }}
-                            />
-                            {t("free")}
-                          </Button>
-                        )
-                      ) : (
-                        <Button onClick={connect}>{t("connect")}</Button>
-                      )}
+                            {app.ratesCount
+                              ? `${app.avgRating}/5 (${app.ratesCount})`
+                              : t("noRating")}
+                          </Stack>
+                        </HStack>
+                      </HStack>
                     </VStack>
                   </HStack>
                   <VStack
-                    as="span"
                     $style={{
                       alignItems: "center",
-                      color: colors.textSecondary.toHex(),
-                      flexGrow: "1",
+                      color: colors.textTertiary.toHex(),
+                      gap: "12px",
                     }}
                   >
-                    {isFree ? (
-                      <Stack as="span">{t("isFreeApp")}</Stack>
+                    {isConnected ? (
+                      isInstalled === undefined ||
+                      isFeeAppInstalled === undefined ? (
+                        <Button disabled loading>
+                          {t("checking")}
+                        </Button>
+                      ) : !isFree && !isFeeAppInstalled ? (
+                        <Button
+                          loading={loading}
+                          onClick={() =>
+                            navigate(modalHash.payment, { state: true })
+                          }
+                        >
+                          {t("get")}
+                          <Stack
+                            as="span"
+                            $style={{
+                              backgroundColor: colors.textPrimary.toHex(),
+                              borderRadius: "50%",
+                              height: "2px",
+                              width: "2px",
+                            }}
+                          />
+                          {t("free")}
+                        </Button>
+                      ) : isInstalled ? (
+                        <>
+                          <Button
+                            disabled={loading || !schema}
+                            href={modalHash.policy}
+                          >
+                            {t("addAutomation")}
+                          </Button>
+                          <Button
+                            loading={loading}
+                            onClick={handleUninstall}
+                            kind="danger"
+                            ghost
+                          >
+                            {t("uninstall")}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button loading={loading} onClick={handleInstall}>
+                          {t("get")}
+                          <Stack
+                            as="span"
+                            $style={{
+                              backgroundColor: colors.textPrimary.toHex(),
+                              borderRadius: "50%",
+                              height: "2px",
+                              width: "2px",
+                            }}
+                          />
+                          {t("free")}
+                        </Button>
+                      )
                     ) : (
-                      app.pricing.map(({ amount, frequency, type }, index) => (
-                        <Stack as="span" key={index}>
-                          {pricingText({
-                            amount,
-                            baseValue,
-                            currency,
-                            frequency,
-                            type,
-                          })}
-                        </Stack>
-                      ))
+                      <Button onClick={connect}>{t("connect")}</Button>
                     )}
+                    <VStack
+                      as="span"
+                      $style={{
+                        alignItems: "center",
+                        color: colors.textSecondary.toHex(),
+                        flexGrow: "1",
+                        fontSize: "12px",
+                      }}
+                    >
+                      {isFree ? (
+                        <Stack as="span">{t("isFreeApp")}</Stack>
+                      ) : (
+                        app.pricing.map(
+                          ({ amount, frequency, type }, index) => (
+                            <Stack as="span" key={index}>
+                              {pricingText({
+                                amount,
+                                baseValue,
+                                currency,
+                                frequency,
+                                type,
+                              })}
+                            </Stack>
+                          )
+                        )
+                      )}
+                    </VStack>
                   </VStack>
-                </VStack>
-                <HStack $style={{ justifyContent: "center", gap: "56px" }}>
-                  {[
-                    {
-                      href: `${routeTree.root.path}?categoryId=${app.categoryId}`,
-                      lable: t("category"),
-                      value: snakeCaseToTitle(app.categoryId),
-                    },
-                    { lable: t("createdBy"), value: "Vultisig" },
-                    { lable: t("version"), value: "2.1.0" },
-                    {
-                      lable: t("lastUpdate"),
-                      value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
-                    },
-                  ].map(({ href, lable, value }, index) => (
-                    <Fragment key={index}>
-                      {index > 0 && <Divider vertical />}
-                      <VStack $style={{ alignItems: "center", gap: "12px" }}>
-                        <Stack
-                          as="span"
-                          $style={{
-                            color: colors.textTertiary.toHex(),
-                            fontSize: "13px",
-                          }}
-                        >
-                          {lable}
-                        </Stack>
-                        <Stack
-                          as={href ? Link : "span"}
-                          $style={{
-                            backgroundColor: colors.accentFour.toRgba(0.1),
-                            borderRadius: "4px",
-                            color: colors.accentFour.toHex(),
-                            fontSize: "12px",
-                            lineHeight: "20px",
-                            padding: "0 8px",
-                            ...(href ? { cursor: "pointer" } : {}),
-                          }}
-                          {...(href
-                            ? {
-                                to: href,
-                                $hover: {
-                                  backgroundColor:
-                                    colors.accentFour.toRgba(0.2),
-                                },
-                              }
-                            : {})}
-                        >
-                          {value}
-                        </Stack>
-                      </VStack>
-                    </Fragment>
-                  ))}
                 </HStack>
               </VStack>
+              <HStack $style={{ justifyContent: "center", gap: "56px" }}>
+                {[
+                  {
+                    href: `${routeTree.root.path}?categoryId=${app.categoryId}`,
+                    lable: t("category"),
+                    value: snakeCaseToTitle(app.categoryId),
+                  },
+                  { lable: t("createdBy"), value: "Vultisig" },
+                  { lable: t("version"), value: "2.1.0" },
+                  {
+                    lable: t("lastUpdate"),
+                    value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
+                  },
+                ].map(({ href, lable, value }, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <Divider vertical />}
+                    <VStack $style={{ alignItems: "center", gap: "12px" }}>
+                      <Stack
+                        as="span"
+                        $style={{
+                          color: colors.textTertiary.toHex(),
+                          fontSize: "13px",
+                        }}
+                      >
+                        {lable}
+                      </Stack>
+                      <Stack
+                        as={href ? Link : "span"}
+                        $style={{
+                          backgroundColor: colors.accentFour.toRgba(0.1),
+                          borderRadius: "4px",
+                          color: colors.accentFour.toHex(),
+                          fontSize: "12px",
+                          lineHeight: "20px",
+                          padding: "0 8px",
+                          ...(href ? { cursor: "pointer" } : {}),
+                        }}
+                        {...(href
+                          ? {
+                              to: href,
+                              $hover: {
+                                backgroundColor: colors.accentFour.toRgba(0.2),
+                              },
+                            }
+                          : {})}
+                      >
+                        {value}
+                      </Stack>
+                    </VStack>
+                  </Fragment>
+                ))}
+              </HStack>
             </VStack>
             <Stack
               as={Anchor}
@@ -645,7 +651,7 @@ export const AppPage = () => {
               </VStack>
             </VStack>
             <Divider light />
-            <AppReviews {...app} />
+            <AppReviews app={app} onReload={fetchApp} />
           </VStack>
           <Stack
             as="span"
@@ -749,12 +755,45 @@ export const AppPage = () => {
           </VStack>
         </VStack>
       </VStack>
-      {isFeeAppInstalled === false && (
-        <PaymentModal
-          loading={loading}
-          onInstall={() => handleInstall(feeAppId)}
-        />
-      )}
+
+      <PaymentModal onFinish={checkStatus} />
+
+      <SuccessModal
+        onClose={() => goBack()}
+        visible={hash === modalHash.success && isInstalled}
+      >
+        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
+          Installation Successful
+        </Stack>
+        <VStack $style={{ alignItems: "center", gap: "4px" }}>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              lineHeight: "18px",
+            }}
+          >
+            {`${app.title} app was successfully installed.`}
+          </Stack>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              lineHeight: "18px",
+            }}
+          >
+            You can now create app automations.
+          </Stack>
+        </VStack>
+        <HStack $style={{ gap: "12px", marginTop: "12px" }}>
+          <Button onClick={() => navigate(modalHash.policy)}>
+            Create Automation
+          </Button>
+          <Button href={routeTree.myApps.path} kind="secondary">
+            My apps
+          </Button>
+        </HStack>
+      </SuccessModal>
     </>
   );
 };

@@ -21,6 +21,7 @@ import {
 import { Currency } from "@/utils/currency";
 import { normalizeApp, toCamelCase } from "@/utils/functions";
 import { toSnakeCase } from "@/utils/functions";
+import { faqs } from "@/utils/mockData";
 import {
   APIResponse,
   App,
@@ -29,6 +30,7 @@ import {
   AuthToken,
   Category,
   CustomAppPolicy,
+  FeeAppStatus,
   JupiterToken,
   ListFilters,
   OneInchToken,
@@ -38,8 +40,6 @@ import {
   ReviewForm,
   Token,
 } from "@/utils/types";
-
-import { faqs } from "./mockData";
 
 const api = axios.create({ headers: { "Content-Type": "application/json" } });
 
@@ -206,7 +206,14 @@ export const getBaseValue = async (currency: Currency): Promise<number> => {
 };
 
 export const getCategories = async (): Promise<Category[]> => {
-  return get<Category[]>(`${storeApiUrl}/categories`);
+  return get<Category[]>(`${storeApiUrl}/categories`).then((categories) => [
+    { id: "", name: "All" },
+    ...categories,
+  ]);
+};
+
+export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
+  return get<FeeAppStatus>(`${storeApiUrl}/fee-app/status`);
 };
 
 export const getMyApps = async ({
@@ -221,7 +228,12 @@ export const getMyApps = async ({
       params: toSnakeCase({ skip, take }),
     });
 
-    return { apps: plugins, totalCount };
+    if (!totalCount) return { apps: [], totalCount: 0 };
+
+    return {
+      apps: plugins.filter(({ id }) => id !== feeAppId).map(normalizeApp),
+      totalCount,
+    };
   } catch {
     return { apps: [], totalCount: 0 };
   }

@@ -6,6 +6,7 @@ export const modalHash = {
   payment: "#payment",
   policy: "#policy",
   requirements: "#requirements",
+  success: "#success",
   review: "#review",
 } as const;
 

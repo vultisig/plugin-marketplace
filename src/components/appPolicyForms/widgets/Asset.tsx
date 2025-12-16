@@ -4,7 +4,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Form, FormInstance, Input, Select, SelectProps } from "antd";
+import { Form, Input, Select, SelectProps } from "antd";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
@@ -14,16 +14,14 @@ import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, chains, decimals, ethL2Chains, tickers } from "@/utils/chain";
+import { Chain, decimals, ethL2Chains, tickers } from "@/utils/chain";
 import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
-import { Configuration, Token } from "@/utils/types";
+import { Token } from "@/utils/types";
 
 type AssetWidgetProps = {
-  configuration: Configuration;
-  form: FormInstance;
+  chains: Chain[];
   fullKey: string[];
-  supportedChains: Chain[];
 };
 
 type StateProps = {
@@ -31,12 +29,7 @@ type StateProps = {
   tokens: Token[];
 };
 
-export const AssetWidget: FC<AssetWidgetProps> = ({
-  configuration: { properties, required },
-  form,
-  fullKey,
-  supportedChains,
-}) => {
+export const AssetWidget: FC<AssetWidgetProps> = ({ chains, fullKey }) => {
   const [state, setState] = useState<StateProps>({ tokens: [] });
   const { loading, tokens } = state;
   const { getTokenData, getTokenList } = useQueries();
@@ -47,20 +40,21 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const chainField = [...fullKey, "chain"];
   const decimalsField = [...fullKey, "decimals"];
   const tokenField = [...fullKey, "token"];
-  const chain: Chain = Form.useWatch(chainField, form);
+  const form = Form.useFormInstance();
+  const chain = Form.useWatch<Chain>(chainField, form);
 
   const nativeTokens = useMemo(() => {
-    return supportedChains.reduce((acc, chain) => {
+    return chains.reduce((acc, chain) => {
       const isEvm = chain in ethL2Chains;
 
       acc[chain] = isEvm
         ? {
-            chain: chains.Ethereum,
-            decimals: decimals[chains.Ethereum],
+            chain: "Ethereum",
+            decimals: decimals["Ethereum"],
             id: "",
-            logo: `/tokens/${chains.Ethereum.toLowerCase()}.svg`,
-            name: chains.Ethereum,
-            ticker: tickers[chains.Ethereum],
+            logo: "/tokens/ethereum.svg",
+            name: "Ethereum",
+            ticker: tickers["Ethereum"],
           }
         : {
             chain,
@@ -106,7 +100,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           </Stack>
         </HStack>
       ),
-      options: supportedChains.map((chain) => ({ value: chain, label: chain })),
+      options: chains.map((chain) => ({ value: chain, label: chain })),
       showSearch: true,
     };
 
@@ -261,20 +255,10 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
           gridTemplateColumns: "repeat(2, 1fr)",
         }}
       >
-        <Form.Item
-          label="Chain"
-          name={chainField}
-          rules={[{ required: required.includes("chain") }]}
-          tooltip={properties.chain?.description}
-        >
+        <Form.Item label="Chain" name={chainField} rules={[{ required: true }]}>
           <Select {...chainSelectProps} />
         </Form.Item>
-        <Form.Item
-          label="Token"
-          name={tokenField}
-          rules={[{ required: required.includes("token") }]}
-          tooltip={properties.token?.description}
-        >
+        <Form.Item label="Token" name={tokenField}>
           <Select {...tokenSelectProps} />
         </Form.Item>
         <Form.Item name={addressField} noStyle>

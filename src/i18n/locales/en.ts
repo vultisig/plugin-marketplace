@@ -1,5 +1,6 @@
 export const en = {
   // A
+  allApps: "All Apps",
   action: "Action",
   addAutomation: "Add Automation",
   addRule: "Add Rule",
@@ -113,6 +114,8 @@ export const en = {
   type: "Type",
   // U
   uninstall: "Uninstall",
+  unsavedChangesContent: "Are you sure you want to leave?",
+  unsavedChangesTitle: "Unsaved Changes",
   unsuccessfulAppInstallation: "App installation failed",
   unsuccessfulAppUninstallation: "App uninstallation failed",
   unsuccessfulPolicyDeletion: "Policy deletion failed",
@@ -122,6 +125,7 @@ export const en = {
   useTemplate: "Use Template",
   // V
   version: "Version",
+  vultisigVerified: "Vultisig Verified",
   // W
   writeReview: "Write Review",
   writeReviewPlaceholder: "How do you feel about this app?",
