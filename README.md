@@ -1,7 +1,7 @@
 # Vultisig Plugin Marketplace
 
 <p align="center">
-  <img src="public/images/banner.jpg" alt="Vultisig Logo" width="200"/>
+  <img src="public/images/banner.jpg" alt="Vultisig Logo"/>
 </p>
 
 <p align="center">
@@ -26,8 +26,6 @@
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
 - [Development](#development)
-- [Contributing](#contributing)
-
 ---
 
 ## 🌟 Overview
@@ -295,64 +293,3 @@ Three configuration files:
 - `tsconfig.json`: Base configuration
 - `tsconfig.app.json`: Application code settings
 - `tsconfig.node.json`: Node/build scripts settings
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these guidelines:
-
-### Contribution Process
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** following our code style
-4. **Add tests** for new functionality
-5. **Commit with conventional commits**: `git commit -m "feat: add amazing feature"`
-6. **Push to your fork**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request** using our template
-
-### Commit Message Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-**Examples:**
-```bash
-feat(plugins): add search functionality
-fix(billing): resolve subscription renewal issue
-docs(readme): update installation instructions
-```
-
-### Pull Request Template
-
-Use [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md):
-
-- Description of changes
-- Related issue(s)
-- Testing performed
-- Screenshots (if UI changes)
-- Checklist (lint, tests, docs)
-
-### Code Review Process
-
-1. Automated checks must pass (lint, tests, build)
-2. At least one maintainer approval required
-3. Address review comments
-4. Squash and merge when approved
