@@ -213,7 +213,10 @@ export const getCategories = async (): Promise<Category[]> => {
 };
 
 export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
-  return get<FeeAppStatus>(`${storeApiUrl}/fee-app/status`);
+  const status = await externalGet<FeeAppStatus>(`${storeApiUrl}/fee/status`);
+  const isInstalled = await isAppInstalled(feeAppId);
+
+  return { ...status, isInstalled };
 };
 
 export const getMyApps = async ({

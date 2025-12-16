@@ -1,12 +1,14 @@
 import "@/styles/index.scss";
 
 import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import utc from "dayjs/plugin/utc";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
 import { App } from "@/App";
 
+dayjs.extend(duration);
 dayjs.extend(utc);
 
 const originalFetch = window.fetch;

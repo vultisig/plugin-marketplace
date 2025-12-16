@@ -1,28 +1,23 @@
 import { Table, TableProps } from "antd";
 import dayjs from "dayjs";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { useAntd } from "@/hooks/useAntd";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getApp, isAppInstalled } from "@/utils/api";
-import { feeAppId } from "@/utils/constants";
-import { startReshareSession } from "@/utils/extension";
+import { modalHash } from "@/utils/constants";
 import { routeTree } from "@/utils/routes";
-import { App } from "@/utils/types";
-
-type StateProps = { app?: App; isInstalled?: boolean; loading?: boolean };
 
 export const BillingPage = () => {
-  const [state, setState] = useState<StateProps>({});
-  const { app, isInstalled, loading } = state;
-  const { messageAPI } = useAntd();
+  const { feeApp, feeAppStatus } = useCore();
   const goBack = useGoBack();
+  const navigate = useNavigate();
   const colors = useTheme();
 
   const columns: TableProps["columns"] = [
@@ -51,43 +46,7 @@ export const BillingPage = () => {
     },
   ];
 
-  const fetchApp = useCallback(async () => {
-    try {
-      const app = await getApp(feeAppId);
-      const isInstalled = await isAppInstalled(feeAppId);
-
-      setState((prevState) => ({ ...prevState, app, isInstalled }));
-    } catch {
-      goBack(routeTree.root.path);
-    }
-  }, [goBack]);
-
-  const handleInstall = async () => {
-    if (loading) return;
-
-    setState((prevState) => ({ ...prevState, loading: true }));
-
-    const isInstalled = await startReshareSession(feeAppId);
-
-    setState((prevState) => ({ ...prevState, isInstalled, loading: false }));
-
-    if (isInstalled) {
-      messageAPI.open({
-        type: "success",
-        content: "App successfully installed",
-      });
-    } else {
-      messageAPI.open({
-        type: "error",
-        content: "App installation failed",
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchApp();
-  }, [fetchApp]);
-  if (!app) return <Spin centered />;
+  if (!feeApp || !feeAppStatus) return <Spin centered />;
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "24px 0" }}>
@@ -142,21 +101,21 @@ export const BillingPage = () => {
             <HStack $style={{ alignItems: "center", gap: "16px" }}>
               <Stack
                 as="img"
-                alt={app.title}
-                src={app.logoUrl}
+                alt={feeApp.title}
+                src={feeApp.logoUrl}
                 $style={{ borderRadius: "12px", height: "48px", width: "48px" }}
               />
               <Stack as="span" $style={{ fontSize: "18px" }}>
-                {app.title}
+                {feeApp.title}
               </Stack>
             </HStack>
-            {isInstalled === undefined ? (
+            {feeAppStatus.isInstalled === undefined ? (
               <Button disabled loading>
                 Checking
               </Button>
             ) : (
-              !isInstalled && (
-                <Button loading={loading} onClick={handleInstall}>
+              !feeAppStatus.isInstalled && (
+                <Button onClick={() => navigate(modalHash.payment)}>
                   Get
                   <Stack
                     as="span"
@@ -178,7 +137,7 @@ export const BillingPage = () => {
               { lable: "Version", value: "2.1.0" },
               {
                 lable: "Installed on",
-                value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
+                value: dayjs(feeApp.updatedAt).format("YYYY-MM-DD"),
               },
             ].map(({ lable, value }, index) => (
               <Fragment key={index}>

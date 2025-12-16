@@ -1,25 +1,20 @@
 import { Modal } from "antd";
-import { FC, useEffect, useState } from "react";
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { SuccessModal } from "@/components/SuccessModal";
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getApp, isAppInstalled } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
-import { App } from "@/utils/types";
 
-type PaymentModalProps = { onFinish: () => void };
-
-type StateProps = { app?: App; isInstalled: boolean; loading?: boolean };
-
-export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
-  const [state, setState] = useState<StateProps>({ isInstalled: false });
-  const { app, isInstalled, loading } = state;
+export const PaymentModal = () => {
+  const [loading, setLoading] = useState(false);
+  const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
@@ -28,34 +23,23 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
   const handleInstall = async () => {
     if (loading) return;
 
-    setState((prevState) => ({ ...prevState, loading: true }));
+    setLoading(true);
 
-    const isInstalled = await startReshareSession(feeAppId);
+    await startReshareSession(feeAppId);
 
-    if (isInstalled) onFinish();
+    setLoading(false);
 
-    setState((prevState) => ({
-      ...prevState,
-      isInstalled,
-      loading: false,
-    }));
+    updateFeeAppStatus();
   };
 
-  useEffect(() => {
-    if (!visible) return;
-
-    Promise.all([getApp(feeAppId), isAppInstalled(feeAppId)])
-      .then(([app, isInstalled]) =>
-        setState((prevState) => ({ ...prevState, app, isInstalled }))
-      )
-      .catch(() => goBack());
-  }, [visible]);
-
-  if (!app) return null;
+  if (!feeApp || !feeAppStatus) return null;
 
   return (
     <>
-      <SuccessModal onClose={() => goBack()} visible={visible && isInstalled}>
+      <SuccessModal
+        onClose={() => goBack()}
+        visible={visible && feeAppStatus.isInstalled}
+      >
         <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
           Installation Successful
         </Stack>
@@ -67,7 +51,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
               lineHeight: "18px",
             }}
           >
-            {`${app.title} app was successfully installed.`}
+            {`${feeApp.title} app was successfully installed.`}
           </Stack>
           <Stack
             as="span"
@@ -86,7 +70,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
         closable={false}
         footer={false}
         onCancel={() => goBack()}
-        open={visible && !isInstalled}
+        open={visible && !feeAppStatus.isInstalled}
         styles={{
           body: { alignItems: "center", display: "flex", gap: 24 },
           container: { padding: 16 },
@@ -98,7 +82,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
         <VStack
           $style={{
             aspectRatio: 3 / 2,
-            backgroundImage: `url(${app.thumbnailUrl})`,
+            backgroundImage: `url(${feeApp.thumbnailUrl})`,
             backgroundPosition: "center center",
             backgroundSize: "cover",
             borderRadius: "12px",
@@ -111,15 +95,15 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
             <HStack $style={{ alignItems: "center", gap: "12px" }}>
               <Stack
                 as="img"
-                alt={app.title}
-                src={app.logoUrl}
+                alt={feeApp.title}
+                src={feeApp.logoUrl}
                 $style={{ borderRadius: "12px", width: "56px" }}
               />
               <Stack
                 as="span"
                 $style={{ fontSize: "17px", lineHeight: "20px" }}
               >
-                {app.title}
+                {feeApp.title}
               </Stack>
             </HStack>
             <Stack
@@ -130,7 +114,7 @@ export const PaymentModal: FC<PaymentModalProps> = ({ onFinish }) => {
                 lineHeight: "18px",
               }}
             >
-              {app.description}
+              {feeApp.description}
             </Stack>
           </VStack>
           <Button

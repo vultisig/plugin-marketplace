@@ -88,6 +88,7 @@ export type Definitions = Record<string, Configuration>;
 export type FeeAppStatus = {
   balance: number;
   fees: string[];
+  isInstalled: boolean;
   isTrialActive: boolean;
   publicKey: string;
   trialRemaining: number;

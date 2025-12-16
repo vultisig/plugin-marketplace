@@ -5,6 +5,7 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { createGlobalStyle, useTheme } from "styled-components";
 
 import { CurrencyModal } from "@/components/CurrencyModal";
+import { PaymentModal } from "@/components/PaymentModal";
 import { useCore } from "@/hooks/useCore";
 import { ArrowBoxLeftIcon } from "@/icons/ArrowBoxLeftIcon";
 import { ArrowBoxRightIcon } from "@/icons/ArrowBoxRightIcon";
@@ -295,7 +296,7 @@ export const DefaultLayout = () => {
 
       <Outlet />
       <CurrencyModal />
-      {/* <LanguageModal /> */}
+      <PaymentModal />
     </>
   );
 };

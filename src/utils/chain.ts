@@ -246,5 +246,3 @@ export const evmChainInfo: Record<EvmChain, ViemChain> = {
 
 export type Chain = (typeof chains)[keyof typeof chains];
 export type EvmChain = (typeof evmChains)[keyof typeof evmChains];
-
-export const defaultChain: Chain = chains.Ethereum;

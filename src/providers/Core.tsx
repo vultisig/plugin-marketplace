@@ -3,7 +3,6 @@ import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { CoreContext, CoreContextProps } from "@/context/Core";
-import { getChain, setChain as setChainStorage } from "@/storage/chain";
 import { storageKeys } from "@/storage/constants";
 import {
   getCurrency,
@@ -13,8 +12,13 @@ import { useLocalStorageWatcher } from "@/storage/hooks/useLocalStorageWatcher";
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
-import { getAuthToken, getBaseValue } from "@/utils/api";
-import { Chain } from "@/utils/chain";
+import {
+  getApp,
+  getAuthToken,
+  getBaseValue,
+  getFeeAppStatus,
+} from "@/utils/api";
+import { feeAppId } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import {
   connect as connectToExtension,
@@ -28,8 +32,9 @@ type StateProps = Pick<
   CoreContextProps,
   | "address"
   | "baseValue"
-  | "chain"
   | "currency"
+  | "feeApp"
+  | "feeAppStatus"
   | "isConnected"
   | "theme"
   | "vault"
@@ -38,7 +43,6 @@ type StateProps = Pick<
 export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<StateProps>({
     baseValue: 1,
-    chain: getChain(),
     currency: getCurrency(),
     isConnected: false,
     theme: getTheme(),
@@ -46,8 +50,9 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const {
     address,
     baseValue,
-    chain,
     currency,
+    feeApp,
+    feeAppStatus,
     isConnected,
     theme,
     vault,
@@ -143,12 +148,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     });
   };
 
-  const setChain = (chain: Chain, fromStorage?: boolean) => {
-    if (!fromStorage) setChainStorage(chain);
-
-    setState((prevState) => ({ ...prevState, chain }));
-  };
-
   const setCurrency = (currency: Currency, fromStorage?: boolean) => {
     if (!fromStorage) setCurrencyStorage(currency);
 
@@ -161,9 +160,13 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setState((prevState) => ({ ...prevState, theme }));
   };
 
-  useLocalStorageWatcher(storageKeys.chain, () => {
-    setChain(getChain(), true);
-  });
+  const updateFeeAppStatus = useCallback(async () => {
+    if (!isConnected) return;
+
+    const feeAppStatus = await getFeeAppStatus();
+
+    setState((prevState) => ({ ...prevState, feeAppStatus }));
+  }, [isConnected]);
 
   useLocalStorageWatcher(storageKeys.currency, () => {
     setCurrency(getCurrency(), true);
@@ -174,25 +177,36 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   });
 
   useEffect(() => {
-    getBaseValue(currency).then((baseValue) => {
-      setState((prevState) => ({ ...prevState, baseValue }));
-    });
+    updateFeeAppStatus();
+  }, [updateFeeAppStatus]);
+
+  useEffect(() => {
+    getBaseValue(currency).then((baseValue) =>
+      setState((prevState) => ({ ...prevState, baseValue }))
+    );
   }, [currency]);
+
+  useEffect(() => {
+    getApp(feeAppId).then((feeApp) =>
+      setState((prevState) => ({ ...prevState, feeApp }))
+    );
+  }, []);
 
   return (
     <CoreContext.Provider
       value={{
         address,
         baseValue,
-        chain,
         connect,
         currency,
         disconnect,
+        feeApp,
+        feeAppStatus,
         isConnected,
-        setChain,
         setCurrency,
         setTheme,
         theme,
+        updateFeeAppStatus,
         vault,
       }}
     >
