@@ -1,11 +1,11 @@
-# Vultisig Plugin Marketplace
+# Vultisig App Marketplace
 
 <p align="center">
   <img src="public/images/banner.jpg" alt="Vultisig Logo"/>
 </p>
 
 <p align="center">
-  <strong>A decentralized marketplace for Vultisig plugins, automations, and integrations</strong>
+  <strong>A decentralized marketplace for Vultisig apps, automations, and integrations</strong>
 </p>
 
 <p align="center">
@@ -30,14 +30,14 @@
 
 ## 🌟 Overview
 
-The **Vultisig Plugin Marketplace** is a modern web application built with React, TypeScript, and Vite that serves as the central hub for discovering, installing, and managing Vultisig vault plugins and automations. 
+The **Vultisig App Marketplace** is a modern web application built with React, TypeScript, and Vite that serves as the central hub for discovering, installing, and managing Vultisig vault apps and automations. 
 
 This marketplace enables users to:
-- Browse and search through available plugins and automations
-- Install plugins directly to their Vultisig vault via browser extension
+- Browse and search through available apps and automations
+- Install apps directly to their Vultisig vault via browser extension
 - Manage subscriptions and billing for premium features
 - Create custom automation recipes
-- Access detailed documentation and FAQs of each plugin
+- Access detailed documentation and FAQs of each app
 
 ### Technology Stack
 
@@ -56,7 +56,7 @@ This marketplace enables users to:
 ## ✨ Features
 
 ### Core Features
-- **Plugin Discovery**: Browse curated plugins with detailed descriptions, ratings, and compatibility info
+- **App Discovery**: Browse curated apps with detailed descriptions, ratings, and compatibility info
 - **One-Click Installation**: Seamless installation via Vultisig browser extension
 - **Recipe Builder**: Create custom automation workflows using visual policy builders
 - **Subscription Management**: Flexible billing with trial periods and plan upgrades
@@ -93,7 +93,7 @@ This marketplace enables users to:
                             ▼
                  ┌─────────────────────┐
                  │   Backend API       │
-                 │  (Plugin Registry)  │
+                 │  (Verifier)  │
                  └─────────────────────┘
 ```
 
@@ -118,7 +118,7 @@ This marketplace enables users to:
 #### Integration Points
 - **Browser Extension**: Communication via `window.postMessage` (see `src/utils/extension.ts`)
 - **WebAssembly**: Wallet operations via `wallet-core.wasm` (loaded in `src/main.tsx`)
-- **API Backend**: RESTful endpoints for plugins, billing, and user data
+- **API Backend**: RESTful endpoints for apps, billing, and user data
 
 ---
 
@@ -183,8 +183,8 @@ plugin-marketplace/
 │   │   └── RecipeBuilder/
 │   ├── pages/                 # Route-level page components
 │   │   ├── Home/              # Landing page
-│   │   ├── Apps/              # Plugin marketplace
-│   │   ├── MyApps/            # User's installed plugins
+│   │   ├── Apps/              # App marketplace
+│   │   ├── MyApps/            # User's installed apps
 │   │   ├── Billing/           # Subscription management
 │   │   └── FAQ/               # Help and documentation
 │   ├── providers/             # React context providers
@@ -219,7 +219,7 @@ plugin-marketplace/
 - **`index.html`**: HTML template with meta tags and initial loading state
 
 #### Configuration Files
-- **`vite.config.ts`**: Vite build settings, plugins, and optimization ([view file](vite.config.ts))
+- **`vite.config.ts`**: Vite build settings, apps, and optimization ([view file](vite.config.ts))
 - **`eslint.config.js`**: Linting rules for code quality ([view file](eslint.config.js))
 - **`tsconfig.*.json`**: TypeScript compiler options for different contexts
 - **`vercel.json`**: Deployment configuration for Vercel platform ([view file](vercel.json))
@@ -236,7 +236,7 @@ plugin-marketplace/
 
 #### 1. Create a Feature Branch
 ```bash
-git checkout -b feature/plugin-rating-system
+git checkout -b feature/app-rating-system
 ```
 
 #### 2. Make Changes
@@ -269,7 +269,7 @@ npm run preview
 #### 7. Commit with Conventional Commits
 ```bash
 git add .
-git commit -m "feat(plugins): add rating system with star component"
+git commit -m "feat(apps): add rating system with star component"
 ```
 
 #### 8. Push and Create PR
