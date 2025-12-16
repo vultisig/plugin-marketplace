@@ -65,7 +65,7 @@ export const MainPage = () => {
           width: "100%",
         }}
       >
-        <VStack $style={{ gap: "20px" }}>
+        <VStack $style={{ gap: "16px" }}>
           <FreeTrialBanner />
           <Stack
             $style={{

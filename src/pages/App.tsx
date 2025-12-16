@@ -190,26 +190,28 @@ export const AppPage = () => {
               xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
             }}
           >
-            <FreeTrialBanner />
-            <HStack
-              as="span"
-              $style={{
-                alignItems: "center",
-                border: `solid 1px ${colors.borderNormal.toHex()}`,
-                borderRadius: "18px",
-                cursor: "pointer",
-                fontSize: "12px",
-                gap: "4px",
-                height: "36px",
-                padding: "0 12px",
-                width: "fit-content",
-              }}
-              $hover={{ color: colors.textTertiary.toHex() }}
-              onClick={() => goBack(routeTree.root.path)}
-            >
-              <ChevronLeftIcon fontSize={16} />
-              Go Back
-            </HStack>
+            <VStack $style={{ gap: "24px" }}>
+              <FreeTrialBanner />
+              <HStack
+                as="span"
+                $style={{
+                  alignItems: "center",
+                  border: `solid 1px ${colors.borderNormal.toHex()}`,
+                  borderRadius: "18px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                  gap: "4px",
+                  height: "36px",
+                  padding: "0 12px",
+                  width: "fit-content",
+                }}
+                $hover={{ color: colors.textTertiary.toHex() }}
+                onClick={() => goBack(routeTree.root.path)}
+              >
+                <ChevronLeftIcon fontSize={16} />
+                Go Back
+              </HStack>
+            </VStack>
             <VStack
               $style={{
                 backgroundColor: colors.bgTertiary.toHex(),
