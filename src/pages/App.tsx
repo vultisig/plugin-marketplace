@@ -1,6 +1,6 @@
-import { Anchor, Collapse } from "antd";
+import { Anchor, Collapse, Tooltip } from "antd";
 import dayjs from "dayjs";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -8,7 +8,7 @@ import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
 import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
-import { PaymentModal } from "@/components/PaymentModal";
+import { FreeTrialBanner } from "@/components/FreeTrialBanner";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
@@ -16,6 +16,7 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
+import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { StarIcon } from "@/icons/StarIcon";
 import { SubscriptionTickIcon } from "@/icons/SubscriptionTickIcon";
@@ -25,7 +26,6 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import {
   getApp,
-  getFeeAppStatus,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
@@ -47,7 +47,6 @@ import { App, RecipeSchema } from "@/utils/types";
 
 type StateProps = {
   app?: App;
-  isFeeAppInstalled?: boolean;
   isInstalled?: boolean;
   loading?: boolean;
   schema?: RecipeSchema;
@@ -55,75 +54,27 @@ type StateProps = {
 
 export const AppPage = () => {
   const [state, setState] = useState<StateProps>({});
-  const { app, isFeeAppInstalled, isInstalled, loading, schema } = state;
+  const { app, isInstalled, loading, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
-  const { baseValue, connect, currency, isConnected } = useCore();
+  const { baseValue, connect, currency, isConnected, feeAppStatus } = useCore();
   const { hash } = useLocation();
   const { id = "" } = useParams();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
-  const isFree = !app?.pricing.length;
-
-  const informations = [
-    {
-      label: "Fee Structure",
-      value: (
-        <>
-          {isFree
-            ? "This app is free"
-            : app.pricing.map(({ amount, frequency, type }, index) => (
-                <Stack as="span" key={index}>
-                  {pricingText({
-                    amount,
-                    baseValue,
-                    currency,
-                    frequency,
-                    type,
-                  })}
-                </Stack>
-              ))}
-        </>
-      ),
-    },
-    { label: "Downloads", value: app?.installations || 0 },
-    { label: "Support", value: "24/7" },
-  ];
-
-  const permissions = useMemo(() => {
-    if (!schema) return [];
-
-    return [
-      ...schema.supportedResources.reduce<string[]>((acc, { resourcePath }) => {
-        if (!resourcePath || !resourcePath.functionId) return acc;
-
-        const id = resourcePath.functionId;
-
-        if (!acc.includes(id)) acc.push(id);
-
-        return acc;
-      }, []),
-      ...(isFree ? [] : ["Fee deduction authorization"]),
-      "Vault balance visibility",
-    ];
-  }, [isFree, schema]);
+  const isFree = app && !app.pricing.length;
+  const isFeeAppInstalled = feeAppStatus?.isInstalled;
+  const permissions = schema?.permissions || [];
 
   const checkStatus = useCallback(async () => {
-    if (!app) return;
+    if (isFree === undefined || isFeeAppInstalled === undefined) return;
 
     let isInstalled = false;
-    let isFeeAppInstalled = !app.pricing.length;
 
-    if (!isFeeAppInstalled) isFeeAppInstalled = await isAppInstalled(feeAppId);
-    if (!isFeeAppInstalled) {
-      isFeeAppInstalled = await getFeeAppStatus().then(
-        ({ isTrialActive }) => isTrialActive
-      );
-    }
-    if (isFeeAppInstalled) isInstalled = await isAppInstalled(app.id);
+    if (isFree || isFeeAppInstalled) isInstalled = await isAppInstalled(id);
 
-    setState((prevState) => ({ ...prevState, isInstalled, isFeeAppInstalled }));
-  }, [app]);
+    setState((prevState) => ({ ...prevState, isInstalled }));
+  }, [id, isFeeAppInstalled, isFree]);
 
   const fetchApp = useCallback(async () => {
     getApp(id)
@@ -206,11 +157,7 @@ export const AppPage = () => {
     if (isConnected) {
       checkStatus();
     } else {
-      setState((prevState) => ({
-        ...prevState,
-        isFeeAppInstalled: undefined,
-        isInstalled: undefined,
-      }));
+      setState((prevState) => ({ ...prevState, isInstalled: undefined }));
     }
   }, [checkStatus, isConnected]);
 
@@ -243,6 +190,7 @@ export const AppPage = () => {
               xl: { $style: { flexGrow: "1", paddingBottom: "24px" } },
             }}
           >
+            <FreeTrialBanner />
             <HStack
               as="span"
               $style={{
@@ -370,9 +318,7 @@ export const AppPage = () => {
                       ) : !isFree && !isFeeAppInstalled ? (
                         <Button
                           loading={loading}
-                          onClick={() =>
-                            navigate(modalHash.payment, { state: true })
-                          }
+                          onClick={() => navigate(modalHash.payment)}
                         >
                           Get
                           <Stack
@@ -620,7 +566,32 @@ export const AppPage = () => {
                 Usage Info
               </Stack>
               <VStack $style={{ gap: "16px" }}>
-                {informations.map(({ label, value }, index) => (
+                {[
+                  {
+                    label: "Fee Structure",
+                    value: (
+                      <>
+                        {isFree
+                          ? "This app is free"
+                          : app.pricing.map(
+                              ({ amount, frequency, type }, index) => (
+                                <Stack as="span" key={index}>
+                                  {pricingText({
+                                    amount,
+                                    baseValue,
+                                    currency,
+                                    frequency,
+                                    type,
+                                  })}
+                                </Stack>
+                              )
+                            )}
+                      </>
+                    ),
+                  },
+                  { label: "Downloads", value: app?.installations || 0 },
+                  { label: "Support", value: "24/7" },
+                ].map(({ label, value }, index) => (
                   <HStack
                     key={index}
                     $style={{ justifyContent: "space-between" }}
@@ -650,110 +621,129 @@ export const AppPage = () => {
             <Divider light />
             <AppReviews app={app} onReload={fetchApp} />
           </VStack>
-          <Stack
-            as="span"
-            $style={{
-              backgroundColor: colors.borderLight.toHex(),
-              height: "1px",
-            }}
-            $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
-          />
-          <VStack
-            $style={{ paddingBottom: "24px" }}
-            $media={{
-              xl: {
-                $style: {
-                  flex: "none",
-                  paddingTop: "84px",
-                  width: "322px",
-                },
-              },
-            }}
-          >
-            <VStack
-              $style={{ gap: "20px" }}
-              $media={{
-                xl: { $style: { position: "sticky", top: "136px" } },
-              }}
-            >
-              <VStack
+          {(!!permissions.length || app.audited) && (
+            <>
+              <Stack
+                as="span"
                 $style={{
-                  border: `solid 1px ${colors.borderNormal.toHex()}`,
-                  borderRadius: "24px",
-                  gap: "12px",
-                  padding: "32px",
+                  backgroundColor: colors.borderLight.toHex(),
+                  height: "1px",
+                }}
+                $media={{ xl: { $style: { height: "auto", width: "1px" } } }}
+              />
+              <VStack
+                $style={{ paddingBottom: "24px" }}
+                $media={{
+                  xl: {
+                    $style: {
+                      flex: "none",
+                      paddingTop: "84px",
+                      width: "322px",
+                    },
+                  },
                 }}
               >
-                <Stack
-                  as="span"
-                  $style={{ fontSize: "16px", lineHeight: "24px" }}
-                >
-                  App Permissions
-                </Stack>
-                {permissions.map((item, index) => (
-                  <HStack key={index} $style={{ gap: "8px" }}>
-                    <Stack
-                      as={ShieldCheckIcon}
-                      $style={{
-                        color: colors.warning.toHex(),
-                        flex: "none",
-                        fontSize: "16px",
-                      }}
-                    />
-                    <Stack
-                      as="span"
-                      $style={{
-                        color: colors.textSecondary.toHex(),
-                        lineHeight: "16px",
-                      }}
-                    >
-                      {item}
-                    </Stack>
-                  </HStack>
-                ))}
-              </VStack>
-              {app.audited && (
                 <VStack
-                  $style={{
-                    border: `solid 1px ${colors.borderNormal.toHex()}`,
-                    borderRadius: "24px",
-                    gap: "12px",
-                    padding: "32px",
+                  $style={{ gap: "20px" }}
+                  $media={{
+                    xl: { $style: { position: "sticky", top: "136px" } },
                   }}
                 >
-                  <Stack
-                    as="span"
-                    $style={{ fontSize: "16px", lineHeight: "24px" }}
-                  >
-                    Audit
-                  </Stack>
-                  <HStack $style={{ gap: "8px" }}>
-                    <Stack
-                      as={SubscriptionTickIcon}
+                  {permissions.length > 0 && (
+                    <VStack
                       $style={{
-                        color: colors.success.toHex(),
-                        flex: "none",
-                        fontSize: "16px",
-                      }}
-                    />
-                    <Stack
-                      as="span"
-                      $style={{
-                        color: colors.textSecondary.toHex(),
-                        lineHeight: "16px",
+                        border: `solid 1px ${colors.borderNormal.toHex()}`,
+                        borderRadius: "24px",
+                        gap: "12px",
+                        padding: "32px",
                       }}
                     >
-                      Fully audited
-                    </Stack>
-                  </HStack>
+                      <Stack
+                        as="span"
+                        $style={{ fontSize: "16px", lineHeight: "24px" }}
+                      >
+                        App Permissions
+                      </Stack>
+                      {permissions.map(({ id, label, description }) => (
+                        <HStack
+                          key={id}
+                          $style={{ alignItems: "center", gap: "8px" }}
+                        >
+                          <Stack
+                            as={ShieldCheckIcon}
+                            $style={{
+                              color: colors.warning.toHex(),
+                              flex: "none",
+                              fontSize: "16px",
+                            }}
+                          />
+                          <Stack
+                            as="span"
+                            $style={{
+                              color: colors.textSecondary.toHex(),
+                              lineHeight: "16px",
+                            }}
+                          >
+                            {label}
+                          </Stack>
+                          <Tooltip title={description}>
+                            <HStack
+                              as="span"
+                              $style={{
+                                color: colors.textTertiary.toHex(),
+                                cursor: "pointer",
+                                fontSize: "16px",
+                              }}
+                            >
+                              <CircleInfoIcon />
+                            </HStack>
+                          </Tooltip>
+                        </HStack>
+                      ))}
+                    </VStack>
+                  )}
+                  {app.audited && (
+                    <VStack
+                      $style={{
+                        border: `solid 1px ${colors.borderNormal.toHex()}`,
+                        borderRadius: "24px",
+                        gap: "12px",
+                        padding: "32px",
+                      }}
+                    >
+                      <Stack
+                        as="span"
+                        $style={{ fontSize: "16px", lineHeight: "24px" }}
+                      >
+                        Audit
+                      </Stack>
+                      <HStack $style={{ gap: "8px" }}>
+                        <Stack
+                          as={SubscriptionTickIcon}
+                          $style={{
+                            color: colors.success.toHex(),
+                            flex: "none",
+                            fontSize: "16px",
+                          }}
+                        />
+                        <Stack
+                          as="span"
+                          $style={{
+                            color: colors.textSecondary.toHex(),
+                            lineHeight: "16px",
+                          }}
+                        >
+                          Fully audited
+                        </Stack>
+                      </HStack>
+                    </VStack>
+                  )}
                 </VStack>
-              )}
-            </VStack>
-          </VStack>
+              </VStack>
+            </>
+          )}
         </VStack>
       </VStack>
-
-      <PaymentModal onFinish={checkStatus} />
 
       <SuccessModal
         onClose={() => goBack()}

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { AppItem } from "@/components/AppItem";
+import { FreeTrialBanner } from "@/components/FreeTrialBanner";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
@@ -64,16 +65,18 @@ export const MainPage = () => {
           width: "100%",
         }}
       >
-        <Stack
-          $style={{
-            backgroundImage: "url(/images/banner.jpg)",
-            backgroundPosition: "center center",
-            backgroundSize: "cover",
-            borderRadius: "16px",
-            height: "336px",
-          }}
-        />
-
+        <VStack $style={{ gap: "20px" }}>
+          <FreeTrialBanner />
+          <Stack
+            $style={{
+              backgroundImage: "url(/images/banner.jpg)",
+              backgroundPosition: "center center",
+              backgroundSize: "cover",
+              borderRadius: "16px",
+              height: "336px",
+            }}
+          />
+        </VStack>
         <VStack $style={{ flexGrow: "1", gap: "32px" }}>
           <VStack $style={{ gap: "24px" }}>
             <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
