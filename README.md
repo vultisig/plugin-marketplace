@@ -156,12 +156,12 @@ cp .env.example .env
 # edit .env as needed
 
 
-#### Step 6: Build for Production
+#### Step 5: Build for Production
 ```bash
 # Create optimized production build
 npm run build
 
-# Preview production build locally
+#### Step 6: Build for Production
 npm run preview
 ```
 
