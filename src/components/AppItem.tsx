@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -24,7 +23,6 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
   title,
   thumbnailUrl,
 }) => {
-  const { t } = useTranslation();
   const { baseValue, currency } = useCore();
   const colors = useTheme();
 
@@ -67,7 +65,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               top: "16px",
             }}
           >
-            {t("new")}
+            New
           </Stack>
         )}
         <HStack
@@ -87,7 +85,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
           }}
         >
           <SubscriptionTickIcon color={colors.success.toHex()} fontSize={16} />
-          {t("vultisigVerified")}
+          Vultisig Verified
         </HStack>
       </Stack>
       <VStack
@@ -152,9 +150,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     lineHeight: "16px",
                   }}
                 >
-                  {ratesCount
-                    ? `${avgRating}/5 (${ratesCount})`
-                    : t("noRating")}
+                  {ratesCount ? `${avgRating}/5 (${ratesCount})` : "No Rating"}
                 </Stack>
               </HStack>
             </HStack>
@@ -185,7 +181,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                 </Stack>
               ))
             ) : (
-              <Stack as="span">{t("isFreeApp")}</Stack>
+              <Stack as="span">This app is free</Stack>
             )}
           </VStack>
           <HStack
@@ -201,7 +197,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               padding: "0 24px",
             }}
           >
-            {t("seeDetails")}
+            See Details
           </HStack>
         </VStack>
       </VStack>

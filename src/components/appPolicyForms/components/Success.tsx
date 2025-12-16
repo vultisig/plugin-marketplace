@@ -1,6 +1,5 @@
 import { Modal } from "antd";
 import { FC } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { useGoBack } from "@/hooks/useGoBack";
@@ -8,7 +7,6 @@ import { CrossIcon } from "@/icons/CrossIcon";
 import { Stack } from "@/toolkits/Stack";
 
 export const AppPolicyFormSuccess: FC<{ visible: boolean }> = ({ visible }) => {
-  const { t } = useTranslation();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -40,14 +38,14 @@ export const AppPolicyFormSuccess: FC<{ visible: boolean }> = ({ visible }) => {
       width={390}
       open={visible}
     >
-      <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>{`${t(
-        "success"
-      )}!`}</Stack>
+      <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
+        Success!
+      </Stack>
       <Stack
         as="span"
         $style={{ color: colors.textTertiary.toHex(), lineHeight: "18px" }}
       >
-        {t("successfulPolicyAdded")}
+        New Automation is added
       </Stack>
     </Modal>
   );

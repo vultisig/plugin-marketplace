@@ -1,10 +1,8 @@
 import { message as Message, Modal } from "antd";
 import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { CoreContext, CoreContextProps } from "@/context/Core";
-import { i18nInstance } from "@/i18n/config";
 import { getChain, setChain as setChainStorage } from "@/storage/chain";
 import { storageKeys } from "@/storage/constants";
 import {
@@ -12,10 +10,6 @@ import {
   setCurrency as setCurrencyStorage,
 } from "@/storage/currency";
 import { useLocalStorageWatcher } from "@/storage/hooks/useLocalStorageWatcher";
-import {
-  getLanguage,
-  setLanguage as setLanguageStorage,
-} from "@/storage/language";
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
@@ -28,7 +22,6 @@ import {
   getVault,
   personalSign,
 } from "@/utils/extension";
-import { Language } from "@/utils/language";
 import { Theme } from "@/utils/theme";
 
 type StateProps = Pick<
@@ -38,19 +31,16 @@ type StateProps = Pick<
   | "chain"
   | "currency"
   | "isConnected"
-  | "language"
   | "theme"
   | "vault"
 >;
 
 export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({
     baseValue: 1,
     chain: getChain(),
     currency: getCurrency(),
     isConnected: false,
-    language: getLanguage(),
     theme: getTheme(),
   });
   const {
@@ -59,7 +49,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     chain,
     currency,
     isConnected,
-    language,
     theme,
     vault,
   } = state;
@@ -127,7 +116,7 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
                       vault,
                     }));
 
-                    messageAPI.success(t("successfulAuthenticated"));
+                    messageAPI.success("Successfully authenticated!");
                   })
               );
             }
@@ -140,7 +129,7 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
       .catch((error: Error) => {
         if (error?.message) messageAPI.error(error?.message);
       });
-  }, [clear, messageAPI, t]);
+  }, [clear, messageAPI]);
 
   const disconnect = () => {
     modalAPI.confirm({
@@ -166,14 +155,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
     setState((prevState) => ({ ...prevState, currency }));
   };
 
-  const setLanguage = (language: Language, fromStorage?: boolean) => {
-    if (!fromStorage) setLanguageStorage(language);
-
-    i18nInstance.changeLanguage(language);
-
-    setState((prevState) => ({ ...prevState, language }));
-  };
-
   const setTheme = (theme: Theme, fromStorage?: boolean) => {
     if (!fromStorage) setThemeStorage(theme);
 
@@ -186,10 +167,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useLocalStorageWatcher(storageKeys.currency, () => {
     setCurrency(getCurrency(), true);
-  });
-
-  useLocalStorageWatcher(storageKeys.language, () => {
-    setLanguage(getLanguage(), true);
   });
 
   useLocalStorageWatcher(storageKeys.theme, () => {
@@ -212,10 +189,8 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
         currency,
         disconnect,
         isConnected,
-        language,
         setChain,
         setCurrency,
-        setLanguage,
         setTheme,
         theme,
         vault,

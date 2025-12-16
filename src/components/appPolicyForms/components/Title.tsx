@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
@@ -18,7 +17,6 @@ export const AppPolicyFormTitle: FC<AppPolicyFormTitleProps> = ({
   onBack,
   step,
 }) => {
-  const { t } = useTranslation();
   const colors = useTheme();
 
   return (
@@ -40,7 +38,7 @@ export const AppPolicyFormTitle: FC<AppPolicyFormTitleProps> = ({
       >
         <Stack as="span">{app.title}</Stack>
         <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
-          {`/ ${t("addAutomation")}`}
+          / Add Automation
         </Stack>
       </HStack>
     </HStack>

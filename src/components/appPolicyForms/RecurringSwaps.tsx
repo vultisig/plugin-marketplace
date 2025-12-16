@@ -9,7 +9,6 @@ import { PublicKey } from "@solana/web3.js";
 import { Form, Input, InputNumber, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -73,7 +72,6 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   onFinish,
   schema,
 }) => {
-  const { t } = useTranslation();
   const [state, setState] = useState({
     isAdded: false,
     loading: false,
@@ -116,7 +114,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
                   textAlign: "center",
                 }}
               >
-                {t("unsavedChangesTitle")}
+                Unsaved Changes
               </Stack>
               <Stack
                 $style={{
@@ -125,7 +123,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
                   textAlign: "center",
                 }}
               >
-                {t("unsavedChangesContent")}
+                Are you sure you want to leave?
               </Stack>
             </VStack>
             <HStack $style={{ gap: "12px", justifyContent: "center" }}>
@@ -291,10 +289,10 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
               <Button loading={loading} onClick={handleStep}>
                 {step > 2
-                  ? t("submit")
+                  ? "Submit"
                   : step > 1
-                  ? t("continue")
-                  : t("createOwnAutomations")}
+                  ? "Continue"
+                  : "Create your own automations"}
               </Button>
             </HStack>
           </>
@@ -311,7 +309,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
         width={992}
       >
         <AppPolicyFormSidebar
-          steps={[t("templates"), t("automations"), t("overview")]}
+          steps={["Templates", "Automations", "Overview"]}
           step={step}
         />
         <Divider light vertical />
@@ -566,7 +564,6 @@ const Template: FC<{
 }> = ({ values, setValues }) => {
   const [data, setData] = useState(values);
   const { frequency, from, fromAmount, to } = data;
-  const { t } = useTranslation();
   const colors = useTheme();
 
   return (
@@ -633,7 +630,7 @@ const Template: FC<{
       >
         <HStack $style={{ justifyContent: "space-between", padding: "12px" }}>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {t("frequency")}
+            Frequency
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
             {camelCaseToTitle(frequency)}
@@ -642,7 +639,7 @@ const Template: FC<{
         <Divider light />
         <HStack $style={{ justifyContent: "space-between", padding: "12px" }}>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {t("amount")}
+            Amount
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
             {toNumberFormat(fromAmount)}
@@ -666,7 +663,7 @@ const Template: FC<{
           }}
           $hover={{ backgroundColor: colors.buttonPrimaryHover.toHex() }}
         >
-          {t("useTemplate")}
+          Use Template
         </VStack>
         <VStack
           as="span"

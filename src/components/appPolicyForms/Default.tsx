@@ -2,7 +2,6 @@ import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { Form, FormProps, Input, Modal, Select } from "antd";
 import { FC, Fragment, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
@@ -54,7 +53,6 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   onFinish,
   schema,
 }) => {
-  const { t } = useTranslation();
   const [state, setState] = useState({
     isAdded: false,
     loading: false,
@@ -80,7 +78,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
   const visible = hash === modalHash.policy;
 
   const steps = useMemo(() => {
-    return [...(configuration ? [t("configuration")] : []), t("rules")];
+    return [...(configuration ? ["Configuration"] : []), "Rules"];
   }, [configuration]);
 
   const handleBack = () => {
@@ -297,11 +295,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
           <Stack $style={{ flex: "none", width: "218px" }} />
           <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
             <Button loading={loading} onClick={() => form.submit()}>
-              {configuration
-                ? step > 1
-                  ? t("submit")
-                  : t("continue")
-                : t("submit")}
+              {configuration ? (step > 1 ? "Submit" : "Continue") : "Submit"}
             </Button>
           </HStack>
         </>
@@ -357,7 +351,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                   validator: async (_, rules) => {
                     if (step === steps.length && (!rules || rules.length < 1)) {
                       return Promise.reject(
-                        new Error(t("ruleValidationError"))
+                        new Error("Please enter at least one rule")
                       );
                     }
                   },
@@ -378,7 +372,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                         >
                           <Form.Item
                             name={[name, "resource"]}
-                            label={t("supportedResource")}
+                            label="Supported Resource"
                             rules={[{ required: step === steps.length }]}
                             {...restField}
                           >
@@ -431,7 +425,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                                   {supportedResource.target ===
                                     TargetType.ADDRESS && (
                                     <Form.Item
-                                      label={t("target")}
+                                      label="Target"
                                       name={[name, "target"]}
                                       rules={[
                                         { required: step === steps.length },
@@ -443,7 +437,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                                   <Stack
                                     as={Form.Item}
                                     name={[name, "description"]}
-                                    label={t("description")}
+                                    label="Description"
                                     $style={{ gridColumn: "1 / -1" }}
                                   >
                                     <Input.TextArea />
@@ -551,7 +545,7 @@ export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
                       </Stack>
                     )}
                     <Button onClick={() => add({})} kind="secondary">
-                      {t("addRule")}
+                      Add Rule
                     </Button>
                   </VStack>
                 </VStack>

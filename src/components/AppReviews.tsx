@@ -1,7 +1,6 @@
 import { Form, FormProps, Input, Modal } from "antd";
 import dayjs from "dayjs";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -29,7 +28,6 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
   app: { avgRating, id, ratesCount, ratings = [] },
   onReload,
 }) => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({
     loading: true,
     reviews: [],
@@ -98,7 +96,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
       <VStack id="reviews" $style={{ gap: "32px" }}>
         <VStack $style={{ gap: "12px" }}>
           <Stack as="span" $style={{ fontSize: "18px", lineHeight: "28px" }}>
-            {t("reviews")}
+            Reviews
           </Stack>
           <HStack
             $style={{ alignItems: "center", justifyContent: "space-between" }}
@@ -116,14 +114,14 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
                   as="span"
                   $style={{ fontSize: "16px", lineHeight: "24px" }}
                 >
-                  {`${ratesCount} ${t("reviews")}`}
+                  {`${ratesCount} Reviews`}
                 </Stack>
               </VStack>
             </HStack>
             {isConnected ? (
-              <Button href={modalHash.review}>{t("writeReview")}</Button>
+              <Button href={modalHash.review}>Write Review</Button>
             ) : (
-              <Button onClick={connect}>{t("connect")}</Button>
+              <Button onClick={connect}>Connect</Button>
             )}
           </HStack>
           <HStack $style={{ gap: "24px" }}>
@@ -255,7 +253,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
         centered={true}
         footer={
           <Button loading={submitting} onClick={form.submit}>
-            {t("postReview")}
+            Post Review
           </Button>
         }
         maskClosable={false}
@@ -271,7 +269,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
           footer: { display: "flex", justifyContent: "center", margin: 0 },
           header: { margin: 0 },
         }}
-        title={t("writeReview")}
+        title="Write Review"
         width={768}
       >
         <Form
@@ -286,7 +284,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
                 as="span"
                 $style={{ fontSize: "12px", lineHeight: "16px" }}
               >
-                {t("rating")}
+                Rating
               </Stack>
               <Stack
                 $style={{
@@ -312,7 +310,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
                   lineHeight: "16px",
                 }}
               >
-                {t("writeReview")}
+                Write Review
               </Stack>
               <Form.Item<ReviewForm>
                 name="comment"
@@ -321,7 +319,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
               >
                 <Input.TextArea
                   rows={4}
-                  placeholder={t("writeReviewPlaceholder")}
+                  placeholder="How do you feel about this app?"
                 />
               </Form.Item>
             </VStack>

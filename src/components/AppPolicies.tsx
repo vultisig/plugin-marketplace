@@ -1,6 +1,5 @@
 import { Table, TableProps } from "antd";
 import { FC, Fragment, useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { DefaultPolicyForm } from "@/components/appPolicyForms/Default";
 import { RecurringSwapsPolicyForm } from "@/components/appPolicyForms/RecurringSwaps";
@@ -30,7 +29,6 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   app,
   schema,
 }) => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({
     loading: true,
     policies: [],
@@ -46,7 +44,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
       dataIndex: "parsedRecipe",
       key: "name",
       render: ({ name }: Policy) => name,
-      title: t("name"),
+      title: "Name",
     },
     {
       align: "center",
@@ -54,7 +52,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
       key: "maxTxsPerWindow",
       render: ({ maxTxsPerWindow }: Policy) =>
         maxTxsPerWindow ? toNumberFormat(maxTxsPerWindow) : "-",
-      title: t("maxTransactions"),
+      title: "Max Transactions",
     },
     {
       align: "center",
@@ -62,7 +60,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
       key: "rateLimitWindow",
       render: ({ rateLimitWindow }: Policy) =>
         rateLimitWindow ? toNumberFormat(rateLimitWindow) : "-",
-      title: t("rateLimit"),
+      title: "Rate Limit",
     },
     {
       align: "center",
@@ -77,7 +75,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
           />
         </HStack>
       ),
-      title: t("Action"),
+      title: "Action",
       width: 80,
     },
   ];
@@ -105,28 +103,28 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
   const handleDelete = ({ id, signature }: CustomAppPolicy) => {
     if (signature) {
       modalAPI.confirm({
-        title: t("confirmPolicyDeletion"),
-        okText: t("yes"),
+        title: "Are you sure you want to delete this policy?",
+        okText: "Yes",
         okType: "danger",
-        cancelText: t("no"),
+        cancelText: "No",
         onOk() {
           setState((prevState) => ({ ...prevState, loading: true }));
 
           delPolicy(id, signature)
             .then(() => {
-              messageAPI.success(t("successfulPolicyDeletion"));
+              messageAPI.success("Policy successfully deleted");
 
               fetchPolicies(0);
             })
             .catch(() => {
-              messageAPI.error(t("unsuccessfulPolicyDeletion"));
+              messageAPI.error("Policy deletion failed");
 
               setState((prevState) => ({ ...prevState, loading: false }));
             });
         },
       });
     } else {
-      messageAPI.error(t("unsuccessfulPolicyDeletion"));
+      messageAPI.error("Policy deletion failed");
     }
   };
 
@@ -151,7 +149,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                         as="span"
                         $style={{ fontSize: "12px", lineHeight: "18px" }}
                       >
-                        {t("description")}
+                        Description
                       </Stack>
                       <Stack
                         as="span"
@@ -253,7 +251,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                     lineHeight: "18px",
                                   }}
                                 >
-                                  {t("target")}
+                                  Target
                                 </Stack>
                                 <Stack
                                   as="span"
@@ -273,7 +271,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                                   lineHeight: "18px",
                                 }}
                               >
-                                {t("target")}
+                                Target
                               </Stack>
                             )}
                             {typeof target.target.value === "string" &&
@@ -308,7 +306,7 @@ export const AppPolicies: FC<{ app: App; schema: RecipeSchema }> = ({
                             as="span"
                             $style={{ fontSize: "12px", lineHeight: "18px" }}
                           >
-                            {t("description")}
+                            Description
                           </Stack>
                           <Stack
                             as="span"

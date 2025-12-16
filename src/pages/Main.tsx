@@ -1,7 +1,6 @@
 import { Empty } from "antd";
 import { debounce } from "lodash-es";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 
 import { AppItem } from "@/components/AppItem";
@@ -19,7 +18,6 @@ type StateProps = {
 };
 
 export const MainPage = () => {
-  const { t } = useTranslation();
   const [state, setState] = useState<StateProps>({
     categories: [],
     loading: true,
@@ -79,7 +77,7 @@ export const MainPage = () => {
         <VStack $style={{ flexGrow: "1", gap: "32px" }}>
           <VStack $style={{ gap: "24px" }}>
             <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
-              {t("discoverApps")}
+              Discover Apps
             </Stack>
             <Divider light />
             <HStack $style={{ flexGrow: "1", gap: "12px" }}>
@@ -135,7 +133,7 @@ export const MainPage = () => {
                     as="span"
                     $style={{ fontSize: "17px", lineHeight: "20px" }}
                   >
-                    {t("new")}
+                    New
                   </Stack>
                   <AppItem {...newApp} horizontal />
                 </VStack>
@@ -145,7 +143,7 @@ export const MainPage = () => {
                   as="span"
                   $style={{ fontSize: "17px", lineHeight: "20px" }}
                 >
-                  {t("allApps")}
+                  All Apps
                 </Stack>
                 <Stack
                   $style={{

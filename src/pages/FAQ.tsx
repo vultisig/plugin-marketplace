@@ -1,6 +1,5 @@
 import { Collapse } from "antd";
 import { Fragment } from "react";
-import { useTranslation } from "react-i18next";
 
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
@@ -69,8 +68,6 @@ const data = [
 ];
 
 export const FaqPage = () => {
-  const { t } = useTranslation();
-
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
       <VStack
@@ -89,7 +86,7 @@ export const FaqPage = () => {
             lineHeight: "42px",
           }}
         >
-          {t("faq")}
+          FAQ
         </Stack>
         <VStack $style={{ gap: "72px" }}>
           {data.map(({ heading, items }, index) => (
