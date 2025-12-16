@@ -171,9 +171,9 @@ export const AppPage = () => {
 
     modalAPI.confirm({
       title: "Are you sure you want to uninstall this app?",
-      okText: "yes",
+      okText: "Yes",
       okType: "danger",
-      cancelText: "no",
+      cancelText: "No",
       onOk() {
         setState((prevState) => ({ ...prevState, loading: true }));
 
@@ -348,7 +348,7 @@ export const AppPage = () => {
                           >
                             {app.ratesCount
                               ? `${app.avgRating}/5 (${app.ratesCount})`
-                              : "No rating"}
+                              : "No Rating yet"}
                           </Stack>
                         </HStack>
                       </HStack>
