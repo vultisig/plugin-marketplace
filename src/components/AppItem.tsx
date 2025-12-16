@@ -150,7 +150,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     lineHeight: "16px",
                   }}
                 >
-                  {ratesCount ? `${avgRating}/5 (${ratesCount})` : "No Rating"}
+                  {ratesCount ? `${avgRating}/5 (${ratesCount})` : "No Rating yet"}
                 </Stack>
               </HStack>
             </HStack>
