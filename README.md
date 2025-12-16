@@ -155,14 +155,8 @@ npm ci
 cp .env.example .env
 # edit .env as needed
 
-
-#### Step 5: Build for Production
-```bash
-# Create optimized production build
-npm run build
-
-#### Step 6: Build for Production
-npm run preview
+# 5. Run development server
+npm run dev
 ```
 
 ---
