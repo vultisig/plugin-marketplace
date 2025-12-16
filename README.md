@@ -1,7 +1,7 @@
 # Vultisig Plugin Marketplace
 
 <p align="center">
-  <img src="public/vultisig-logo.svg" alt="Vultisig Logo" width="200"/>
+  <img src="public/images/banner.jpg" alt="Vultisig Logo" width="200"/>
 </p>
 
 <p align="center">
