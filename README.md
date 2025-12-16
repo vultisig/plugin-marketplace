@@ -19,13 +19,13 @@
 
 ## 📖 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
-- [Development](#development)
+- [Development Workflow](#development-workflow)
 ---
 
 ## 🌟 Overview
@@ -282,14 +282,3 @@ git commit -m "feat(plugins): add rating system with star component"
 ```bash
 git push origin feature/plugin-rating-system
 ```
-
-Use the PR template in [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md)
-
-
-
-### TypeScript Configuration
-
-Three configuration files:
-- `tsconfig.json`: Base configuration
-- `tsconfig.app.json`: Application code settings
-- `tsconfig.node.json`: Node/build scripts settings
