@@ -22,9 +22,9 @@
 - [Overview](#-overview)
 - [Features](#-features)
 - [Architecture](#-architecture)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
+- [Prerequisites](#-prerequisites)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
 - [Development Workflow](#development-workflow)
 ---
 
