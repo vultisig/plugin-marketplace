@@ -1,12 +1,14 @@
-import { Modal } from "antd";
-import { useState } from "react";
+import { Modal, Tooltip } from "antd";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { SuccessModal } from "@/components/SuccessModal";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
+import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
+import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { feeAppId, modalHash } from "@/utils/constants";
@@ -14,11 +16,31 @@ import { startReshareSession } from "@/utils/extension";
 
 export const PaymentModal = () => {
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
   const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
   const visible = hash === modalHash.payment;
+
+  const permissions = [
+    {
+      id: "transaction_signing",
+      label: "Access to transaction signing",
+      description:
+        "The app can initiate transactions to send assets in your Vault",
+    },
+    {
+      id: "fee_deduction",
+      label: "Fee deduction authorization",
+      description: "The app can automatically deduct incurred fees.",
+    },
+    {
+      id: "balance_visibility",
+      label: "Vault balance visibility",
+      description: "The app can view Vault balances",
+    },
+  ];
 
   const handleInstall = async () => {
     if (loading) return;
@@ -31,6 +53,10 @@ export const PaymentModal = () => {
 
     updateFeeAppStatus();
   };
+
+  useEffect(() => {
+    if (visible) setStep(1);
+  }, [visible]);
 
   if (!feeApp || !feeAppStatus) return null;
 
@@ -90,41 +116,111 @@ export const PaymentModal = () => {
             width: "346px",
           }}
         />
-        <VStack $style={{ alignItems: "flex-start", gap: "24px" }}>
-          <VStack $style={{ gap: "20px" }}>
-            <HStack $style={{ alignItems: "center", gap: "12px" }}>
-              <Stack
-                as="img"
-                alt={feeApp.title}
-                src={feeApp.logoUrl}
-                $style={{ borderRadius: "12px", width: "56px" }}
-              />
-              <Stack
-                as="span"
-                $style={{ fontSize: "17px", lineHeight: "20px" }}
-              >
-                {feeApp.title}
-              </Stack>
-            </HStack>
-            <Stack
-              as="span"
-              $style={{
-                color: colors.textSecondary.toHex(),
-                fontSize: "14px",
-                lineHeight: "18px",
-              }}
-            >
-              {feeApp.description}
-            </Stack>
-          </VStack>
-          <Button
-            disabled={loading}
-            icon={<CirclePlusIcon fontSize={16} />}
-            loading={loading}
-            onClick={handleInstall}
-          >
-            Add to Vault
-          </Button>
+        <VStack $style={{ flexGrow: "1", gap: "24px" }}>
+          {step === 1 && (
+            <>
+              <VStack $style={{ gap: "20px" }}>
+                <HStack $style={{ alignItems: "center", gap: "12px" }}>
+                  <Stack
+                    as="img"
+                    alt={feeApp.title}
+                    src={feeApp.logoUrl}
+                    $style={{ borderRadius: "12px", width: "56px" }}
+                  />
+                  <Stack
+                    as="span"
+                    $style={{ fontSize: "17px", lineHeight: "20px" }}
+                  >
+                    {feeApp.title}
+                  </Stack>
+                </HStack>
+                <Stack
+                  as="span"
+                  $style={{
+                    color: colors.textSecondary.toHex(),
+                    fontSize: "14px",
+                    lineHeight: "18px",
+                  }}
+                >
+                  {feeApp.description}
+                </Stack>
+              </VStack>
+              <HStack $style={{ justifyContent: "flex-start" }}>
+                <Button
+                  icon={<CirclePlusIcon fontSize={16} />}
+                  onClick={() => setStep(2)}
+                >
+                  Add to Vault
+                </Button>
+              </HStack>
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <VStack $style={{ gap: "12px" }}>
+                <Stack
+                  as="span"
+                  $style={{ fontSize: "17px", lineHeight: "20px" }}
+                >
+                  Allow app access to
+                </Stack>
+                <VStack
+                  $style={{
+                    backgroundColor: colors.bgTertiary.toHex(),
+                    borderRadius: "24px",
+                    gap: "12px",
+                    padding: "24px",
+                  }}
+                >
+                  {permissions.map(({ id, label, description }) => (
+                    <HStack
+                      key={id}
+                      $style={{ alignItems: "center", gap: "8px" }}
+                    >
+                      <Stack
+                        as={ShieldCheckIcon}
+                        $style={{
+                          color: colors.warning.toHex(),
+                          flex: "none",
+                          fontSize: "16px",
+                        }}
+                      />
+                      <Stack
+                        as="span"
+                        $style={{
+                          color: colors.textSecondary.toHex(),
+                          lineHeight: "16px",
+                        }}
+                      >
+                        {label}
+                      </Stack>
+                      <Tooltip title={description}>
+                        <HStack
+                          as="span"
+                          $style={{
+                            color: colors.textTertiary.toHex(),
+                            cursor: "pointer",
+                            fontSize: "16px",
+                          }}
+                        >
+                          <CircleInfoIcon />
+                        </HStack>
+                      </Tooltip>
+                    </HStack>
+                  ))}
+                </VStack>
+              </VStack>
+              <HStack $style={{ justifyContent: "flex-start" }}>
+                <Button
+                  disabled={loading}
+                  loading={loading}
+                  onClick={handleInstall}
+                >
+                  Accept & install
+                </Button>
+              </HStack>
+            </>
+          )}
         </VStack>
       </Modal>
     </>

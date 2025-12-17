@@ -40,7 +40,9 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
         padding: "16px",
       }}
     >
-      <Stack $style={{ overflow: "hidden", position: "relative" }}>
+      <Stack
+        $style={{ flex: "none", overflow: "hidden", position: "relative" }}
+      >
         <Stack
           as="img"
           alt={title}
@@ -150,7 +152,9 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
                     lineHeight: "16px",
                   }}
                 >
-                  {ratesCount ? `${avgRating}/5 (${ratesCount})` : "No Rating yet"}
+                  {ratesCount
+                    ? `${avgRating}/5 (${ratesCount})`
+                    : "No Rating yet"}
                 </Stack>
               </HStack>
             </HStack>
