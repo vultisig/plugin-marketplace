@@ -401,16 +401,16 @@ export const AppPage = () => {
                 {[
                   {
                     href: `${routeTree.root.path}?categoryId=${app.categoryId}`,
-                    lable: "Category",
+                    label: "Category",
                     value: snakeCaseToTitle(app.categoryId),
                   },
-                  { lable: "Created By", value: "Vultisig" },
-                  { lable: "Version", value: "2.1.0" },
+                  { label: "Created By", value: "Vultisig" },
+                  { label: "Version", value: "2.1.0" },
                   {
-                    lable: "Last Update",
+                    label: "Last Update",
                     value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                   },
-                ].map(({ href, lable, value }, index) => (
+                ].map(({ href, label, value }, index) => (
                   <Fragment key={index}>
                     {index > 0 && <Divider vertical />}
                     <VStack $style={{ alignItems: "center", gap: "12px" }}>
@@ -421,7 +421,7 @@ export const AppPage = () => {
                           fontSize: "13px",
                         }}
                       >
-                        {lable}
+                        {label}
                       </Stack>
                       <Stack
                         as={href ? Link : "span"}
@@ -767,7 +767,7 @@ export const AppPage = () => {
           <Button href={`${routeTree.automations.link(id)}${modalHash.policy}`}>
             Create Automation
           </Button>
-          <Button href={routeTree.myApps.path} kind="secondary" state>
+          <Button href={routeTree.myApps.path} kind="secondary" state={true}>
             My apps
           </Button>
         </HStack>

@@ -38,10 +38,14 @@ type StateProps = {
   loading?: boolean;
   policies: CustomAppPolicy[];
   schema?: RecipeSchema;
+  totalCount: number;
 };
 
 export const AutomationsPage = () => {
-  const [state, setState] = useState<StateProps>({ policies: [] });
+  const [state, setState] = useState<StateProps>({
+    policies: [],
+    totalCount: 0,
+  });
   const { app, loading, policies, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { id = "" } = useParams();
@@ -91,7 +95,7 @@ export const AutomationsPage = () => {
   ];
 
   const fetchPolicies = useCallback(
-    (skip: number) => {
+    (skip = 0) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
       getPolicies(id, { skip })
@@ -149,11 +153,11 @@ export const AutomationsPage = () => {
         .then(([app, schema]) => {
           setState((prevState) => ({ ...prevState, app, schema }));
 
-          fetchPolicies(0);
+          fetchPolicies();
         })
         .catch(() => goBack(routeTree.root.path));
     });
-  }, [id]);
+  }, [id, fetchPolicies, goBack]);
 
   if (!app || !schema) return <Spin centered />;
 
@@ -228,13 +232,13 @@ export const AutomationsPage = () => {
             </HStack>
             <HStack $style={{ justifyContent: "center" }}>
               {[
-                { lable: "Created by", value: "Vultisig" },
-                { lable: "Version", value: "2.1.0" },
+                { label: "Created by", value: "Vultisig" },
+                { label: "Version", value: "2.1.0" },
                 {
-                  lable: "Installed on",
+                  label: "Installed on",
                   value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                 },
-              ].map(({ lable, value }, index) => (
+              ].map(({ label, value }, index) => (
                 <Fragment key={index}>
                   {index > 0 && <Divider vertical />}
                   <VStack
@@ -251,7 +255,7 @@ export const AutomationsPage = () => {
                         fontSize: "13px",
                       }}
                     >
-                      {lable}
+                      {label}
                     </Stack>
                     <Stack
                       as="span"

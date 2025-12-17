@@ -133,13 +133,13 @@ export const BillingPage = () => {
           </HStack>
           <HStack $style={{ justifyContent: "center" }}>
             {[
-              { lable: "Created by", value: "Vultisig" },
-              { lable: "Version", value: "2.1.0" },
+              { label: "Created by", value: "Vultisig" },
+              { label: "Version", value: "2.1.0" },
               {
-                lable: "Installed on",
+                label: "Installed on",
                 value: dayjs(feeApp.updatedAt).format("YYYY-MM-DD"),
               },
-            ].map(({ lable, value }, index) => (
+            ].map(({ label, value }, index) => (
               <Fragment key={index}>
                 {index > 0 && <Divider vertical />}
                 <VStack
@@ -156,7 +156,7 @@ export const BillingPage = () => {
                       fontSize: "13px",
                     }}
                   >
-                    {lable}
+                    {label}
                   </Stack>
                   <Stack
                     as="span"
