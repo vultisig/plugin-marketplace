@@ -14,6 +14,7 @@ type ButtonProps = HTMLAttributes<HTMLElement> & {
   icon?: ReactNode;
   kind?: Kind;
   loading?: boolean;
+  state?: boolean;
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
 };
 
@@ -144,6 +145,7 @@ export const Button: FC<ButtonProps> = (props) => {
     icon,
     kind = "primary",
     loading = false,
+    state = false,
     type = "button",
     onClick,
     ...rest
@@ -159,7 +161,7 @@ export const Button: FC<ButtonProps> = (props) => {
       {...(disabled
         ? { as: "span" }
         : href
-        ? { as: Link, state: true, to: href }
+        ? { as: Link, state, to: href }
         : { as: "button", type })}
     >
       {loading ? <Spin size="small" /> : icon}
