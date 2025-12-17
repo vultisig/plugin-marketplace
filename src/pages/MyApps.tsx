@@ -154,10 +154,9 @@ export const MyAppsPage = () => {
                         key: "1",
                         label: (
                           <Link
-                            to={`${routeTree.app.link(app.id)}${
+                            to={`${routeTree.automations.link(app.id)}${
                               modalHash.policy
                             }`}
-                            state={true}
                           >
                             Add Automation
                           </Link>

@@ -6,7 +6,6 @@ import { useTheme } from "styled-components";
 
 import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
 import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
-import { AppPolicies } from "@/components/AppPolicies";
 import { AppReviews } from "@/components/AppReviews";
 import { FreeTrialBanner } from "@/components/FreeTrialBanner";
 import { SuccessModal } from "@/components/SuccessModal";
@@ -318,10 +317,7 @@ export const AppPage = () => {
                           Checking
                         </Button>
                       ) : !isFree && !isFeeAppInstalled ? (
-                        <Button
-                          loading={loading}
-                          onClick={() => navigate(modalHash.payment)}
-                        >
+                        <Button href={modalHash.payment} loading={loading}>
                           Get
                           <Stack
                             as="span"
@@ -338,7 +334,9 @@ export const AppPage = () => {
                         <>
                           <Button
                             disabled={loading || !schema}
-                            href={modalHash.policy}
+                            href={`${routeTree.automations.link(id)}${
+                              modalHash.policy
+                            }`}
                           >
                             Add Automation
                           </Button>
@@ -403,16 +401,16 @@ export const AppPage = () => {
                 {[
                   {
                     href: `${routeTree.root.path}?categoryId=${app.categoryId}`,
-                    lable: "Category",
+                    label: "Category",
                     value: snakeCaseToTitle(app.categoryId),
                   },
-                  { lable: "Created By", value: "Vultisig" },
-                  { lable: "Version", value: "2.1.0" },
+                  { label: "Created By", value: "Vultisig" },
+                  { label: "Version", value: "2.1.0" },
                   {
-                    lable: "Last Update",
+                    label: "Last Update",
                     value: dayjs(app.updatedAt).format("YYYY-MM-DD"),
                   },
-                ].map(({ href, lable, value }, index) => (
+                ].map(({ href, label, value }, index) => (
                   <Fragment key={index}>
                     {index > 0 && <Divider vertical />}
                     <VStack $style={{ alignItems: "center", gap: "12px" }}>
@@ -423,7 +421,7 @@ export const AppPage = () => {
                           fontSize: "13px",
                         }}
                       >
-                        {lable}
+                        {label}
                       </Stack>
                       <Stack
                         as={href ? Link : "span"}
@@ -456,9 +454,6 @@ export const AppPage = () => {
               as={Anchor}
               direction="horizontal"
               items={[
-                ...(isInstalled
-                  ? [{ key: "#policies", label: "Policies" }]
-                  : []),
                 { key: "#overview", label: "Overview" },
                 { key: "#features", label: "Features" },
                 { key: "#faq", label: "FAQ" },
@@ -486,12 +481,6 @@ export const AppPage = () => {
               targetOffset={158}
               $style={{ backgroundColor: colors.bgPrimary.toHex() }}
             />
-            {isInstalled && !!schema && (
-              <>
-                <AppPolicies app={app} schema={schema} />
-                <Divider light />
-              </>
-            )}
             <Stack id="overview">{app.description}</Stack>
             {app.id === recurringSendsAppId && <RecurringSendsImages />}
             {app.id === recurringSwapsAppId && <RecurringSwapsImages />}
@@ -775,10 +764,10 @@ export const AppPage = () => {
           </Stack>
         </VStack>
         <HStack $style={{ gap: "12px", marginTop: "12px" }}>
-          <Button onClick={() => navigate(modalHash.policy)}>
+          <Button href={`${routeTree.automations.link(id)}${modalHash.policy}`}>
             Create Automation
           </Button>
-          <Button href={routeTree.myApps.path} kind="secondary">
+          <Button href={routeTree.myApps.path} kind="secondary" state={true}>
             My apps
           </Button>
         </HStack>
