@@ -6,13 +6,13 @@ import { useTheme } from "styled-components";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
+import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
+import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
-import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
-import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
 
 export const PaymentModal = () => {
   const [loading, setLoading] = useState(false);
