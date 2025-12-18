@@ -1,6 +1,6 @@
 import { Table, TableProps, Tabs } from "antd";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
 import { DefaultPolicyForm } from "@/components/appPolicyForms/Default";
@@ -49,6 +49,7 @@ export const AutomationsPage = () => {
   const { app, loading, policies, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -153,20 +154,20 @@ export const AutomationsPage = () => {
 
         uninstallApp(id)
           .then(() => {
-            setState((prevState) => ({ ...prevState, loading: false }));
-
             messageAPI.open({
               type: "success",
               content: "App successfully uninstalled",
             });
+
+            navigate(routeTree.myApps.path, { replace: true });
           })
           .catch(() => {
-            setState((prevState) => ({ ...prevState, loading: false }));
-
             messageAPI.open({
               type: "error",
               content: "App uninstallation failed",
             });
+
+            setState((prevState) => ({ ...prevState, loading: false }));
           });
       },
     });
@@ -253,8 +254,7 @@ export const AutomationsPage = () => {
               </Button>
               <Button
                 disabled={loading}
-                href={modalHash.policy}
-                icon={<CirclePlusIcon />}
+                icon={<TrashIcon />}
                 loading={loading}
                 kind="danger"
                 onClick={handleUninstall}
