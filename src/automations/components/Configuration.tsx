@@ -1,7 +1,7 @@
 import { FC } from "react";
 
-import { DynamicFormItem } from "@/components/appPolicyForms/components/DynamicFormItem";
-import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
+import { DynamicFormItem } from "@/automations/components/DynamicFormItem";
+import { AssetWidget } from "@/automations/widgets/Asset";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 import { Chain } from "@/utils/chain";
@@ -21,13 +21,13 @@ export const AppPolicyFormConfiguration: FC<
   const { properties, required } = configuration;
 
   return Object.entries(properties).map(([key, field]) => {
-    const fullKey = [...parentKey, key];
+    const keys = [...parentKey, key];
     const fieldRef = getFieldRef(field, definitions);
 
     if (fieldRef) {
       switch (field.$ref) {
         case "#/definitions/asset": {
-          return <AssetWidget chains={chains} fullKey={fullKey} key={key} />;
+          return <AssetWidget chains={chains} key={key} keys={keys} />;
         }
         default: {
           return (
@@ -44,7 +44,7 @@ export const AppPolicyFormConfiguration: FC<
                   chains={chains}
                   configuration={fieldRef}
                   definitions={definitions}
-                  parentKey={fullKey}
+                  parentKey={keys}
                 />
               </Stack>
             </VStack>
@@ -57,7 +57,7 @@ export const AppPolicyFormConfiguration: FC<
       <DynamicFormItem
         key={key}
         label={camelCaseToTitle(key)}
-        name={fullKey}
+        name={keys}
         rules={[{ required: required.includes(key) }]}
         tooltip={properties[key]?.description}
         {...field}

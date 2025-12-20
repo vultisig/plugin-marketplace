@@ -7,10 +7,10 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { AppPolicyFormConfiguration } from "@/components/appPolicyForms/components/Configuration";
-import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
-import { AppPolicyFormSuccess } from "@/components/appPolicyForms/components/Success";
-import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
+import { AppPolicyFormConfiguration } from "@/automations/components/Configuration";
+import { AppPolicyFormSidebar } from "@/automations/components/Sidebar";
+import { AppPolicyFormSuccess } from "@/automations/components/Success";
+import { AppPolicyFormTitle } from "@/automations/components/Title";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -42,13 +42,13 @@ import { App, AppPolicy, RecipeSchema } from "@/utils/types";
 
 type FormFieldType = { rules: JsonObject[] } & JsonObject;
 
-export type DefaultPolicyFormProps = {
+export type AutomationFormProps = {
   app: App;
   onFinish: () => void;
   schema: RecipeSchema;
 };
 
-export const DefaultPolicyForm: FC<DefaultPolicyFormProps> = ({
+export const AutomationForm: FC<AutomationFormProps> = ({
   app,
   onFinish,
   schema,

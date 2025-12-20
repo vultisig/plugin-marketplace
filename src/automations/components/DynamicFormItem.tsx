@@ -1,7 +1,7 @@
 import { Form, FormItemProps, Input, InputNumber, Select } from "antd";
 import { FC } from "react";
 
-import { DatePickerFormItem } from "@/components/appPolicyForms/components/DatePickerFormItem";
+import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
 import { camelCaseToTitle } from "@/utils/functions";
 import { FieldProps } from "@/utils/types";
 

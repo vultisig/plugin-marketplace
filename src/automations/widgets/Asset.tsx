@@ -21,7 +21,8 @@ import { Token } from "@/utils/types";
 
 type AssetWidgetProps = {
   chains: Chain[];
-  fullKey: string[];
+  keys: string[];
+  prefixKeys?: string[];
 };
 
 type StateProps = {
@@ -29,17 +30,21 @@ type StateProps = {
   tokens: Token[];
 };
 
-export const AssetWidget: FC<AssetWidgetProps> = ({ chains, fullKey }) => {
+export const AssetWidget: FC<AssetWidgetProps> = ({
+  chains,
+  keys,
+  prefixKeys = [],
+}) => {
   const [state, setState] = useState<StateProps>({ tokens: [] });
   const { loading, tokens } = state;
   const { getTokenData, getTokenList } = useQueries();
   const { isValidAddress } = useWalletCore();
   const colors = useTheme();
-  const key = fullKey[fullKey.length - 1];
-  const addressField = [...fullKey, "address"];
-  const chainField = [...fullKey, "chain"];
-  const decimalsField = [...fullKey, "decimals"];
-  const tokenField = [...fullKey, "token"];
+  const key = keys[keys.length - 1];
+  const addressField = [...prefixKeys, ...keys, "address"];
+  const chainField = [...prefixKeys, ...keys, "chain"];
+  const decimalsField = [...prefixKeys, ...keys, "decimals"];
+  const tokenField = [...prefixKeys, ...keys, "token"];
   const form = Form.useFormInstance();
   const chain = Form.useWatch<Chain>(chainField, form);
 
@@ -255,16 +260,20 @@ export const AssetWidget: FC<AssetWidgetProps> = ({ chains, fullKey }) => {
           gridTemplateColumns: "repeat(2, 1fr)",
         }}
       >
-        <Form.Item label="Chain" name={chainField} rules={[{ required: true }]}>
+        <Form.Item
+          label="Chain"
+          name={[...keys, "chain"]}
+          rules={[{ required: true }]}
+        >
           <Select {...chainSelectProps} />
         </Form.Item>
-        <Form.Item label="Token" name={tokenField}>
+        <Form.Item label="Token" name={[...keys, "token"]}>
           <Select {...tokenSelectProps} />
         </Form.Item>
-        <Form.Item name={addressField} noStyle>
+        <Form.Item name={[...keys, "address"]} noStyle>
           <Input type="hidden" />
         </Form.Item>
-        <Form.Item name={decimalsField} noStyle>
+        <Form.Item name={[...keys, "decimals"]} noStyle>
           <Input type="hidden" />
         </Form.Item>
       </Stack>
