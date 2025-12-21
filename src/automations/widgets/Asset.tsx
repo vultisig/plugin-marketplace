@@ -22,6 +22,7 @@ import { Token } from "@/utils/types";
 type AssetWidgetProps = {
   chains: Chain[];
   keys: string[];
+  noStyle?: boolean;
   prefixKeys?: string[];
 };
 
@@ -33,6 +34,7 @@ type StateProps = {
 export const AssetWidget: FC<AssetWidgetProps> = ({
   chains,
   keys,
+  noStyle = false,
   prefixKeys = [],
 }) => {
   const [state, setState] = useState<StateProps>({ tokens: [] });
@@ -252,7 +254,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
   return (
     <VStack $style={{ gap: "16px", gridColumn: "1 / -1" }}>
-      <Divider text={camelCaseToTitle(key)} />
+      {!noStyle && <Divider text={camelCaseToTitle(key)} />}
       <Stack
         $style={{
           columnGap: "24px",
