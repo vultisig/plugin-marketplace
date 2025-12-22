@@ -62,11 +62,11 @@ export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
               current.hour() !== next.hour() &&
               current.minute() !== next.minute()
             ) {
-              form.setFieldValue(name, next);
+              form.setFieldValue(name, next.utc().format());
               setOpen(false);
             }
           } else if (next.hour() > 0 && next.minute() > 0) {
-            form.setFieldValue(name, next);
+            form.setFieldValue(name, next.utc().format());
             setOpen(false);
           }
         }}
