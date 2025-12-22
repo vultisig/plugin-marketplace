@@ -43,7 +43,7 @@ export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
     <Form.Item
       getValueProps={(value) => ({ value: value && dayjs(value) })}
       name={name}
-      normalize={(value) => value && dayjs(value).utc().format()}
+      normalize={(value) => (value ? dayjs(value).utc().format() : undefined)}
       {...rest}
     >
       <DatePicker

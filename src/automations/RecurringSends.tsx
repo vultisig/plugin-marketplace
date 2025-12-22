@@ -392,6 +392,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   <Form.Item<RecipientProps>
                     label="Amount"
                     name="amount"
+                    normalize={(value) => value && String(value)}
                     rules={[{ required: true }]}
                   >
                     <InputNumber min={0} />
@@ -406,7 +407,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                 </Form.Item>
                 <Stack $style={{ display: "flex", justifyContent: "flex-end" }}>
                   <Button onClick={() => recipientForm.submit()}>
-                    Add another Recipient
+                    Add Recipient
                   </Button>
                 </Stack>
               </Form>
