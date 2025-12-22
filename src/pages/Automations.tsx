@@ -251,7 +251,7 @@ export const AutomationsPage = () => {
             <HStack $style={{ alignItems: "center", gap: "16px" }}>
               <Button
                 disabled={loading}
-                href={modalHash.policy}
+                href={modalHash.automation}
                 icon={<CirclePlusIcon />}
                 loading={loading}
                 state={true}

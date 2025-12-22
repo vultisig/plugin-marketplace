@@ -1,22 +1,23 @@
+import { Form, FormItemProps, Input, InputNumber, Select } from "antd";
 import { FC } from "react";
 
-import { DynamicFormItem } from "@/automations/components/DynamicFormItem";
+import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
 import { AssetWidget } from "@/automations/widgets/Asset";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 import { Chain } from "@/utils/chain";
 import { camelCaseToTitle, getFieldRef } from "@/utils/functions";
-import { Configuration, Definitions } from "@/utils/types";
+import { Configuration, Definitions, FieldProps } from "@/utils/types";
 
-type AppPolicyFormConfigurationProps = {
+type AutomationFormConfigurationProps = {
   chains: Chain[];
   configuration: Configuration;
   definitions?: Definitions;
   parentKey?: string[];
 };
 
-export const AppPolicyFormConfiguration: FC<
-  AppPolicyFormConfigurationProps
+export const AutomationFormConfiguration: FC<
+  AutomationFormConfigurationProps
 > = ({ chains, configuration, definitions, parentKey = [] }) => {
   const { properties, required } = configuration;
 
@@ -40,7 +41,7 @@ export const AppPolicyFormConfiguration: FC<
                   gridTemplateColumns: "repeat(2, 1fr)",
                 }}
               >
-                <AppPolicyFormConfiguration
+                <AutomationFormConfiguration
                   chains={chains}
                   configuration={fieldRef}
                   definitions={definitions}
@@ -64,4 +65,48 @@ export const AppPolicyFormConfiguration: FC<
       />
     );
   });
+};
+
+const DynamicFormItem: FC<FieldProps & FormItemProps> = ({
+  enum: enumerable,
+  format,
+  type,
+  ...rest
+}) => {
+  switch (type) {
+    case "int": {
+      return (
+        <Form.Item {...rest}>
+          <InputNumber />
+        </Form.Item>
+      );
+    }
+    default: {
+      if (enumerable) {
+        return (
+          <Form.Item {...rest}>
+            <Select
+              options={enumerable.map((value) => ({
+                label: camelCaseToTitle(value),
+                value,
+              }))}
+            />
+          </Form.Item>
+        );
+      } else {
+        switch (format) {
+          case "date-time": {
+            return <DatePickerFormItem {...rest} />;
+          }
+          default: {
+            return (
+              <Form.Item {...rest}>
+                <Input />
+              </Form.Item>
+            );
+          }
+        }
+      }
+    }
+  }
 };

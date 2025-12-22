@@ -6,7 +6,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Form, Input, InputNumber, Modal, Select } from "antd";
+import { Empty, Form, Input, InputNumber, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -16,11 +16,12 @@ import { parseUnits } from "viem";
 
 import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
 import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
-import { AppPolicyFormSidebar } from "@/automations/components/Sidebar";
-import { AppPolicyFormTitle } from "@/automations/components/Title";
+import { AutomationFormSidebar } from "@/automations/components/Sidebar";
+import { AutomationFormSuccess } from "@/automations/components/Success";
+import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetWidget } from "@/automations/widgets/Asset";
-import { SuccessModal } from "@/components/SuccessModal";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
@@ -94,7 +95,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
-  const visible = hash === modalHash.policy;
+  const visible = hash === modalHash.automation;
 
   const handleBack = () => {
     setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
@@ -264,21 +265,9 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     setState({ isAdded: false, loading: false, step: 1 });
   }, [form, visible]);
 
-  if (!configuration || !configurationExample) return null;
-
   return (
     <>
-      <SuccessModal onClose={() => goBack()} visible={visible && isAdded}>
-        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
-          Success!
-        </Stack>
-        <Stack
-          as="span"
-          $style={{ color: colors.textTertiary.toHex(), lineHeight: "18px" }}
-        >
-          New Automation is added
-        </Stack>
-      </SuccessModal>
+      <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
         centered={true}
@@ -305,10 +294,10 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
           footer: { display: "flex", gap: 65, marginTop: 24 },
           header: { marginBottom: 32 },
         }}
-        title={<AppPolicyFormTitle app={app} onBack={handleBack} step={step} />}
+        title={<AutomationFormTitle app={app} onBack={handleBack} step={step} />}
         width={992}
       >
-        <AppPolicyFormSidebar
+        <AutomationFormSidebar
           steps={["Templates", "Automations", "Overview"]}
           step={step}
         />
@@ -330,13 +319,17 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              {configurationExample.map((example, index) => (
-                <Template
-                  key={index}
-                  setValues={handleTemplate}
-                  values={example as DataProps}
-                />
-              ))}
+              {configurationExample?.length ? (
+                configurationExample.map((example, index) => (
+                  <Template
+                    key={index}
+                    setValues={handleTemplate}
+                    values={example as DataProps}
+                  />
+                ))
+              ) : (
+                <Empty description="No templates available" />
+              )}
             </Stack>
             <Stack
               $style={{
@@ -466,7 +459,7 @@ const Overview: FC<DataProps> = ({
             }}
           >
             <Stack as="span">From</Stack>
-            <OverviewItem {...from} />
+            <AutomationFormToken chain={from.chain} id={from.token} />
           </HStack>
           <Divider />
         </>
@@ -489,72 +482,10 @@ const Overview: FC<DataProps> = ({
           }}
         >
           <Stack as="span">To</Stack>
-          <OverviewItem {...to} />
+          <AutomationFormToken chain={to.chain} id={to.token} />
         </HStack>
       )}
     </VStack>
-  );
-};
-
-const OverviewItem: FC<AssetProps> = (asset) => {
-  const [token, setToken] = useState<Token | undefined>(undefined);
-  const { getTokenData } = useQueries();
-
-  useEffect(() => {
-    if (!asset) return;
-    let cancelled = false;
-
-    if (asset.token) {
-      getTokenData(asset.chain, asset.token)
-        .catch(() => undefined)
-        .then((token) => {
-          if (!cancelled) setToken(token);
-        });
-    } else {
-      setToken(nativeTokens[asset.chain]);
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [asset]);
-
-  if (!token) return <Spin size="small" />;
-
-  return (
-    <HStack
-      $style={{
-        alignItems: "center",
-        gap: "8px",
-        justifyContent: "center",
-      }}
-    >
-      <Stack $style={{ position: "relative" }}>
-        <TokenImage
-          alt={token.ticker}
-          borderRadius="50%"
-          height="20px"
-          src={token.logo}
-          width="20px"
-        />
-        {!!token.id && (
-          <Stack
-            $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
-          >
-            <TokenImage
-              alt={token.chain}
-              borderRadius="50%"
-              height="12px"
-              src={`/tokens/${token.chain.toLowerCase()}.svg`}
-              width="12px"
-            />
-          </Stack>
-        )}
-      </Stack>
-      <Stack as="span" $style={{ lineHeight: "20px" }}>
-        {token.ticker}
-      </Stack>
-    </HStack>
   );
 };
 

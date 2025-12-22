@@ -5,12 +5,12 @@ import { CheckmarkIcon } from "@/icons/CheckmarkIcon";
 import { Divider } from "@/toolkits/Divider";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 
-type AppPolicyFormSidebarProps = {
+type AutomationFormSidebarProps = {
   step: number;
   steps: string[];
 };
 
-export const AppPolicyFormSidebar: FC<AppPolicyFormSidebarProps> = ({
+export const AutomationFormSidebar: FC<AutomationFormSidebarProps> = ({
   step,
   steps,
 }) => {

@@ -1,10 +1,10 @@
 export const defaultPageSize = 12;
 
 export const modalHash = {
+  automation: "#automation",
   currency: "#currency",
   language: "#language",
   payment: "#payment",
-  policy: "#policy",
   requirements: "#requirements",
   success: "#success",
   review: "#review",

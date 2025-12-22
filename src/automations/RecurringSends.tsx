@@ -1,14 +1,6 @@
 import { create, toBinary } from "@bufbuild/protobuf";
 import { base64Encode } from "@bufbuild/protobuf/wire";
-import {
-  Empty,
-  Form,
-  FormProps,
-  Input,
-  InputNumber,
-  Modal,
-  Select,
-} from "antd";
+import { Empty, Form, Input, InputNumber, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -17,18 +9,20 @@ import { v4 as uuidv4 } from "uuid";
 
 import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
 import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
-import { AppPolicyFormSidebar } from "@/automations/components/Sidebar";
-import { AppPolicyFormTitle } from "@/automations/components/Title";
+import { AutomationFormSidebar } from "@/automations/components/Sidebar";
+import { AutomationFormSuccess } from "@/automations/components/Success";
+import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetWidget } from "@/automations/widgets/Asset";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
-import { SuccessModal } from "@/components/SuccessModal";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
+import { PencilLineIcon } from "@/icons/PencilLineIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
@@ -73,8 +67,8 @@ type DataProps = {
 };
 
 type StateProps = {
-  isAdded?: boolean;
-  loading?: boolean;
+  isAdded: boolean;
+  loading: boolean;
   step: number;
   recipients: RecipientProps[];
 };
@@ -84,7 +78,12 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   onFinish,
   schema,
 }) => {
-  const [state, setState] = useState<StateProps>({ step: 1, recipients: [] });
+  const [state, setState] = useState<StateProps>({
+    isAdded: false,
+    loading: false,
+    step: 1,
+    recipients: [],
+  });
   const { isAdded, loading, step, recipients } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { address = "" } = useCore();
@@ -92,13 +91,16 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const { configuration, pluginId, pluginVersion, requirements } = schema;
   const { hash } = useLocation();
   const [form] = Form.useForm<DataProps>();
+  const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
-  const visible = hash === modalHash.policy;
+  const visible = hash === modalHash.automation;
 
   const handleAdd = (recipient: RecipientProps) => {
+    recipientForm.resetFields();
+
     setState((prev) => ({
       ...prev,
       recipients: [...prev.recipients, recipient],
@@ -257,21 +259,9 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     }));
   }, [form, visible]);
 
-  if (!configuration) return null;
-
   return (
     <>
-      <SuccessModal onClose={() => goBack()} visible={visible && isAdded}>
-        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
-          Success!
-        </Stack>
-        <Stack
-          as="span"
-          $style={{ color: colors.textTertiary.toHex(), lineHeight: "18px" }}
-        >
-          New Automation is added
-        </Stack>
-      </SuccessModal>
+      <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
         centered={true}
@@ -280,7 +270,11 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
           <>
             <Stack $style={{ flex: "none", width: "218px" }} />
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-              <Button loading={loading} onClick={() => form.submit()}>
+              <Button
+                disabled={step === 2 && !recipients.length}
+                loading={loading}
+                onClick={() => form.submit()}
+              >
                 {step > 3 ? "Submit" : "Continue"}
               </Button>
             </HStack>
@@ -294,10 +288,12 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
           footer: { display: "flex", gap: 65, marginTop: 24 },
           header: { marginBottom: 32 },
         }}
-        title={<AppPolicyFormTitle app={app} onBack={handleBack} step={step} />}
+        title={
+          <AutomationFormTitle app={app} onBack={handleBack} step={step} />
+        }
         width={992}
       >
-        <AppPolicyFormSidebar
+        <AutomationFormSidebar
           steps={[
             "Select Asset",
             "Add recipients",
@@ -369,14 +365,54 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
               </Form.Item>
               <DateCheckboxFormItem name="startDate" />
             </Stack>
+            {step === 4 && <Overview {...{ ...values, recipients }} />}
           </Form>
           {step === 2 && (
             <>
               <Divider />
-              <RecipientForm onFinish={handleAdd} />
+              <Form
+                autoComplete="off"
+                form={recipientForm}
+                layout="vertical"
+                onFinish={handleAdd}
+              >
+                <Stack
+                  $style={{
+                    columnGap: "16px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                  }}
+                >
+                  <Form.Item<RecipientProps>
+                    label="Alias / Name"
+                    name="alias"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item<RecipientProps>
+                    label="Amount"
+                    name="amount"
+                    rules={[{ required: true }]}
+                  >
+                    <InputNumber min={0} />
+                  </Form.Item>
+                </Stack>
+                <Form.Item<RecipientProps>
+                  label="To Address"
+                  name="toAddress"
+                  rules={[{ required: true }]}
+                >
+                  <Input />
+                </Form.Item>
+                <Stack $style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Button onClick={() => recipientForm.submit()}>
+                    Add another Recipient
+                  </Button>
+                </Stack>
+              </Form>
             </>
           )}
-          {step === 4 && <Overview {...{ ...values, recipients }} />}
         </VStack>
       </Modal>
     </>
@@ -487,7 +523,7 @@ const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
           <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
             Asset
           </Stack>
-          <OverviewItem {...asset} />
+          <AutomationFormToken chain={asset.chain} id={asset.token} />
         </HStack>
       </VStack>
       <Divider />
@@ -506,97 +542,35 @@ const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
   );
 };
 
-const OverviewItem: FC<AssetProps> = (asset) => {
-  const [token, setToken] = useState<Token | undefined>(undefined);
-  const { getTokenData } = useQueries();
-
-  useEffect(() => {
-    if (!asset) return;
-    let cancelled = false;
-
-    if (asset.token) {
-      getTokenData(asset.chain, asset.token)
-        .catch(() => undefined)
-        .then((token) => {
-          if (!cancelled) setToken(token);
-        });
-    } else {
-      setToken(nativeTokens[asset.chain]);
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [asset]);
-
-  if (!token) return <Spin size="small" />;
-
-  return (
-    <HStack
-      $style={{
-        alignItems: "center",
-        gap: "8px",
-        justifyContent: "center",
-      }}
-    >
-      <Stack $style={{ position: "relative" }}>
-        <TokenImage
-          alt={token.ticker}
-          borderRadius="50%"
-          height="20px"
-          src={token.logo}
-          width="20px"
-        />
-        {!!token.id && (
-          <Stack
-            $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
-          >
-            <TokenImage
-              alt={token.chain}
-              borderRadius="50%"
-              height="12px"
-              src={`/tokens/${token.chain.toLowerCase()}.svg`}
-              width="12px"
-            />
-          </Stack>
-        )}
-      </Stack>
-      <Stack as="span" $style={{ lineHeight: "20px" }}>
-        {token.ticker}
-      </Stack>
-    </HStack>
-  );
-};
-
 const RecipientItem: FC<{
   asset: AssetProps;
+  onEdit?: () => void;
   onRemove?: () => void;
   recipient: RecipientProps;
-}> = ({ asset, onRemove, recipient }) => {
-  const [token, setToken] = useState<Token | undefined>(undefined);
+}> = ({ asset, onEdit, onRemove, recipient }) => {
+  const [{ id, logo = "", ticker }, setToken] = useState<Partial<Token>>({});
+  const { chain, token } = asset;
+  const { alias, amount, toAddress } = recipient;
   const { getTokenData } = useQueries();
   const colors = useTheme();
 
   useEffect(() => {
-    if (!asset) return;
     let cancelled = false;
 
-    if (asset.token) {
-      getTokenData(asset.chain, asset.token)
-        .catch(() => undefined)
+    if (token) {
+      getTokenData(chain, token)
         .then((token) => {
           if (!cancelled) setToken(token);
-        });
+        })
+        .catch(() => {});
     } else {
-      setToken(nativeTokens[asset.chain]);
+      setToken(nativeTokens[chain]);
     }
 
     return () => {
       cancelled = true;
     };
-  }, [asset]);
-
-  if (!token) return <Spin size="small" />;
+  }, [chain, token]);
 
   return (
     <HStack
@@ -615,7 +589,7 @@ const RecipientItem: FC<{
         position: "relative",
       }}
     >
-      <VStack $style={{ flexGrow: "1", gap: "4px" }}>
+      <VStack $style={{ flexGrow: "1", gap: "4px", overflow: "hidden" }}>
         <VStack>
           <Stack
             as="span"
@@ -625,93 +599,71 @@ const RecipientItem: FC<{
               whiteSpace: "nowrap",
             }}
           >
-            {recipient.alias}
+            {alias}
           </Stack>
           <MiddleTruncate
             $style={{ color: colors.textTertiary.toHex() }}
-          >{`(${recipient.toAddress})`}</MiddleTruncate>
+          >{`(${toAddress})`}</MiddleTruncate>
         </VStack>
-        <HStack $style={{ alignItems: "center", gap: "8px" }}>
-          <Stack $style={{ position: "relative" }}>
-            <TokenImage
-              alt={token.ticker}
-              borderRadius="50%"
-              height="16px"
-              src={token.logo}
-              width="16px"
-            />
-            {!!token.id && (
-              <Stack
-                $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
-              >
+        {ticker ? (
+          <>
+            <HStack $style={{ alignItems: "center", gap: "8px" }}>
+              <Stack $style={{ position: "relative" }}>
                 <TokenImage
-                  alt={token.chain}
+                  alt={ticker}
                   borderRadius="50%"
-                  height="10px"
-                  src={`/tokens/${token.chain.toLowerCase()}.svg`}
-                  width="10px"
+                  height="16px"
+                  src={logo}
+                  width="16px"
                 />
+                {!!id && (
+                  <Stack
+                    $style={{
+                      bottom: "-2px",
+                      position: "absolute",
+                      right: "-2px",
+                    }}
+                  >
+                    <TokenImage
+                      alt={chain}
+                      borderRadius="50%"
+                      height="10px"
+                      src={`/tokens/${chain.toLowerCase()}.svg`}
+                      width="10px"
+                    />
+                  </Stack>
+                )}
               </Stack>
-            )}
-          </Stack>
-          <Stack as="span">{toNumberFormat(recipient.amount)}</Stack>
-          <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
-            {token.ticker}
-          </Stack>
-        </HStack>
+              <Stack as="span">{toNumberFormat(amount)}</Stack>
+              <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
+                {ticker}
+              </Stack>
+            </HStack>
+          </>
+        ) : (
+          <HStack as={Spin} size="small" />
+        )}
       </VStack>
-      {onRemove && (
-        <VStack $style={{ flex: "none" }}>
-          <Button icon={<TrashIcon />} kind="danger" onClick={onRemove} ghost />
+      {(onEdit || onRemove) && (
+        <VStack $style={{ flex: "none", gap: "12px" }}>
+          {onEdit && (
+            <Button
+              icon={<PencilLineIcon />}
+              kind="info"
+              onClick={onEdit}
+              ghost
+            />
+          )}
+          {onRemove && (
+            <Button
+              icon={<TrashIcon />}
+              kind="danger"
+              onClick={onRemove}
+              ghost
+            />
+          )}
         </VStack>
       )}
     </HStack>
-  );
-};
-
-const RecipientForm: FC<FormProps<RecipientProps>> = ({ onFinish }) => {
-  const [form] = Form.useForm<RecipientProps>();
-
-  const handleFinish = () => {
-    form.submit();
-
-    setTimeout(() => form.resetFields(), 0);
-  };
-
-  return (
-    <Form autoComplete="off" form={form} layout="vertical" onFinish={onFinish}>
-      <Stack
-        $style={{
-          columnGap: "16px",
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-        }}
-      >
-        <Form.Item<RecipientProps>
-          label="Alias / Name"
-          name="alias"
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item<RecipientProps>
-          label="Amount"
-          name="amount"
-          rules={[{ required: true }]}
-        >
-          <InputNumber min={0} />
-        </Form.Item>
-      </Stack>
-      <Form.Item<RecipientProps>
-        label="To Address"
-        name="toAddress"
-        rules={[{ required: true }]}
-      >
-        <Input />
-      </Form.Item>
-      <Stack $style={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button onClick={handleFinish}>Add another Recipient</Button>
-      </Stack>
-    </Form>
   );
 };
