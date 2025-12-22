@@ -36,7 +36,6 @@ import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
-  camelCaseToTitle,
   getConfiguration,
   getFeePolicies,
   kebabCaseToTitle,
@@ -513,7 +512,7 @@ const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
               padding: "0 8px",
             }}
           >
-            {camelCaseToTitle(frequency)}
+            {kebabCaseToTitle(frequency)}
           </Stack>
         </HStack>
         <Divider light />

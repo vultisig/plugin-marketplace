@@ -42,7 +42,6 @@ import { modalHash } from "@/utils/constants";
 import { getAccount, personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
-  camelCaseToTitle,
   getConfiguration,
   getFeePolicies,
   kebabCaseToTitle,
@@ -446,7 +445,7 @@ const Overview: FC<DataProps> = ({
             padding: "0 8px",
           }}
         >
-          {camelCaseToTitle(frequency)}
+          {kebabCaseToTitle(frequency)}
         </Stack>
       </HStack>
       <Divider />
@@ -564,7 +563,7 @@ const Template: FC<{
             Frequency
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {camelCaseToTitle(frequency)}
+            {kebabCaseToTitle(frequency)}
           </Stack>
         </HStack>
         <Divider light />
