@@ -4,7 +4,7 @@ import { FC, useEffect } from "react";
 
 import { Frequency } from "@/utils/frequencies";
 
-export const DateCheckboxFormItem: FC<
+export const AutomationFormCheckboxDate: FC<
   FormItemProps & { disabled?: boolean }
 > = ({ disabled, name, ...rest }) => {
   const checkboxName = `${name}Status`;

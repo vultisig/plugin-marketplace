@@ -1,6 +1,5 @@
 import type * as CSS from "csstype";
 
-import { Policy } from "@/proto/policy_pb";
 import {
   PluginRequirements,
   RecipeSchema as ProtoRecipeSchema,
@@ -41,7 +40,7 @@ export type AppFilters = {
   term?: string;
 };
 
-export type AppPolicy = {
+export type AppAutomation = {
   active: boolean;
   id: string;
   pluginVersion: string;
@@ -80,8 +79,6 @@ export type Configuration = {
 };
 
 export type CSSProperties = CSS.Properties<string>;
-
-export type CustomAppPolicy = AppPolicy & { parsedRecipe: Policy };
 
 export type Definitions = Record<string, Configuration>;
 

@@ -119,6 +119,7 @@ const StyledButton = styled.div<{
               primary: () => css`
                 background-color: ${({ theme }) =>
                   theme.buttonPrimaryHover.toHex()};
+                color: ${theme.buttonTextLight.toHex()};
               `,
               secondary: () => css`
                 background-color: ${({ theme }) =>
