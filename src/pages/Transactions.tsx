@@ -1,6 +1,7 @@
 import { Table, TableProps } from "antd";
 import { useTheme } from "styled-components";
 
+import { SEO } from "@/components/SEO";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -44,6 +45,12 @@ export const TransactionsPage = () => {
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "24px 0" }}>
+      <SEO
+        title="Transaction History"
+        description="View your transaction history for all Vultisig app activities, including automated swaps, sends, and other app operations."
+        url="/transactions"
+        noindex={true}
+      />
       <VStack
         $style={{
           gap: "24px",

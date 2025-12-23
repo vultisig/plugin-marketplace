@@ -1,6 +1,7 @@
 import { Collapse } from "antd";
 import { Fragment } from "react";
 
+import { SEO } from "@/components/SEO";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
 
@@ -70,6 +71,12 @@ const data = [
 export const FaqPage = () => {
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+      <SEO
+        title="FAQ - Frequently Asked Questions"
+        description="Find answers to common questions about Vultisig App Store, self-custodial automation, app security, and developer resources."
+        url="/faq"
+        keywords="vultisig faq, app store help, crypto automation help, self-custodial automation, vultisig support"
+      />
       <VStack
         $style={{
           gap: "32px",

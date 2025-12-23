@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "styled-components";
 
+import { SEO } from "@/components/SEO";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
@@ -29,6 +30,12 @@ export const MyAppsPage = () => {
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "48px 0" }}>
+      <SEO
+        title="My Apps - Installed Applications"
+        description="View and manage your installed Vultisig apps and automations. Access your recurring swaps, automated sends, and other crypto tools."
+        url="/my-apps"
+        noindex={true}
+      />
       <VStack
         $style={{
           gap: "32px",

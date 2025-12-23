@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 
+import { SEO } from "@/components/SEO";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
@@ -50,6 +51,12 @@ export const BillingPage = () => {
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "24px 0" }}>
+      <SEO
+        title="Billing - Payment & Subscription Management"
+        description="Manage your Vultisig app subscriptions, view payment history, and handle billing for your installed applications."
+        url="/billing"
+        noindex={true}
+      />
       <VStack
         $style={{
           gap: "24px",

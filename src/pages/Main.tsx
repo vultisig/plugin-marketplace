@@ -5,6 +5,7 @@ import { useTheme } from "styled-components";
 
 import { AppItem } from "@/components/AppItem";
 import { FreeTrialBanner } from "@/components/FreeTrialBanner";
+import { SEO } from "@/components/SEO";
 import { useFilterParams } from "@/hooks/useFilterParams";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
@@ -57,6 +58,12 @@ export const MainPage = () => {
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+      <SEO
+        title="Discover Apps"
+        description="Browse and discover secure cryptocurrency applications and automations for your Vultisig wallet. Install apps for recurring swaps, automated sends, and more."
+        url="/"
+        keywords="crypto apps, vultisig apps, cryptocurrency tools, DeFi apps, crypto automation, blockchain applications"
+      />
       <VStack
         $style={{
           gap: "48px",

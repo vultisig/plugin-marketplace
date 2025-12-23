@@ -8,6 +8,7 @@ import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
 import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppReviews } from "@/components/AppReviews";
 import { FreeTrialBanner } from "@/components/FreeTrialBanner";
+import { SEO } from "@/components/SEO";
 import { SuccessModal } from "@/components/SuccessModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
@@ -172,8 +173,20 @@ export const AppPage = () => {
 
   if (!app) return <Spin centered />;
 
+  const appDescription = app.description || `${app.title} - A secure cryptocurrency app for your Vultisig wallet`;
+  const appImage = app.thumbnailUrl || app.logoUrl;
+  const appKeywords = `${app.title}, vultisig app, crypto app, ${app.audited ? 'audited crypto app, ' : ''}blockchain app`;
+
   return (
     <>
+      <SEO
+        title={app.title}
+        description={appDescription}
+        image={appImage}
+        url={`/app/${app.id}`}
+        type="product"
+        keywords={appKeywords}
+      />
       <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
         <VStack
           $style={{
