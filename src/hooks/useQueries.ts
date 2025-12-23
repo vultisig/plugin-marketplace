@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Address, createPublicClient, erc20Abi, http } from "viem";
 
 import {
+  getApp,
   getJupiterToken,
   getJupiterTokens,
   getOneInchToken,
@@ -19,9 +20,25 @@ import { Token } from "@/utils/types";
 export const useQueries = () => {
   const queryClient = useQueryClient();
 
-  const getTokenData = async (chain: Chain, id: string) => {
+  const getAppData = async (id: string, refetch?: boolean) => {
+    const queryKey = ["apps", id.toLowerCase()];
+
+    if (refetch) await queryClient.refetchQueries({ queryKey });
+
     return await queryClient.fetchQuery({
-      queryKey: ["tokens", chain.toLowerCase(), id.toLowerCase()],
+      queryKey,
+      queryFn: () => getApp(id),
+      staleTime: Infinity,
+    });
+  };
+
+  const getTokenData = async (chain: Chain, id: string, refetch?: boolean) => {
+    const queryKey = ["tokens", chain.toLowerCase(), id.toLowerCase()];
+
+    if (refetch) await queryClient.refetchQueries({ queryKey });
+
+    return await queryClient.fetchQuery({
+      queryKey,
       queryFn: async () => {
         if (chain in evmChains) {
           return await getOneInchToken(chain as EvmChain, id).catch(
@@ -71,9 +88,13 @@ export const useQueries = () => {
     });
   };
 
-  const getTokenList = async (chain: Chain) => {
+  const getTokenList = async (chain: Chain, refetch?: boolean) => {
+    const queryKey = ["tokens", chain.toLowerCase()];
+
+    if (refetch) await queryClient.refetchQueries({ queryKey });
+
     return await queryClient.fetchQuery({
-      queryKey: ["tokens", chain.toLowerCase()],
+      queryKey,
       queryFn: async () => {
         if (chain === chains.Solana) {
           return await getJupiterTokens();
@@ -87,5 +108,5 @@ export const useQueries = () => {
     });
   };
 
-  return { getTokenData, getTokenList };
+  return { getAppData, getTokenData, getTokenList };
 };

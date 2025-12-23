@@ -1,16 +1,26 @@
-import { create, JsonObject, toBinary } from "@bufbuild/protobuf";
-import { base64Encode } from "@bufbuild/protobuf/wire";
-import { Form, FormProps, Input, Modal, Select } from "antd";
+import { create, fromBinary, JsonObject, toBinary } from "@bufbuild/protobuf";
+import { base64Decode, base64Encode } from "@bufbuild/protobuf/wire";
+import {
+  Form,
+  FormProps,
+  Input,
+  Modal,
+  Select,
+  Table,
+  TableProps,
+  Tabs,
+} from "antd";
 import { FC, Fragment, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { AutomationFormConfiguration } from "@/automations/components/Configuration";
-import { AutomationFormSidebar } from "@/automations/components/Sidebar";
-import { AutomationFormSuccess } from "@/automations/components/Success";
-import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormConfiguration } from "@/automations/components/FormConfiguration";
+import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
+import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
+import { AutomationFormTitle } from "@/automations/components/FormTitle";
+import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -22,7 +32,7 @@ import {
   MagicConstant,
 } from "@/proto/constraint_pb";
 import { ParameterConstraintSchema } from "@/proto/parameter_constraint_pb";
-import { PolicySchema } from "@/proto/policy_pb";
+import { Policy, PolicySchema } from "@/proto/policy_pb";
 import { Effect, RuleSchema, TargetSchema, TargetType } from "@/proto/rule_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
@@ -37,28 +47,44 @@ import {
   getFeePolicies,
   policyToHexMessage,
   snakeCaseToTitle,
+  toNumberFormat,
 } from "@/utils/functions";
-import { App, AppPolicy, RecipeSchema } from "@/utils/types";
+import { App, AppAutomation, RecipeSchema } from "@/utils/types";
+
+type CustomAppAutomation = AppAutomation & { parsedRecipe: Policy };
 
 type FormFieldType = { rules: JsonObject[] } & JsonObject;
 
 export type AutomationFormProps = {
   app: App;
-  onFinish: () => void;
+  automations: AppAutomation[];
+  loading: boolean;
+  onCreate: () => void;
+  onDelete: (id: string, signature: string) => void;
   schema: RecipeSchema;
+  totalCount: number;
+};
+
+type StateProps = {
+  isAdded: boolean;
+  submitting: boolean;
+  step: number;
 };
 
 export const AutomationForm: FC<AutomationFormProps> = ({
   app,
-  onFinish,
+  automations,
+  loading,
+  onCreate,
+  onDelete,
   schema,
 }) => {
-  const [state, setState] = useState({
+  const [state, setState] = useState<StateProps>({
     isAdded: false,
-    loading: false,
+    submitting: false,
     step: 1,
   });
-  const { isAdded, loading, step } = state;
+  const { isAdded, step, submitting } = state;
   const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
@@ -77,6 +103,65 @@ export const AutomationForm: FC<AutomationFormProps> = ({
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
 
+  const modifiedAutomations: CustomAppAutomation[] = useMemo(() => {
+    return automations.map((automation) => {
+      try {
+        const decoded = base64Decode(automation.recipe);
+        const parsedRecipe = fromBinary(PolicySchema, decoded);
+
+        return { ...automation, parsedRecipe };
+      } catch {
+        return { ...automation, parsedRecipe: create(PolicySchema, {}) };
+      }
+    });
+  }, [automations]);
+
+  const columns: TableProps<CustomAppAutomation>["columns"] = [
+    Table.EXPAND_COLUMN,
+    {
+      dataIndex: "parsedRecipe",
+      key: "name",
+      render: ({ name }: Policy) => name,
+      title: "Name",
+    },
+    {
+      align: "center",
+      dataIndex: "parsedRecipe",
+      key: "maxTxsPerWindow",
+      render: ({ maxTxsPerWindow }: Policy) =>
+        maxTxsPerWindow ? toNumberFormat(maxTxsPerWindow) : "-",
+      title: "Max Transactions",
+    },
+    {
+      align: "center",
+      dataIndex: "parsedRecipe",
+      key: "rateLimitWindow",
+      render: ({ rateLimitWindow }: Policy) =>
+        rateLimitWindow ? toNumberFormat(rateLimitWindow) : "-",
+      title: "Rate Limit",
+    },
+    {
+      align: "center",
+      key: "action",
+      render: (_, { id, signature }) => {
+        if (!signature) return null;
+
+        return (
+          <HStack $style={{ justifyContent: "center" }}>
+            <Button
+              icon={<TrashIcon fontSize={16} />}
+              kind="danger"
+              onClick={() => onDelete(id, signature)}
+              ghost
+            />
+          </HStack>
+        );
+      },
+      title: "Action",
+      width: 80,
+    },
+  ];
+
   const steps = useMemo(() => {
     return [...(configuration ? ["Configuration"] : []), "Rules"];
   }, [configuration]);
@@ -90,7 +175,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
   };
 
   const handleSign = (values: JsonObject, rules: JsonObject[]) => {
-    setState((prevState) => ({ ...prevState, loading: true }));
+    setState((prevState) => ({ ...prevState, submitting: true }));
 
     const jsonData = create(PolicySchema, {
       author: "",
@@ -163,7 +248,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
 
     const recipe = base64Encode(binary);
 
-    const policy: AppPolicy = {
+    const policy: AppAutomation = {
       active: true,
       id: uuidv4(),
       pluginId: id,
@@ -181,26 +266,26 @@ export const AutomationForm: FC<AutomationFormProps> = ({
           .then(() => {
             setState((prevState) => ({ ...prevState, isAdded: true }));
 
-            onFinish();
+            onCreate();
           })
           .catch((error: Error) => {
             messageAPI.error(error.message);
           })
           .finally(() => {
-            setState((prevState) => ({ ...prevState, loading: false }));
+            setState((prevState) => ({ ...prevState, submitting: false }));
           });
       })
       .catch((error: Error) => {
         messageAPI.error(error.message);
 
-        setState((prevState) => ({ ...prevState, loading: false }));
+        setState((prevState) => ({ ...prevState, submitting: false }));
       });
   };
 
   const handleSuggest = (values: JsonObject) => {
     if (!configuration) return;
 
-    setState((prevState) => ({ ...prevState, loading: true }));
+    setState((prevState) => ({ ...prevState, submitting: true }));
 
     const configurationData = getConfiguration(
       configuration,
@@ -254,7 +339,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
       } else {
         setState((prevState) => ({
           ...prevState,
-          loading: false,
+          submitting: false,
           step: steps.length,
         }));
       }
@@ -279,13 +364,248 @@ export const AutomationForm: FC<AutomationFormProps> = ({
     setState((prevState) => ({
       ...prevState,
       isAdded: false,
-      loading: false,
+      submitting: false,
       step: 1,
     }));
   }, [form, visible]);
 
   return (
     <>
+      <Tabs
+        items={[
+          {
+            children: (
+              <Table
+                columns={columns}
+                dataSource={modifiedAutomations}
+                expandable={{
+                  expandedRowRender: (
+                    { parsedRecipe: { description, rules } },
+                    index
+                  ) => {
+                    return (
+                      <VStack key={index} $style={{ gap: "8px" }}>
+                        {description && (
+                          <>
+                            <VStack>
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                Description
+                              </Stack>
+                              <Stack
+                                as="span"
+                                $style={{
+                                  fontSize: "12px",
+                                  lineHeight: "18px",
+                                }}
+                              >
+                                {description}
+                              </Stack>
+                            </VStack>
+                            <Divider light />
+                          </>
+                        )}
+                        {rules.map(
+                          (
+                            { description, parameterConstraints, target },
+                            index
+                          ) => (
+                            <Fragment key={index}>
+                              {index > 0 && <Divider light />}
+                              <Stack
+                                $style={{
+                                  display: "grid",
+                                  gap: "8px",
+                                  gridTemplateColumns: "repeat(3, 1fr)",
+                                }}
+                                $media={{
+                                  xl: {
+                                    $style: {
+                                      gridTemplateColumns: "repeat(2, 1fr)",
+                                    },
+                                  },
+                                }}
+                              >
+                                {parameterConstraints.map(
+                                  ({ constraint, parameterName }) => (
+                                    <VStack key={parameterName}>
+                                      {constraint?.value.case ? (
+                                        <HStack
+                                          $style={{
+                                            alignItems: "center",
+                                            gap: "4px",
+                                          }}
+                                        >
+                                          <Stack
+                                            as="span"
+                                            $style={{
+                                              fontSize: "12px",
+                                              lineHeight: "18px",
+                                            }}
+                                          >
+                                            {snakeCaseToTitle(parameterName)}
+                                          </Stack>
+                                          <Stack
+                                            as="span"
+                                            $style={{
+                                              fontSize: "10px",
+                                              lineHeight: "18px",
+                                            }}
+                                          >{`(${camelCaseToTitle(
+                                            constraint.value.case
+                                          )})`}</Stack>
+                                        </HStack>
+                                      ) : (
+                                        <Stack
+                                          as="span"
+                                          $style={{
+                                            fontSize: "12px",
+                                            lineHeight: "18px",
+                                          }}
+                                        >
+                                          {snakeCaseToTitle(parameterName)}
+                                        </Stack>
+                                      )}
+                                      {typeof constraint?.value.value ===
+                                        "string" &&
+                                      constraint.value.value.startsWith(
+                                        "0x"
+                                      ) ? (
+                                        <MiddleTruncate
+                                          $style={{
+                                            fontSize: "12px",
+                                            lineHeight: "18px",
+                                          }}
+                                        >
+                                          {constraint.value.value}
+                                        </MiddleTruncate>
+                                      ) : (
+                                        <Stack
+                                          as="span"
+                                          $style={{
+                                            fontSize: "12px",
+                                            lineHeight: "18px",
+                                          }}
+                                        >
+                                          {constraint?.value.value || "-"}
+                                        </Stack>
+                                      )}
+                                    </VStack>
+                                  )
+                                )}
+                                {target ? (
+                                  <VStack>
+                                    {target.target.case ? (
+                                      <HStack
+                                        $style={{
+                                          alignItems: "center",
+                                          gap: "4px",
+                                        }}
+                                      >
+                                        <Stack
+                                          as="span"
+                                          $style={{
+                                            fontSize: "12px",
+                                            lineHeight: "18px",
+                                          }}
+                                        >
+                                          Target
+                                        </Stack>
+                                        <Stack
+                                          as="span"
+                                          $style={{
+                                            fontSize: "10px",
+                                            lineHeight: "18px",
+                                          }}
+                                        >{`(${camelCaseToTitle(
+                                          target.target.case
+                                        )})`}</Stack>
+                                      </HStack>
+                                    ) : (
+                                      <Stack
+                                        as="span"
+                                        $style={{
+                                          fontSize: "12px",
+                                          lineHeight: "18px",
+                                        }}
+                                      >
+                                        Target
+                                      </Stack>
+                                    )}
+                                    {typeof target.target.value === "string" &&
+                                    target.target.value.startsWith("0x") ? (
+                                      <MiddleTruncate
+                                        $style={{
+                                          fontSize: "12px",
+                                          lineHeight: "18px",
+                                        }}
+                                      >
+                                        {target.target.value}
+                                      </MiddleTruncate>
+                                    ) : (
+                                      <Stack
+                                        as="span"
+                                        $style={{
+                                          fontSize: "12px",
+                                          lineHeight: "18px",
+                                        }}
+                                      >
+                                        {target.target.value || "-"}
+                                      </Stack>
+                                    )}
+                                  </VStack>
+                                ) : (
+                                  <></>
+                                )}
+                              </Stack>
+                              {description && (
+                                <VStack>
+                                  <Stack
+                                    as="span"
+                                    $style={{
+                                      fontSize: "12px",
+                                      lineHeight: "18px",
+                                    }}
+                                  >
+                                    Description
+                                  </Stack>
+                                  <Stack
+                                    as="span"
+                                    $style={{
+                                      fontSize: "12px",
+                                      lineHeight: "18px",
+                                    }}
+                                  >
+                                    {description}
+                                  </Stack>
+                                </VStack>
+                              )}
+                            </Fragment>
+                          )
+                        )}
+                      </VStack>
+                    );
+                  },
+                }}
+                loading={loading}
+                pagination={false}
+                rowKey="id"
+                size="small"
+                id="policies"
+              />
+            ),
+            key: "upcoming",
+            label: "Upcoming",
+          },
+          { disabled: true, key: "history", label: "History" },
+        ]}
+      />
+
       <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
@@ -295,7 +615,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
           <>
             <Stack $style={{ flex: "none", width: "218px" }} />
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-              <Button loading={loading} onClick={() => form.submit()}>
+              <Button loading={submitting} onClick={() => form.submit()}>
                 {configuration ? (step > 1 ? "Submit" : "Continue") : "Submit"}
               </Button>
             </HStack>

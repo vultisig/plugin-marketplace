@@ -12,6 +12,7 @@ import { SuccessModal } from "@/components/SuccessModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
+import { useQueries } from "@/hooks/useQueries";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { CircleArrowDownIcon } from "@/icons/CircleArrowDownIcon";
 import { CircleCheckIcon } from "@/icons/CircleCheckIcon";
@@ -24,7 +25,6 @@ import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import {
-  getApp,
   getRecipeSpecification,
   isAppInstalled,
   uninstallApp,
@@ -58,6 +58,7 @@ export const AppPage = () => {
   const { baseValue, connect, currency, isConnected, feeAppStatus } = useCore();
   const { hash } = useLocation();
   const { id = "" } = useParams();
+  const { getAppData } = useQueries();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
@@ -77,7 +78,7 @@ export const AppPage = () => {
   }, [id, isFeeAppInstalled, isFree]);
 
   const fetchApp = useCallback(async () => {
-    getApp(id)
+    getAppData(id, true)
       .then((app) => {
         if (schema) {
           setState((prevState) => ({ ...prevState, app }));
@@ -766,11 +767,28 @@ export const AppPage = () => {
         </VStack>
         <HStack $style={{ gap: "12px", marginTop: "12px" }}>
           <Button
-            href={`${routeTree.automations.link(id)}${modalHash.automation}`}
+            onClick={() => {
+              goBack();
+
+              navigate(
+                {
+                  pathname: routeTree.automations.link(id),
+                  hash: modalHash.automation,
+                },
+                { state: true }
+              );
+            }}
           >
             Create Automation
           </Button>
-          <Button href={routeTree.myApps.path} kind="secondary" state={true}>
+          <Button
+            onClick={() => {
+              goBack();
+
+              navigate(routeTree.myApps.path, { state: true });
+            }}
+            kind="secondary"
+          >
             My apps
           </Button>
         </HStack>

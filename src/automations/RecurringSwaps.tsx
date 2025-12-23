@@ -1,35 +1,45 @@
-import { create, toBinary } from "@bufbuild/protobuf";
-import { base64Encode } from "@bufbuild/protobuf/wire";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
+import { base64Decode, base64Encode } from "@bufbuild/protobuf/wire";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Empty, Form, Input, InputNumber, Modal, Select } from "antd";
+import {
+  Empty,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Select,
+  Table,
+  TableProps,
+  Tabs,
+} from "antd";
 import dayjs from "dayjs";
-import { FC, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { FC, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
-import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
-import { AutomationFormSidebar } from "@/automations/components/Sidebar";
-import { AutomationFormSuccess } from "@/automations/components/Success";
-import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
+import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
+import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
+import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
+import { AutomationFormTitle } from "@/automations/components/FormTitle";
 import { AutomationFormToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetWidget } from "@/automations/widgets/Asset";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
-import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
 import { CrossIcon } from "@/icons/CrossIcon";
 import { PencilLineIcon } from "@/icons/PencilLineIcon";
+import { TrashIcon } from "@/icons/TrashIcon";
 import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
@@ -48,7 +58,12 @@ import {
   policyToHexMessage,
   toNumberFormat,
 } from "@/utils/functions";
-import { AppPolicy, Token } from "@/utils/types";
+import { AppAutomation, Token } from "@/utils/types";
+
+type CustomAppAutomation = AppAutomation & {
+  configuration?: DataProps;
+  name: string;
+};
 
 type AssetProps = {
   address: string;
@@ -67,17 +82,26 @@ type DataProps = {
   to: AssetProps;
 };
 
+type StateProps = {
+  isAdded: boolean;
+  submitting: boolean;
+  step: number;
+};
+
 export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   app,
-  onFinish,
+  automations,
+  loading,
+  onCreate,
+  onDelete,
   schema,
 }) => {
-  const [state, setState] = useState({
+  const [state, setState] = useState<StateProps>({
     isAdded: false,
-    loading: false,
+    submitting: false,
     step: 1,
   });
-  const { isAdded, loading, step } = state;
+  const { isAdded, step, submitting } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
@@ -88,13 +112,92 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     pluginVersion,
     requirements,
   } = schema;
-  const { hash } = useLocation();
+  const { hash, pathname } = useLocation();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
-  const goBack = useGoBack();
+  const navigate = useNavigate();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
+
+  const modifiedAutomations: CustomAppAutomation[] = useMemo(() => {
+    return automations.map((automation) => {
+      try {
+        const decoded = base64Decode(automation.recipe);
+        const { configuration, name } = fromBinary(PolicySchema, decoded);
+
+        if (!configuration) return { ...automation, name };
+
+        return {
+          ...automation,
+          configuration: configuration as DataProps,
+          name,
+        };
+      } catch {
+        return { ...automation, name: "" };
+      }
+    });
+  }, [automations]);
+
+  const columns: TableProps<CustomAppAutomation>["columns"] = [
+    {
+      dataIndex: "name",
+      key: "name",
+      title: "Name",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "frequency",
+      render: ({ frequency }: DataProps) => kebabCaseToTitle(frequency),
+      title: "Frequency",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "from",
+      render: ({ from }: DataProps) => (
+        <AutomationFormToken chain={from.chain} id={from.token} />
+      ),
+      title: "From",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "to",
+      render: ({ to }: DataProps) => (
+        <AutomationFormToken chain={to.chain} id={to.token} />
+      ),
+      title: "To",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "amount",
+      render: ({ fromAmount }: DataProps) => toNumberFormat(fromAmount),
+      title: "Amount",
+    },
+    {
+      align: "center",
+      key: "action",
+      render: (_, { id, signature }) => {
+        if (!signature) return null;
+
+        return (
+          <HStack $style={{ justifyContent: "center" }}>
+            <Button
+              icon={<TrashIcon fontSize={16} />}
+              kind="danger"
+              onClick={() => onDelete(id, signature)}
+              ghost
+            />
+          </HStack>
+        );
+      },
+      title: "Action",
+      width: 80,
+    },
+  ];
 
   const handleBack = () => {
     setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
@@ -139,7 +242,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
                 kind="danger"
                 onClick={() => {
                   confirm.destroy();
-                  goBack();
+                  navigate(pathname, { state: true, replace: true });
                 }}
                 $style={{ width: "100%" }}
               >
@@ -153,7 +256,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
         styles: { container: { padding: "32px 24px 24px" } },
       });
     } else {
-      goBack();
+      navigate(pathname, { state: true, replace: true });
     }
   };
 
@@ -179,7 +282,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   const handleSubmit = () => {
     if (!configuration) return;
 
-    setState((prevState) => ({ ...prevState, loading: true }));
+    setState((prevState) => ({ ...prevState, submitting: true }));
 
     const configurationData = getConfiguration(
       configuration,
@@ -214,7 +317,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
         const recipe = base64Encode(binary);
 
-        const policy: AppPolicy = {
+        const policy: AppAutomation = {
           active: true,
           id: uuidv4(),
           pluginId: id,
@@ -230,21 +333,24 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
           .then((signature) => {
             addPolicy({ ...policy, signature })
               .then(() => {
-                setState((prevState) => ({ ...prevState, isAdded: true }));
+                setState((prevState) => ({
+                  ...prevState,
+                  isAdded: true,
+                  submitting: false,
+                }));
 
-                onFinish();
+                onCreate();
               })
               .catch((error: Error) => {
+                setState((prevState) => ({ ...prevState, submitting: false }));
+
                 messageAPI.error(error.message);
-              })
-              .finally(() => {
-                setState((prevState) => ({ ...prevState, loading: false }));
               });
           })
           .catch((error: Error) => {
             messageAPI.error(error.message);
 
-            setState((prevState) => ({ ...prevState, loading: false }));
+            setState((prevState) => ({ ...prevState, submitting: false }));
           });
       }
     );
@@ -261,11 +367,32 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
     form.resetFields();
 
-    setState({ isAdded: false, loading: false, step: 1 });
+    setState({ isAdded: false, step: 1, submitting: false });
   }, [form, visible]);
 
   return (
     <>
+      <Tabs
+        items={[
+          {
+            children: (
+              <Table
+                columns={columns}
+                dataSource={modifiedAutomations}
+                loading={loading}
+                pagination={false}
+                rowKey="id"
+                size="small"
+                id="policies"
+              />
+            ),
+            key: "upcoming",
+            label: "Upcoming",
+          },
+          { disabled: true, key: "history", label: "History" },
+        ]}
+      />
+
       <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
@@ -275,7 +402,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
           <>
             <Stack $style={{ flex: "none", width: "218px" }} />
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
-              <Button loading={loading} onClick={handleStep}>
+              <Button loading={submitting} onClick={handleStep}>
                 {step > 2
                   ? "Submit"
                   : step > 1
@@ -293,7 +420,9 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
           footer: { display: "flex", gap: 65, marginTop: 24 },
           header: { marginBottom: 32 },
         }}
-        title={<AutomationFormTitle app={app} onBack={handleBack} step={step} />}
+        title={
+          <AutomationFormTitle app={app} onBack={handleBack} step={step} />
+        }
         width={992}
       >
         <AutomationFormSidebar
@@ -337,7 +466,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              <DatePickerFormItem label="End Date" name="endDate" />
+              <AutomationFormDatePicker label="End Date" name="endDate" />
               <Form.Item
                 label="Frequency"
                 name="frequency"
@@ -350,7 +479,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
                   }))}
                 />
               </Form.Item>
-              <DateCheckboxFormItem name="startDate" />
+              <AutomationFormCheckboxDate name="startDate" />
               <AssetWidget chains={supportedChains} keys={["from"]} />
               <Form.Item
                 label="Amount"
