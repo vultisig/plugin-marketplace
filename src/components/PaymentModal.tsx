@@ -16,10 +16,15 @@ import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
 import { RecipeSchema } from "@/utils/types";
 
+type StateProps = {
+  loading: boolean;
+  schema?: RecipeSchema;
+  step: number;
+};
+
 export const PaymentModal = () => {
-  const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [schema, setSchema] = useState<RecipeSchema | undefined>(undefined);
+  const [state, setState] = useState<StateProps>({ loading: false, step: 1 });
+  const { loading, schema, step } = state;
   const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
@@ -44,31 +49,30 @@ export const PaymentModal = () => {
       description: "The app can view Vault balances",
     },
   ];
-  
 
   const handleInstall = async () => {
     if (loading) return;
 
-    setLoading(true);
+    setState((prev) => ({ ...prev, loading: true }));
 
     await startReshareSession(feeAppId);
 
-    setLoading(false);
+    setState((prev) => ({ ...prev, loading: false }));
 
     updateFeeAppStatus();
   };
 
   useEffect(() => {
-    if (visible) {
-      setStep(1);
-      
-      if (feeApp && !schema) {
-        getRecipeSpecification(feeApp.id)
-          .then((recipeSchema) => setSchema(recipeSchema))
-          .catch(() => setSchema(undefined));
-      }
-    }
-  }, [visible, feeApp, schema]);
+    if (!visible) return;
+
+    setState((prev) => ({ ...prev, step: 1 }));
+
+    if (schema) return;
+
+    getRecipeSpecification(feeAppId)
+      .catch(() => undefined)
+      .then((schema) => setState((prev) => ({ ...prev, schema })));
+  }, [schema, visible]);
 
   if (!feeApp || !feeAppStatus) return null;
 
@@ -160,7 +164,7 @@ export const PaymentModal = () => {
               <HStack $style={{ justifyContent: "flex-start" }}>
                 <Button
                   icon={<CirclePlusIcon fontSize={16} />}
-                  onClick={() => setStep(2)}
+                  onClick={() => setState((prev) => ({ ...prev, step: 2 }))}
                 >
                   Add to Vault
                 </Button>
