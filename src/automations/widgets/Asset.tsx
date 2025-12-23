@@ -238,7 +238,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 
   useEffect(() => {
     if (chain) {
-      setState((prev) => ({ ...prev, loading: true }));
+      setState((prev) => ({ ...prev, loading: true, tokens: [] }));
 
       getTokenList(chain)
         .catch(() => [])
