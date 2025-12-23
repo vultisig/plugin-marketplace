@@ -6,6 +6,7 @@ import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
+import { parseUnits } from "viem";
 
 import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
 import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
@@ -186,6 +187,18 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         configuration.definitions
       );
 
+        // Convert recipient amounts to consider decimals
+      const recipientsWithDecimals = recipients.map((recipient) => ({
+        ...recipient,
+        amount: parseUnits(
+          String(recipient.amount),
+          values.asset.decimals
+        ).toString(),
+      }));
+
+      configurationData["recipients"] = recipientsWithDecimals;
+
+      
       getRecipeSuggestion(id, configurationData).then(
         ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {
