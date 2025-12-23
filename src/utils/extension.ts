@@ -141,8 +141,76 @@ export const startReshareSession = async (pluginId: string) => {
   try {
     const vault = await getVault();
 
+    // fetch first party id that does not start with Server
+    const extensionParty = vault.parties.find(
+      (party) => !party.toLocaleLowerCase().startsWith("server")
+    );
+    if (!extensionParty) throw new Error("Extension party not found in vault");
+
+    // Step 1: Generate dAppSessionId and encryptionKeyHex
+
     const dAppSessionId = crypto.randomUUID();
     const encryptionKeyHex = randomBytes(32).toString("hex");
+
+    // Create empty session first
+    await fetch(`https://api.vultisig.com/router/${dAppSessionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify([extensionParty]),
+    });
+
+    const extensionPromise = window.vultisig.plugin.request<{
+      success: boolean;
+    }>({
+      method: "reshare_sign",
+      params: [{ id: pluginId, dAppSessionId, encryptionKeyHex }],
+    });
+
+    // Poll the router endpoint until peers are available
+    const pollForPeers = async (): Promise<boolean> => {
+      const maxAttempts = 100; // 100 attempts
+      const pollInterval = 200; // 200 ms
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+          const response = await fetch(
+            `https://api.vultisig.com/router/${dAppSessionId}`
+          );
+          const peers: string[] = await response.json();
+
+          if (peers.length > 1) {
+            return true;
+          }
+        } catch (error) {
+          console.error("Error polling for peers:", error);
+        }
+
+        // Wait before next attempt
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      }
+
+      return false;
+    };
+
+    const raceResult = await Promise.race([
+      extensionPromise.then((result) => ({
+        type: "extension" as const,
+        success: result.success,
+      })),
+      pollForPeers().then((hasPeers) => ({ type: "peers" as const, hasPeers })),
+    ]);
+
+    // If extension finished first and failed, stop everything
+    if (raceResult.type === "extension" && !raceResult.success) {
+      throw new Error("User cancelled or extension failed to start reshare");
+    }
+
+    // If polling finished first but no peers joined, stop
+    if (raceResult.type === "peers" && !raceResult.hasPeers) {
+      throw new Error("Extension did not join the reshare session");
+    }
 
     await reshareVault({
       email: "", // Not provided by extension, using empty string
@@ -156,17 +224,11 @@ export const startReshareSession = async (pluginId: string) => {
       sessionId: dAppSessionId,
     });
 
-    const { success } = await window.vultisig.plugin.request<{
-      success: boolean;
-    }>({
-      method: "reshare_sign",
-      params: [{ id: pluginId, dAppSessionId, encryptionKeyHex }],
-    });
-
     // Example response: vultisig://vultisig.com?type=NewVault&tssType=Reshare&jsonData=...
 
     // Transform the payload to match backend ReshareRequest structure
-
+    // Step 4: Wait for extension to complete (it was waiting for verifier)
+    const { success } = await extensionPromise;
     return success;
   } catch {
     return false;
