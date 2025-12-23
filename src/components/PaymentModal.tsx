@@ -11,19 +11,22 @@ import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { getRecipeSpecification } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
+import { RecipeSchema } from "@/utils/types";
 
 export const PaymentModal = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [schema, setSchema] = useState<RecipeSchema | undefined>(undefined);
   const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
   const visible = hash === modalHash.payment;
 
-  const permissions = [
+  const permissions = schema?.permissions || [
     {
       id: "transaction_signing",
       label: "Access to transaction signing",
@@ -41,6 +44,7 @@ export const PaymentModal = () => {
       description: "The app can view Vault balances",
     },
   ];
+  
 
   const handleInstall = async () => {
     if (loading) return;
@@ -55,8 +59,16 @@ export const PaymentModal = () => {
   };
 
   useEffect(() => {
-    if (visible) setStep(1);
-  }, [visible]);
+    if (visible) {
+      setStep(1);
+      
+      if (feeApp && !schema) {
+        getRecipeSpecification(feeApp.id)
+          .then((recipeSchema) => setSchema(recipeSchema))
+          .catch(() => setSchema(undefined));
+      }
+    }
+  }, [visible, feeApp, schema]);
 
   if (!feeApp || !feeAppStatus) return null;
 
