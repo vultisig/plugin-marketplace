@@ -1,7 +1,7 @@
 import { Form, FormItemProps, Input, InputNumber, Select } from "antd";
 import { FC } from "react";
 
-import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
+import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
 import { AssetWidget } from "@/automations/widgets/Asset";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
@@ -96,7 +96,7 @@ const DynamicFormItem: FC<FieldProps & FormItemProps> = ({
       } else {
         switch (format) {
           case "date-time": {
-            return <DatePickerFormItem {...rest} />;
+            return <AutomationFormDatePicker {...rest} />;
           }
           default: {
             return (

@@ -2,11 +2,9 @@ import { DatePicker, DatePickerProps, Form, FormItemProps } from "antd";
 import dayjs from "dayjs";
 import { FC, useState } from "react";
 
-export const DatePickerFormItem: FC<FormItemProps & { disabled?: boolean }> = ({
-  disabled,
-  name,
-  ...rest
-}) => {
+export const AutomationFormDatePicker: FC<
+  FormItemProps & { disabled?: boolean }
+> = ({ disabled, name, ...rest }) => {
   const [open, setOpen] = useState(false);
   const form = Form.useFormInstance();
   const date = Form.useWatch<string>(name, form);
