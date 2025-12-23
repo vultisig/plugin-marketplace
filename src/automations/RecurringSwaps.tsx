@@ -6,7 +6,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { Form, Input, InputNumber, Modal, Select } from "antd";
+import { Empty, Form, Input, InputNumber, Modal, Select } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -14,13 +14,14 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { DateCheckboxFormItem } from "@/components/appPolicyForms/components/DateCheckboxFormItem";
-import { DatePickerFormItem } from "@/components/appPolicyForms/components/DatePickerFormItem";
-import { AppPolicyFormSidebar } from "@/components/appPolicyForms/components/Sidebar";
-import { AppPolicyFormTitle } from "@/components/appPolicyForms/components/Title";
-import { DefaultPolicyFormProps } from "@/components/appPolicyForms/Default";
-import { AssetWidget } from "@/components/appPolicyForms/widgets/Asset";
-import { SuccessModal } from "@/components/SuccessModal";
+import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
+import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
+import { AutomationFormSidebar } from "@/automations/components/Sidebar";
+import { AutomationFormSuccess } from "@/automations/components/Success";
+import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormToken } from "@/automations/components/Token";
+import { AutomationFormProps } from "@/automations/Default";
+import { AssetWidget } from "@/automations/widgets/Asset";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
@@ -41,7 +42,6 @@ import { modalHash } from "@/utils/constants";
 import { getAccount, personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
-  camelCaseToTitle,
   getConfiguration,
   getFeePolicies,
   kebabCaseToTitle,
@@ -67,7 +67,7 @@ type DataProps = {
   to: AssetProps;
 };
 
-export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
+export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   app,
   onFinish,
   schema,
@@ -94,7 +94,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
-  const visible = hash === modalHash.policy;
+  const visible = hash === modalHash.automation;
 
   const handleBack = () => {
     setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
@@ -226,7 +226,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
 
         const message = policyToHexMessage(policy);
 
-        personalSign(address, message, "policy")
+        personalSign(address, message, "policy", id)
           .then((signature) => {
             addPolicy({ ...policy, signature })
               .then(() => {
@@ -264,21 +264,9 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
     setState({ isAdded: false, loading: false, step: 1 });
   }, [form, visible]);
 
-  if (!configuration || !configurationExample) return null;
-
   return (
     <>
-      <SuccessModal onClose={() => goBack()} visible={visible && isAdded}>
-        <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
-          Success!
-        </Stack>
-        <Stack
-          as="span"
-          $style={{ color: colors.textTertiary.toHex(), lineHeight: "18px" }}
-        >
-          New Automation is added
-        </Stack>
-      </SuccessModal>
+      <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
         centered={true}
@@ -305,10 +293,10 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
           footer: { display: "flex", gap: 65, marginTop: 24 },
           header: { marginBottom: 32 },
         }}
-        title={<AppPolicyFormTitle app={app} onBack={handleBack} step={step} />}
+        title={<AutomationFormTitle app={app} onBack={handleBack} step={step} />}
         width={992}
       >
-        <AppPolicyFormSidebar
+        <AutomationFormSidebar
           steps={["Templates", "Automations", "Overview"]}
           step={step}
         />
@@ -330,13 +318,17 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              {configurationExample.map((example, index) => (
-                <Template
-                  key={index}
-                  setValues={handleTemplate}
-                  values={example as DataProps}
-                />
-              ))}
+              {configurationExample?.length ? (
+                configurationExample.map((example, index) => (
+                  <Template
+                    key={index}
+                    setValues={handleTemplate}
+                    values={example as DataProps}
+                  />
+                ))
+              ) : (
+                <Empty description="No templates available" />
+              )}
             </Stack>
             <Stack
               $style={{
@@ -359,7 +351,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
                 />
               </Form.Item>
               <DateCheckboxFormItem name="startDate" />
-              <AssetWidget chains={supportedChains} fullKey={["from"]} />
+              <AssetWidget chains={supportedChains} keys={["from"]} />
               <Form.Item
                 label="Amount"
                 name="fromAmount"
@@ -367,7 +359,7 @@ export const RecurringSwapsPolicyForm: FC<DefaultPolicyFormProps> = ({
               >
                 <InputNumber min={0} />
               </Form.Item>
-              <AssetWidget chains={supportedChains} fullKey={["to"]} />
+              <AssetWidget chains={supportedChains} keys={["to"]} />
             </Stack>
             {step === 3 && <Overview {...values} />}
           </Form>
@@ -453,7 +445,7 @@ const Overview: FC<DataProps> = ({
             padding: "0 8px",
           }}
         >
-          {camelCaseToTitle(frequency)}
+          {kebabCaseToTitle(frequency)}
         </Stack>
       </HStack>
       <Divider />
@@ -466,7 +458,7 @@ const Overview: FC<DataProps> = ({
             }}
           >
             <Stack as="span">From</Stack>
-            <OverviewItem {...from} />
+            <AutomationFormToken chain={from.chain} id={from.token} />
           </HStack>
           <Divider />
         </>
@@ -489,72 +481,10 @@ const Overview: FC<DataProps> = ({
           }}
         >
           <Stack as="span">To</Stack>
-          <OverviewItem {...to} />
+          <AutomationFormToken chain={to.chain} id={to.token} />
         </HStack>
       )}
     </VStack>
-  );
-};
-
-const OverviewItem: FC<AssetProps> = (asset) => {
-  const [token, setToken] = useState<Token | undefined>(undefined);
-  const { getTokenData } = useQueries();
-
-  useEffect(() => {
-    if (!asset) return;
-    let cancelled = false;
-
-    if (asset.token) {
-      getTokenData(asset.chain, asset.token)
-        .catch(() => undefined)
-        .then((token) => {
-          if (!cancelled) setToken(token);
-        });
-    } else {
-      setToken(nativeTokens[asset.chain]);
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [asset]);
-
-  if (!token) return <Spin size="small" />;
-
-  return (
-    <HStack
-      $style={{
-        alignItems: "center",
-        gap: "8px",
-        justifyContent: "center",
-      }}
-    >
-      <Stack $style={{ position: "relative" }}>
-        <TokenImage
-          alt={token.ticker}
-          borderRadius="50%"
-          height="20px"
-          src={token.logo}
-          width="20px"
-        />
-        {!!token.id && (
-          <Stack
-            $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
-          >
-            <TokenImage
-              alt={token.chain}
-              borderRadius="50%"
-              height="12px"
-              src={`/tokens/${token.chain.toLowerCase()}.svg`}
-              width="12px"
-            />
-          </Stack>
-        )}
-      </Stack>
-      <Stack as="span" $style={{ lineHeight: "20px" }}>
-        {token.ticker}
-      </Stack>
-    </HStack>
   );
 };
 
@@ -633,7 +563,7 @@ const Template: FC<{
             Frequency
           </Stack>
           <Stack as="span" $style={{ fontSize: "12px" }}>
-            {camelCaseToTitle(frequency)}
+            {kebabCaseToTitle(frequency)}
           </Stack>
         </HStack>
         <Divider light />

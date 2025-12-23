@@ -62,7 +62,8 @@ export const AppPage = () => {
   const navigate = useNavigate();
   const colors = useTheme();
   const isFree = app && !app.pricing.length;
-  const isFeeAppInstalled = feeAppStatus?.isInstalled;
+  const isFeeAppInstalled =
+    feeAppStatus?.isInstalled || feeAppStatus?.isTrialActive;
   const permissions = schema?.permissions || [];
 
   const checkStatus = useCallback(async () => {
@@ -335,7 +336,7 @@ export const AppPage = () => {
                           <Button
                             disabled={loading || !schema}
                             href={`${routeTree.automations.link(id)}${
-                              modalHash.policy
+                              modalHash.automation
                             }`}
                           >
                             Add Automation
@@ -764,7 +765,9 @@ export const AppPage = () => {
           </Stack>
         </VStack>
         <HStack $style={{ gap: "12px", marginTop: "12px" }}>
-          <Button href={`${routeTree.automations.link(id)}${modalHash.policy}`}>
+          <Button
+            href={`${routeTree.automations.link(id)}${modalHash.automation}`}
+          >
             Create Automation
           </Button>
           <Button href={routeTree.myApps.path} kind="secondary" state={true}>

@@ -117,7 +117,8 @@ export const getVault = async () => {
 export const personalSign = async (
   address: string,
   message: string,
-  type: "connect" | "policy"
+  type: "connect" | "policy",
+  pluginId?: string
 ) => {
   await isAvailable();
 
@@ -125,7 +126,7 @@ export const personalSign = async (
     string | { error?: string }
   >({
     method: "personal_sign",
-    params: [message, address, type],
+    params: [message, address, type, ...(pluginId ? [pluginId] : [])],
   });
 
   if (typeof signature === "object" && signature?.error)

@@ -3,8 +3,9 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { DefaultPolicyForm } from "@/components/appPolicyForms/Default";
-import { RecurringSwapsPolicyForm } from "@/components/appPolicyForms/RecurringSwaps";
+import { AutomationForm } from "@/automations/Default";
+import { RecurringSendsForm } from "@/automations/RecurringSends";
+import { RecurringSwapsForm } from "@/automations/RecurringSwaps";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { useAntd } from "@/hooks/useAntd";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -24,7 +25,11 @@ import {
   isAppInstalled,
   uninstallApp,
 } from "@/utils/api";
-import { modalHash, recurringSwapsAppId } from "@/utils/constants";
+import {
+  modalHash,
+  recurringSendsAppId,
+  recurringSwapsAppId,
+} from "@/utils/constants";
 import {
   camelCaseToTitle,
   snakeCaseToTitle,
@@ -219,7 +224,7 @@ export const AutomationsPage = () => {
               width: "fit-content",
             }}
             $hover={{ color: colors.textTertiary.toHex() }}
-            onClick={() => goBack(routeTree.root.path)}
+            onClick={() => goBack()}
           >
             <ChevronLeftIcon fontSize={16} />
             Go back
@@ -246,9 +251,10 @@ export const AutomationsPage = () => {
             <HStack $style={{ alignItems: "center", gap: "16px" }}>
               <Button
                 disabled={loading}
-                href={modalHash.policy}
+                href={modalHash.automation}
                 icon={<CirclePlusIcon />}
                 loading={loading}
+                state={true}
               >
                 Add Automation
               </Button>
@@ -504,13 +510,19 @@ export const AutomationsPage = () => {
       </VStack>
 
       {id === recurringSwapsAppId ? (
-        <RecurringSwapsPolicyForm
+        <RecurringSwapsForm
+          app={app}
+          onFinish={() => fetchPolicies(0)}
+          schema={schema}
+        />
+      ) : id === recurringSendsAppId ? (
+        <RecurringSendsForm
           app={app}
           onFinish={() => fetchPolicies(0)}
           schema={schema}
         />
       ) : (
-        <DefaultPolicyForm
+        <AutomationForm
           app={app}
           onFinish={() => fetchPolicies(0)}
           schema={schema}

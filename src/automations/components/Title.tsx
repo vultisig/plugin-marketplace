@@ -6,13 +6,13 @@ import { Button } from "@/toolkits/Button";
 import { HStack, Stack } from "@/toolkits/Stack";
 import { App } from "@/utils/types";
 
-type AppPolicyFormTitleProps = {
+type AutomationFormTitleProps = {
   app: App;
   onBack: () => void;
   step: number;
 };
 
-export const AppPolicyFormTitle: FC<AppPolicyFormTitleProps> = ({
+export const AutomationFormTitle: FC<AutomationFormTitleProps> = ({
   app,
   onBack,
   step,
