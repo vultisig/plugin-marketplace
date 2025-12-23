@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { reshareVault } from "@/utils/api";
 import { Chain, evmChains } from "@/utils/chain";
 import { Vault } from "@/utils/types";
+
 import { vultiApiUrl } from "./constants";
 
 const isAvailable = async () => {
