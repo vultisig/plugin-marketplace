@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Helmet } from "react-helmet-async";
 
-export type SEOProps = {
+ type SEOProps = {
   title?: string;
   description?: string;
   image?: string;
