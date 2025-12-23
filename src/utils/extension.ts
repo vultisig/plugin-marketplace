@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { reshareVault } from "@/utils/api";
 import { Chain, evmChains } from "@/utils/chain";
 import { Vault } from "@/utils/types";
+import { vultiApiUrl } from "./constants";
 
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
@@ -153,7 +154,7 @@ export const startReshareSession = async (pluginId: string) => {
     const encryptionKeyHex = randomBytes(32).toString("hex");
 
     // Create empty session first
-    await fetch(`https://api.vultisig.com/router/${dAppSessionId}`, {
+    await fetch(`${vultiApiUrl}/router/${dAppSessionId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -176,7 +177,7 @@ export const startReshareSession = async (pluginId: string) => {
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
           const response = await fetch(
-            `https://api.vultisig.com/router/${dAppSessionId}`
+            `${vultiApiUrl}/router/${dAppSessionId}`
           );
           const peers: string[] = await response.json();
 
@@ -209,7 +210,7 @@ export const startReshareSession = async (pluginId: string) => {
 
     // If polling finished first but no peers joined, stop
     if (raceResult.type === "peers" && !raceResult.hasPeers) {
-      throw new Error("Extension did not join the reshare session");
+      throw new Error("Timeout: peers did not join the reshare session");
     }
 
     await reshareVault({
