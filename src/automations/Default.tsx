@@ -175,7 +175,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
 
     const message = policyToHexMessage(policy);
 
-    personalSign(address, message, "policy")
+    personalSign(address, message, "policy", id)
       .then((signature) => {
         addPolicy({ ...policy, signature })
           .then(() => {
