@@ -19,7 +19,6 @@ import {
   delPolicy,
   getAutomations,
   getRecipeSpecification,
-  isAppInstalled,
   uninstallApp,
 } from "@/utils/api";
 import {
@@ -131,20 +130,13 @@ export const AutomationsPage = () => {
   };
 
   useEffect(() => {
-    isAppInstalled(id).then((isInstalled) => {
-      if (!isInstalled) {
-        goBack(routeTree.root.path);
-        return;
-      }
+    Promise.all([getAppData(id), getRecipeSpecification(id)])
+      .then(([app, schema]) => {
+        setState((prevState) => ({ ...prevState, app, schema }));
 
-      Promise.all([getAppData(id), getRecipeSpecification(id)])
-        .then(([app, schema]) => {
-          setState((prevState) => ({ ...prevState, app, schema }));
-
-          fetchAutomations();
-        })
-        .catch(() => goBack(routeTree.root.path));
-    });
+        fetchAutomations();
+      })
+      .catch(() => goBack(routeTree.root.path));
   }, [fetchAutomations, goBack]);
 
   if (!app || !schema) return <Spin centered />;

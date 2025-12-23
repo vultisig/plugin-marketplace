@@ -13,7 +13,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 
@@ -29,6 +29,7 @@ import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
 import { PencilLineIcon } from "@/icons/PencilLineIcon";
@@ -105,11 +106,11 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const { address = "" } = useCore();
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
-  const { hash, pathname } = useLocation();
+  const { hash } = useLocation();
   const [form] = Form.useForm<DataProps>();
   const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
-  const navigate = useNavigate();
+  const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
@@ -229,7 +230,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                 kind="danger"
                 onClick={() => {
                   confirm.destroy();
-                  navigate(pathname, { state: true, replace: true });
+                  goBack();
                 }}
                 $style={{ width: "100%" }}
               >
@@ -243,7 +244,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         styles: { container: { padding: "32px 24px 24px" } },
       });
     } else {
-      navigate(pathname, { state: true, replace: true });
+      goBack();
     }
   };
 

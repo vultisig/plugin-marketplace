@@ -19,7 +19,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { FC, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
@@ -35,6 +35,7 @@ import { AssetWidget } from "@/automations/widgets/Asset";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
 import { CrossIcon } from "@/icons/CrossIcon";
@@ -112,10 +113,10 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     pluginVersion,
     requirements,
   } = schema;
-  const { hash, pathname } = useLocation();
+  const { hash } = useLocation();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
-  const navigate = useNavigate();
+  const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
@@ -242,7 +243,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
                 kind="danger"
                 onClick={() => {
                   confirm.destroy();
-                  navigate(pathname, { state: true, replace: true });
+                  goBack();
                 }}
                 $style={{ width: "100%" }}
               >
@@ -256,7 +257,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
         styles: { container: { padding: "32px 24px 24px" } },
       });
     } else {
-      navigate(pathname, { state: true, replace: true });
+      goBack();
     }
   };
 
