@@ -22,7 +22,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
-import { parseUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
 import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
@@ -178,7 +178,15 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       align: "center",
       dataIndex: "configuration",
       key: "amount",
-      render: ({ fromAmount }: DataProps) => toNumberFormat(fromAmount),
+      render: ({ from, fromAmount }: DataProps) => {
+        return (
+          <AmountCell
+            chain={from.chain}
+            tokenId={from.token}
+            amount={fromAmount}
+          />
+        );
+      },
       title: "Amount",
     },
     {
@@ -808,4 +816,35 @@ const TemplateItem: FC<{
       )}
     </VStack>
   );
+};
+
+const AmountCell: FC<{ chain: Chain; tokenId: string; amount: string }> = ({
+  chain,
+  tokenId,
+  amount,
+}) => {
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const { getTokenData } = useQueries();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (tokenId) {
+      getTokenData(chain, tokenId)
+        .catch(() => undefined)
+        .then((token) => {
+          if (!cancelled) setToken(token);
+        });
+    } else {
+      setToken(nativeTokens[chain]);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chain, tokenId]);
+
+  if (!token) return <Spin size="small" />;
+
+  return formatUnits(BigInt(amount), token.decimals);
 };
