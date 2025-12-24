@@ -268,11 +268,11 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         configuration.definitions
       );
 
-        // Convert recipient amounts to consider decimals
+      // Convert recipient amounts to consider decimals
       const recipientsWithDecimals = recipients.map((recipient) => ({
         ...recipient,
         amount: parseUnits(
-          String(recipient.amount),
+          (recipient.amount as number).toFixed(values.asset.decimals),
           values.asset.decimals
         ).toString(),
       }));

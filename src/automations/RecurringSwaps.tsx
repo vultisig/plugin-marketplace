@@ -294,7 +294,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     // TODO: move amount to asset widget
     if ("from" in values && "fromAmount" in values) {
       configurationData["fromAmount"] = parseUnits(
-        String(values.fromAmount),
+        (values.fromAmount as number).toFixed(values.from.decimals),
         values.from.decimals
       ).toString();
     }

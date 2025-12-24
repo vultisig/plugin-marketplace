@@ -297,13 +297,13 @@ export const AutomationForm: FC<AutomationFormProps> = ({
     if ("from" in values) {
       if ("amount" in values) {
         configurationData["amount"] = parseUnits(
-          values.amount as string,
+          (values.amount as number).toFixed((values.from as JsonObject).decimals as number),
           (values.from as JsonObject).decimals as number
         ).toString();
       }
       if ("fromAmount" in values) {
         configurationData["fromAmount"] = parseUnits(
-          values.fromAmount as string,
+          (values.fromAmount as number).toFixed((values.from as JsonObject).decimals as number),
           (values.from as JsonObject).decimals as number
         ).toString();
       }
