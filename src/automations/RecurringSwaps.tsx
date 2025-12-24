@@ -178,7 +178,15 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       align: "center",
       dataIndex: "configuration",
       key: "amount",
-      render: ({ fromAmount }: DataProps) => toNumberFormat(fromAmount),
+      render: ({ from, fromAmount }: DataProps) => {
+        return (
+          <AmountCell
+            chain={from.chain}
+            tokenId={from.token}
+            amount={fromAmount}
+          />
+        );
+      },
       title: "Amount",
     },
     {
@@ -805,4 +813,28 @@ const TemplateItem: FC<{
       )}
     </VStack>
   );
+};
+
+const AmountCell: FC<{ chain: Chain; tokenId: string; amount: string }> = ({
+  chain,
+  tokenId,
+  amount,
+}) => {
+  const [token, setToken] = useState<Token | undefined>(undefined);
+  const { getTokenData } = useQueries();
+
+  useEffect(() => {
+    if (tokenId) {
+      getTokenData(chain, tokenId)
+        .catch(() => undefined)
+        .then(setToken);
+    } else {
+      setToken(nativeTokens[chain]);
+    }
+  }, [chain, tokenId]);
+
+  if (!token) return <Spin />;
+
+  const formattedAmount = Number(amount) / Math.pow(10, token.decimals);
+  return <>{toNumberFormat(formattedAmount)}</>;
 };
