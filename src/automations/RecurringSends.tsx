@@ -4,7 +4,6 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   Modal,
   Select,
   Table,
@@ -41,6 +40,7 @@ import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
+import { InputDigits } from "@/toolkits/InputDigits";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
@@ -465,10 +465,9 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   <Form.Item<RecipientProps>
                     label="Amount"
                     name="amount"
-                    normalize={(value) => value && String(value)}
                     rules={[{ required: true }]}
                   >
-                    <InputNumber min={0} />
+                    <InputDigits />
                   </Form.Item>
                 </Stack>
                 <Form.Item<RecipientProps>
