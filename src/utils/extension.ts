@@ -166,6 +166,19 @@ export const startReshareSession = async (pluginId: string) => {
       method: "reshare_sign",
       params: [{ id: pluginId, dAppSessionId, encryptionKeyHex }],
     });
+    let extensionCompleted = false;
+    let extensionResult: { success: boolean } | null = null;
+
+    // Monitor extension promise completion (including rejections)
+    extensionPromise
+      .then((result) => {
+        extensionCompleted = true;
+        extensionResult = result;
+      })
+      .catch(() => {
+        extensionCompleted = true;
+        extensionResult = { success: false };
+      });
 
     // Poll the router endpoint until peers are available
     const pollForPeers = async (): Promise<boolean> => {
@@ -173,6 +186,14 @@ export const startReshareSession = async (pluginId: string) => {
       const pollInterval = 200; // 200 ms
 
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        console.log(
+          "Extension result info: ",
+          extensionCompleted,
+          extensionResult
+        );
+        if (extensionCompleted && extensionResult && !extensionResult.success) {
+          return false;
+        }
         try {
           const response = await fetch(
             `${vultiApiUrl}/router/${dAppSessionId}`
@@ -194,10 +215,15 @@ export const startReshareSession = async (pluginId: string) => {
     };
 
     const raceResult = await Promise.race([
-      extensionPromise.then((result) => ({
-        type: "extension" as const,
-        success: result.success,
-      })),
+      extensionPromise
+        .then((result) => ({
+          type: "extension" as const,
+          success: result.success,
+        }))
+        .catch(() => ({
+          type: "extension" as const,
+          success: false,
+        })),
       pollForPeers().then((hasPeers) => ({ type: "peers" as const, hasPeers })),
     ]);
 
