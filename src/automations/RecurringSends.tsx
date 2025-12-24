@@ -231,8 +231,8 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         configuration.definitions
       );
 
-      getRecipeSuggestion(id, configurationData).then(
-        ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
+      getRecipeSuggestion(id, configurationData)
+        .then(({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {
             author: "",
             configuration: configurationData,
@@ -280,13 +280,17 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   messageAPI.error(error.message);
                 });
             })
-            .catch((error: Error) => {
-              messageAPI.error(error.message);
+            .catch(() => {
+              messageAPI.error("Failed to sign automation");
 
               setState((prev) => ({ ...prev, submitting: false }));
             });
-        }
-      );
+        })
+        .catch(() => {
+          setState((prev) => ({ ...prev, submitting: false }));
+
+          messageAPI.error("Failed to get suggestion from app");
+        });
     } else {
       setState((prev) => ({ ...prev, step: prev.step + 1 }));
     }
