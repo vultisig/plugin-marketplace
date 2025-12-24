@@ -269,13 +269,19 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
       );
 
       // Convert recipient amounts to consider decimals
-      const recipientsWithDecimals = recipients.map((recipient) => ({
-        ...recipient,
-        amount: parseUnits(
-          (recipient.amount as number).toFixed(values.asset.decimals),
-          values.asset.decimals
-        ).toString(),
-      }));
+      const recipientsWithDecimals = recipients.map((recipient) => {
+        const numAmount = typeof recipient.amount === 'string' 
+          ? parseFloat(recipient.amount) 
+          : recipient.amount;
+        
+        return {
+          ...recipient,
+          amount: parseUnits(
+            numAmount.toFixed(values.asset.decimals),
+            values.asset.decimals
+          ).toString(),
+        };
+      });
 
       configurationData["recipients"] = recipientsWithDecimals;
 
