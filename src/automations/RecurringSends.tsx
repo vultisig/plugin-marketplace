@@ -12,6 +12,7 @@ import {
   Tabs,
 } from "antd";
 import dayjs from "dayjs";
+import { cloneDeep } from "lodash-es";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -217,7 +218,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
       const configurationData = getConfiguration(
         configuration,
-        {
+        cloneDeep({
           ...values,
           recipients: recipients.map((recipient) => ({
             ...recipient,
@@ -226,22 +227,10 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
               values.asset.decimals
             ).toString(),
           })),
-        },
+        }),
         configuration.definitions
       );
 
-        // Convert recipient amounts to consider decimals
-      const recipientsWithDecimals = recipients.map((recipient) => ({
-        ...recipient,
-        amount: parseUnits(
-          String(recipient.amount),
-          values.asset.decimals
-        ).toString(),
-      }));
-
-      configurationData["recipients"] = recipientsWithDecimals;
-
-      
       getRecipeSuggestion(id, configurationData).then(
         ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {

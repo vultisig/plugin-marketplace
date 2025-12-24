@@ -18,6 +18,7 @@ import {
   Tabs,
 } from "antd";
 import dayjs from "dayjs";
+import { cloneDeep } from "lodash-es";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -215,6 +216,8 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   };
 
   const handleStep = () => {
+    if (!configuration) return;
+
     if (step === 1) {
       form.resetFields();
 
@@ -222,93 +225,94 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     } else {
       form
         .validateFields()
-        .then(() => {
+        .then((values) => {
           if (step === 2) {
             setState((prevState) => ({ ...prevState, step: 3 }));
           } else {
-            handleSubmit();
+            setState((prevState) => ({ ...prevState, submitting: true }));
+
+            const configurationData = getConfiguration(
+              configuration,
+              cloneDeep({
+                ...values,
+                fromAmount: parseUnits(
+                  Number(values.fromAmount).toFixed(values.from.decimals),
+                  values.from.decimals
+                ).toString(),
+              }),
+              configuration.definitions
+            );
+
+            getRecipeSuggestion(id, configurationData).then(
+              ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
+                const jsonData = create(PolicySchema, {
+                  author: "",
+                  configuration: configurationData,
+                  description: "",
+                  feePolicies: getFeePolicies(pricing),
+                  id: pluginId,
+                  maxTxsPerWindow,
+                  name: values.name || "",
+                  rateLimitWindow,
+                  rules,
+                  version: pluginVersion,
+                });
+
+                const binary = toBinary(PolicySchema, jsonData);
+
+                const recipe = base64Encode(binary);
+
+                const policy: AppAutomation = {
+                  active: true,
+                  id: uuidv4(),
+                  pluginId: id,
+                  pluginVersion: String(pluginVersion),
+                  policyVersion: 0,
+                  publicKey: getVaultId(),
+                  recipe,
+                };
+
+                const message = policyToHexMessage(policy);
+
+                personalSign(address, message, "policy", id)
+                  .then((signature) => {
+                    addPolicy({ ...policy, signature })
+                      .then(() => {
+                        setState((prevState) => ({
+                          ...prevState,
+                          isAdded: true,
+                          submitting: false,
+                        }));
+
+                        onCreate();
+                      })
+                      .catch((error: Error) => {
+                        setState((prevState) => ({
+                          ...prevState,
+                          submitting: false,
+                        }));
+
+                        messageAPI.error(error.message);
+                      });
+                  })
+                  .catch((error: Error) => {
+                    messageAPI.error(error.message);
+
+                    setState((prevState) => ({
+                      ...prevState,
+                      submitting: false,
+                    }));
+                  });
+              }
+            );
           }
         })
         .catch(() => {});
     }
   };
 
-  const handleSubmit = () => {
-    if (!configuration) return;
-
-    setState((prevState) => ({ ...prevState, submitting: true }));
-
-    const configurationData = getConfiguration(
-      configuration,
-      {
-        ...values,
-        fromAmount: (values.fromAmount = parseUnits(
-          Number(values.fromAmount).toFixed(values.from.decimals),
-          values.from.decimals
-        ).toString()),
-      },
-      configuration.definitions
-    );
-
-    getRecipeSuggestion(id, configurationData).then(
-      ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
-        const jsonData = create(PolicySchema, {
-          author: "",
-          configuration: configurationData,
-          description: "",
-          feePolicies: getFeePolicies(pricing),
-          id: pluginId,
-          maxTxsPerWindow,
-          name: values.name || "",
-          rateLimitWindow,
-          rules,
-          version: pluginVersion,
-        });
-
-        const binary = toBinary(PolicySchema, jsonData);
-
-        const recipe = base64Encode(binary);
-
-        const policy: AppAutomation = {
-          active: true,
-          id: uuidv4(),
-          pluginId: id,
-          pluginVersion: String(pluginVersion),
-          policyVersion: 0,
-          publicKey: getVaultId(),
-          recipe,
-        };
-
-        const message = policyToHexMessage(policy);
-
-        personalSign(address, message, "policy", id)
-          .then((signature) => {
-            addPolicy({ ...policy, signature })
-              .then(() => {
-                setState((prevState) => ({
-                  ...prevState,
-                  isAdded: true,
-                  submitting: false,
-                }));
-
-                onCreate();
-              })
-              .catch((error: Error) => {
-                setState((prevState) => ({ ...prevState, submitting: false }));
-
-                messageAPI.error(error.message);
-              });
-          })
-          .catch((error: Error) => {
-            messageAPI.error(error.message);
-
-            setState((prevState) => ({ ...prevState, submitting: false }));
-          });
-      }
-    );
-  };
-
   const handleTemplate = (data: DataProps, edit?: boolean) => {
+    form.resetFields();
     form.setFieldsValue(data);
 
     setState((prevState) => ({ ...prevState, step: edit ? 2 : 3 }));
@@ -453,9 +457,9 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
 const Overview: FC<DataProps> = ({
   endDate,
-  frequency,
+  frequency = "",
   from,
-  fromAmount,
+  fromAmount = 0,
   startDate,
   to,
 }) => {
@@ -531,7 +535,7 @@ const Overview: FC<DataProps> = ({
         </Stack>
       </HStack>
       <Divider />
-      {from && (
+      {!!from && (
         <>
           <HStack
             $style={{
@@ -555,7 +559,7 @@ const Overview: FC<DataProps> = ({
         <Stack as="span">{toNumberFormat(fromAmount)}</Stack>
       </HStack>
       <Divider />
-      {to && (
+      {!!to && (
         <HStack
           $style={{
             alignItems: "center",
