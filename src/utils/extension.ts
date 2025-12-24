@@ -5,6 +5,8 @@ import { Chain, evmChains } from "@/utils/chain";
 import { vultiApiUrl } from "@/utils/constants";
 import { Vault } from "@/utils/types";
 
+import { vultiApiUrl } from "./constants";
+
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
 
@@ -146,7 +148,6 @@ export const startReshareSession = async (pluginId: string) => {
     const extensionParty = vault.parties.find(
       (party) => !party.toLocaleLowerCase().startsWith("server")
     );
-
     if (!extensionParty) throw new Error("Extension party not found in vault");
 
     // Step 1: Generate dAppSessionId and encryptionKeyHex

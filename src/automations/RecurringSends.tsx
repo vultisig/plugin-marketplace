@@ -230,6 +230,18 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         configuration.definitions
       );
 
+        // Convert recipient amounts to consider decimals
+      const recipientsWithDecimals = recipients.map((recipient) => ({
+        ...recipient,
+        amount: parseUnits(
+          String(recipient.amount),
+          values.asset.decimals
+        ).toString(),
+      }));
+
+      configurationData["recipients"] = recipientsWithDecimals;
+
+      
       getRecipeSuggestion(id, configurationData).then(
         ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {
