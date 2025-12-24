@@ -14,7 +14,6 @@ import { FC, Fragment, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
-import { parseUnits } from "viem";
 
 import { AutomationFormConfiguration } from "@/automations/components/FormConfiguration";
 import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
@@ -292,22 +291,6 @@ export const AutomationForm: FC<AutomationFormProps> = ({
       values,
       configuration.definitions
     );
-
-    // TODO: move amount to asset widget
-    if ("from" in values) {
-      if ("amount" in values) {
-        configurationData["amount"] = parseUnits(
-          values.amount as string,
-          (values.from as JsonObject).decimals as number
-        ).toString();
-      }
-      if ("fromAmount" in values) {
-        configurationData["fromAmount"] = parseUnits(
-          values.fromAmount as string,
-          (values.from as JsonObject).decimals as number
-        ).toString();
-      }
-    }
 
     getRecipeSuggestion(id, configurationData).then(({ rules = [] }) => {
       const formRules = rules.map(

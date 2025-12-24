@@ -35,6 +35,7 @@ import { AssetWidget } from "@/automations/widgets/Asset";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useDiscard } from "@/hooks/useDiscard";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
@@ -103,7 +104,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     step: 1,
   });
   const { isAdded, step, submitting } = state;
-  const { messageAPI, modalAPI } = useAntd();
+  const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
   const {
@@ -116,6 +117,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   const { hash } = useLocation();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
+  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -206,56 +208,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
   const handleCancel = () => {
     if (step === 3) {
-      const confirm = modalAPI.confirm({
-        centered: true,
-        content: (
-          <VStack $style={{ gap: "24px" }}>
-            <VStack $style={{ gap: "12px" }}>
-              <Stack
-                $style={{
-                  fontSize: "22px",
-                  lineHeight: "24px",
-                  textAlign: "center",
-                }}
-              >
-                Unsaved Changes
-              </Stack>
-              <Stack
-                $style={{
-                  color: colors.textTertiary.toHex(),
-                  lineHeight: "18px",
-                  textAlign: "center",
-                }}
-              >
-                Are you sure you want to leave?
-              </Stack>
-            </VStack>
-            <HStack $style={{ gap: "12px", justifyContent: "center" }}>
-              <Stack
-                as={Button}
-                onClick={() => confirm.destroy()}
-                $style={{ width: "100%" }}
-              >
-                No, go back
-              </Stack>
-              <Stack
-                as={Button}
-                kind="danger"
-                onClick={() => {
-                  confirm.destroy();
-                  goBack();
-                }}
-                $style={{ width: "100%" }}
-              >
-                Yes, leave
-              </Stack>
-            </HStack>
-          </VStack>
-        ),
-        footer: null,
-        icon: null,
-        styles: { container: { padding: "32px 24px 24px" } },
-      });
+      discard(() => goBack());
     } else {
       goBack();
     }
@@ -287,17 +240,15 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
     const configurationData = getConfiguration(
       configuration,
-      values,
+      {
+        ...values,
+        fromAmount: (values.fromAmount = parseUnits(
+          Number(values.fromAmount).toFixed(values.from.decimals),
+          values.from.decimals
+        ).toString()),
+      },
       configuration.definitions
     );
-
-    // TODO: move amount to asset widget
-    if ("from" in values && "fromAmount" in values) {
-      configurationData["fromAmount"] = parseUnits(
-        String(values.fromAmount),
-        values.from.decimals
-      ).toString();
-    }
 
     getRecipeSuggestion(id, configurationData).then(
       ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
@@ -485,6 +436,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
               <Form.Item
                 label="Amount"
                 name="fromAmount"
+                normalize={(value) => value && String(value)}
                 rules={[{ required: true }]}
               >
                 <InputNumber min={0} />
