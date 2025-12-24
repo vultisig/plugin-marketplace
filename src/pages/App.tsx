@@ -719,13 +719,7 @@ export const AppPage = () => {
             onClick={() => {
               goBack();
 
-              navigate(
-                {
-                  pathname: routeTree.automations.link(id),
-                  hash: modalHash.automation,
-                },
-                { state: true }
-              );
+              navigate(routeTree.automations.link(id), { state: true });
             }}
           >
             Create Automation
