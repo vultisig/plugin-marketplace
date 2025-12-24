@@ -12,6 +12,7 @@ import {
   Tabs,
 } from "antd";
 import dayjs from "dayjs";
+import { cloneDeep } from "lodash-es";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -30,6 +31,7 @@ import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useDiscard } from "@/hooks/useDiscard";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
@@ -103,7 +105,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     recipients: [],
   });
   const { isAdded, step, recipients, submitting } = state;
-  const { messageAPI, modalAPI } = useAntd();
+  const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
@@ -111,6 +113,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const [form] = Form.useForm<DataProps>();
   const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
+  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -194,56 +197,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
   const handleCancel = () => {
     if (step === 4) {
-      const confirm = modalAPI.confirm({
-        centered: true,
-        content: (
-          <VStack $style={{ gap: "24px" }}>
-            <VStack $style={{ gap: "12px" }}>
-              <Stack
-                $style={{
-                  fontSize: "22px",
-                  lineHeight: "24px",
-                  textAlign: "center",
-                }}
-              >
-                Unsaved Changes
-              </Stack>
-              <Stack
-                $style={{
-                  color: colors.textTertiary.toHex(),
-                  lineHeight: "18px",
-                  textAlign: "center",
-                }}
-              >
-                Are you sure you want to leave?
-              </Stack>
-            </VStack>
-            <HStack $style={{ gap: "12px", justifyContent: "center" }}>
-              <Stack
-                as={Button}
-                onClick={() => confirm.destroy()}
-                $style={{ width: "100%" }}
-              >
-                No, go back
-              </Stack>
-              <Stack
-                as={Button}
-                kind="danger"
-                onClick={() => {
-                  confirm.destroy();
-                  goBack();
-                }}
-                $style={{ width: "100%" }}
-              >
-                Yes, leave
-              </Stack>
-            </HStack>
-          </VStack>
-        ),
-        footer: null,
-        icon: null,
-        styles: { container: { padding: "32px 24px 24px" } },
-      });
+      discard(() => goBack());
     } else {
       goBack();
     }
@@ -264,22 +218,19 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
       const configurationData = getConfiguration(
         configuration,
-        { ...values, recipients },
+        cloneDeep({
+          ...values,
+          recipients: recipients.map((recipient) => ({
+            ...recipient,
+            amount: parseUnits(
+              Number(recipient.amount).toFixed(values.asset.decimals),
+              values.asset.decimals
+            ).toString(),
+          })),
+        }),
         configuration.definitions
       );
 
-        // Convert recipient amounts to consider decimals
-      const recipientsWithDecimals = recipients.map((recipient) => ({
-        ...recipient,
-        amount: parseUnits(
-          String(recipient.amount),
-          values.asset.decimals
-        ).toString(),
-      }));
-
-      configurationData["recipients"] = recipientsWithDecimals;
-
-      
       getRecipeSuggestion(id, configurationData).then(
         ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {

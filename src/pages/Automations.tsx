@@ -85,7 +85,7 @@ export const AutomationsPage = () => {
             .then(() => {
               messageAPI.success("Automation successfully deleted");
 
-              fetchAutomations(0);
+              fetchAutomations();
             })
             .catch(() => {
               messageAPI.error("Automation deletion failed");
@@ -137,7 +137,7 @@ export const AutomationsPage = () => {
         fetchAutomations();
       })
       .catch(() => goBack(routeTree.root.path));
-  }, [fetchAutomations, goBack]);
+  }, [fetchAutomations]);
 
   if (!app || !schema) return <Spin centered />;
 
@@ -219,7 +219,7 @@ export const AutomationsPage = () => {
               app={app}
               automations={automations}
               loading={loading}
-              onCreate={() => fetchAutomations(0)}
+              onCreate={() => fetchAutomations()}
               onDelete={handleDelete}
               schema={schema}
               totalCount={totalCount}
@@ -229,7 +229,7 @@ export const AutomationsPage = () => {
               app={app}
               automations={automations}
               loading={loading}
-              onCreate={() => fetchAutomations(0)}
+              onCreate={() => fetchAutomations()}
               onDelete={handleDelete}
               schema={schema}
               totalCount={totalCount}
@@ -239,7 +239,7 @@ export const AutomationsPage = () => {
               app={app}
               automations={automations}
               loading={loading}
-              onCreate={() => fetchAutomations(0)}
+              onCreate={() => fetchAutomations()}
               onDelete={handleDelete}
               schema={schema}
               totalCount={totalCount}

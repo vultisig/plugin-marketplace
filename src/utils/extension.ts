@@ -2,9 +2,8 @@ import { randomBytes } from "crypto";
 
 import { reshareVault } from "@/utils/api";
 import { Chain, evmChains } from "@/utils/chain";
+import { vultiApiUrl } from "@/utils/constants";
 import { Vault } from "@/utils/types";
-
-import { vultiApiUrl } from "./constants";
 
 const isAvailable = async () => {
   if (!window.vultisig) throw new Error("Please install Vultisig Extension");
@@ -157,9 +156,7 @@ export const startReshareSession = async (pluginId: string) => {
     // Create empty session first
     await fetch(`${vultiApiUrl}/router/${dAppSessionId}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify([extensionParty]),
     });
 
@@ -231,6 +228,7 @@ export const startReshareSession = async (pluginId: string) => {
     // Transform the payload to match backend ReshareRequest structure
     // Step 4: Wait for extension to complete (it was waiting for verifier)
     const { success } = await extensionPromise;
+
     return success;
   } catch {
     return false;
