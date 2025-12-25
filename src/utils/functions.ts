@@ -6,7 +6,7 @@ import { BillingFrequency, FeePolicySchema, FeeType } from "@/proto/policy_pb";
 import { Currency, currencySymbols } from "@/utils/currency";
 import {
   App,
-  AppPolicy,
+  AppAutomation,
   AppPricing,
   Configuration,
   CSSProperties,
@@ -201,7 +201,7 @@ export const policyToHexMessage = ({
   publicKey,
   recipe,
 }: Pick<
-  AppPolicy,
+  AppAutomation,
   "pluginVersion" | "policyVersion" | "publicKey" | "recipe"
 >) => {
   const delimiter = "*#*";

@@ -1,17 +1,28 @@
-import { create, toBinary } from "@bufbuild/protobuf";
-import { base64Encode } from "@bufbuild/protobuf/wire";
-import { Empty, Form, Input, InputNumber, Modal, Select } from "antd";
+import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
+import { base64Decode, base64Encode } from "@bufbuild/protobuf/wire";
+import {
+  Empty,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Table,
+  TableProps,
+  Tabs,
+} from "antd";
 import dayjs from "dayjs";
-import { FC, useEffect, useState } from "react";
+import { cloneDeep } from "lodash-es";
+import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
+import { parseUnits } from "viem";
 
-import { DateCheckboxFormItem } from "@/automations/components/DateCheckboxFormItem";
-import { DatePickerFormItem } from "@/automations/components/DatePickerFormItem";
-import { AutomationFormSidebar } from "@/automations/components/Sidebar";
-import { AutomationFormSuccess } from "@/automations/components/Success";
-import { AutomationFormTitle } from "@/automations/components/Title";
+import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
+import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
+import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
+import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
+import { AutomationFormTitle } from "@/automations/components/FormTitle";
 import { AutomationFormToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetWidget } from "@/automations/widgets/Asset";
@@ -19,6 +30,7 @@ import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useDiscard } from "@/hooks/useDiscard";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
@@ -28,6 +40,7 @@ import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
+import { InputDigits } from "@/toolkits/InputDigits";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
@@ -42,7 +55,14 @@ import {
   policyToHexMessage,
   toNumberFormat,
 } from "@/utils/functions";
-import { AppPolicy, Token } from "@/utils/types";
+import { AppAutomation, Token } from "@/utils/types";
+
+import { AutomationFormAmount } from "./components/Amount";
+
+type CustomAppAutomation = AppAutomation & {
+  configuration?: DataProps;
+  name: string;
+};
 
 type AssetProps = {
   address: string;
@@ -61,30 +81,34 @@ type DataProps = {
   asset: AssetProps;
   endDate: number;
   frequency: string;
+  recipients: RecipientProps[];
   name: string;
   startDate: number;
 };
 
 type StateProps = {
   isAdded: boolean;
-  loading: boolean;
+  submitting: boolean;
   step: number;
   recipients: RecipientProps[];
 };
 
 export const RecurringSendsForm: FC<AutomationFormProps> = ({
   app,
-  onFinish,
+  automations,
+  loading,
+  onCreate,
+  onDelete,
   schema,
 }) => {
   const [state, setState] = useState<StateProps>({
     isAdded: false,
-    loading: false,
+    submitting: false,
     step: 1,
     recipients: [],
   });
-  const { isAdded, loading, step, recipients } = state;
-  const { messageAPI, modalAPI } = useAntd();
+  const { isAdded, step, recipients, submitting } = state;
+  const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
@@ -92,10 +116,75 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const [form] = Form.useForm<DataProps>();
   const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
+  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
+
+  const modifiedAutomations: CustomAppAutomation[] = useMemo(() => {
+    return automations.map((automation) => {
+      try {
+        const decoded = base64Decode(automation.recipe);
+        const { configuration, name } = fromBinary(PolicySchema, decoded);
+
+        if (!configuration) return { ...automation, name };
+
+        return {
+          ...automation,
+          configuration: configuration as DataProps,
+          name,
+        };
+      } catch {
+        return { ...automation, name: "" };
+      }
+    });
+  }, [automations]);
+
+  const columns: TableProps<CustomAppAutomation>["columns"] = [
+    Table.EXPAND_COLUMN,
+    {
+      dataIndex: "name",
+      key: "name",
+      title: "Name",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "frequency",
+      render: ({ frequency }: DataProps) => kebabCaseToTitle(frequency),
+      title: "Frequency",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
+      key: "asset",
+      render: ({ asset }: DataProps) => (
+        <AutomationFormToken chain={asset.chain} id={asset.token} />
+      ),
+      title: "Asset",
+    },
+    {
+      align: "center",
+      key: "action",
+      render: (_, { id, signature }) => {
+        if (!signature) return null;
+
+        return (
+          <HStack $style={{ justifyContent: "center" }}>
+            <Button
+              icon={<TrashIcon fontSize={16} />}
+              kind="danger"
+              onClick={() => onDelete(id, signature)}
+              ghost
+            />
+          </HStack>
+        );
+      },
+      title: "Action",
+      width: 80,
+    },
+  ];
 
   const handleAdd = (recipient: RecipientProps) => {
     recipientForm.resetFields();
@@ -111,57 +200,8 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   };
 
   const handleCancel = () => {
-    if (step === 3) {
-      const confirm = modalAPI.confirm({
-        centered: true,
-        content: (
-          <VStack $style={{ gap: "24px" }}>
-            <VStack $style={{ gap: "12px" }}>
-              <Stack
-                $style={{
-                  fontSize: "22px",
-                  lineHeight: "24px",
-                  textAlign: "center",
-                }}
-              >
-                Unsaved Changes
-              </Stack>
-              <Stack
-                $style={{
-                  color: colors.textTertiary.toHex(),
-                  lineHeight: "18px",
-                  textAlign: "center",
-                }}
-              >
-                Are you sure you want to leave?
-              </Stack>
-            </VStack>
-            <HStack $style={{ gap: "12px", justifyContent: "center" }}>
-              <Stack
-                as={Button}
-                onClick={() => confirm.destroy()}
-                $style={{ width: "100%" }}
-              >
-                No, go back
-              </Stack>
-              <Stack
-                as={Button}
-                kind="danger"
-                onClick={() => {
-                  confirm.destroy();
-                  goBack();
-                }}
-                $style={{ width: "100%" }}
-              >
-                Yes, leave
-              </Stack>
-            </HStack>
-          </VStack>
-        ),
-        footer: null,
-        icon: null,
-        styles: { container: { padding: "32px 24px 24px" } },
-      });
+    if (step === 4) {
+      discard(() => goBack());
     } else {
       goBack();
     }
@@ -178,16 +218,25 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     if (!configuration) return;
 
     if (step === 4) {
-      setState((prev) => ({ ...prev, loading: true }));
+      setState((prev) => ({ ...prev, submitting: true }));
 
       const configurationData = getConfiguration(
         configuration,
-        { ...values, recipients },
+        cloneDeep({
+          ...values,
+          recipients: recipients.map((recipient) => ({
+            ...recipient,
+            amount: parseUnits(
+              Number(recipient.amount).toFixed(values.asset.decimals),
+              values.asset.decimals
+            ).toString(),
+          })),
+        }),
         configuration.definitions
       );
 
-      getRecipeSuggestion(id, configurationData).then(
-        ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
+      getRecipeSuggestion(id, configurationData)
+        .then(({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {
             author: "",
             configuration: configurationData,
@@ -205,7 +254,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
           const recipe = base64Encode(binary);
 
-          const policy: AppPolicy = {
+          const policy: AppAutomation = {
             active: true,
             id: uuidv4(),
             pluginId: id,
@@ -221,24 +270,31 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
             .then((signature) => {
               addPolicy({ ...policy, signature })
                 .then(() => {
-                  setState((prev) => ({ ...prev, isAdded: true }));
+                  setState((prev) => ({
+                    ...prev,
+                    isAdded: true,
+                    submitting: false,
+                  }));
 
-                  onFinish();
+                  onCreate();
                 })
                 .catch((error: Error) => {
+                  setState((prev) => ({ ...prev, submitting: false }));
+
                   messageAPI.error(error.message);
-                })
-                .finally(() => {
-                  setState((prev) => ({ ...prev, loading: false }));
                 });
             })
-            .catch((error: Error) => {
-              messageAPI.error(error.message);
+            .catch(() => {
+              messageAPI.error("Failed to sign automation");
 
-              setState((prev) => ({ ...prev, loading: false }));
+              setState((prev) => ({ ...prev, submitting: false }));
             });
-        }
-      );
+        })
+        .catch(() => {
+          setState((prev) => ({ ...prev, submitting: false }));
+
+          messageAPI.error("Failed to get suggestion from app");
+        });
     } else {
       setState((prev) => ({ ...prev, step: prev.step + 1 }));
     }
@@ -252,7 +308,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     setState((prev) => ({
       ...prev,
       isAdded: false,
-      loading: false,
+      submitting: false,
       step: 1,
       recipients: [],
     }));
@@ -260,6 +316,76 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
   return (
     <>
+      <Tabs
+        items={[
+          {
+            children: (
+              <Table
+                columns={columns}
+                dataSource={modifiedAutomations}
+                expandable={{
+                  rowExpandable: ({ configuration }) => !!configuration,
+                  expandedRowRender: ({ configuration }, index) => {
+                    if (!configuration) return null;
+
+                    const { asset, recipients } = configuration;
+
+                    return (
+                      <Table
+                        columns={[
+                          {
+                            dataIndex: "alias",
+                            key: "alias",
+                            title: "Alias",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "amount",
+                            key: "amount",
+                            render: (value) => (
+                              <AutomationFormAmount
+                                amount={value}
+                                chain={asset.chain}
+                                tokenId={asset.token}
+                              />
+                            ),
+                            title: "Amount",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "toAddress",
+                            key: "toAddress",
+                            render: (value) => (
+                              <MiddleTruncate>{value}</MiddleTruncate>
+                            ),
+                            title: "Address",
+                          },
+                        ]}
+                        dataSource={recipients.map((recipient, index) => ({
+                          ...recipient,
+                          id: index,
+                        }))}
+                        key={index}
+                        pagination={false}
+                        rowKey="id"
+                        size="small"
+                      />
+                    );
+                  },
+                }}
+                loading={loading}
+                pagination={false}
+                rowKey="id"
+                size="small"
+              />
+            ),
+            key: "upcoming",
+            label: "Upcoming",
+          },
+          { disabled: true, key: "history", label: "History" },
+        ]}
+      />
+
       <AutomationFormSuccess visible={visible && isAdded} />
 
       <Modal
@@ -271,7 +397,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
             <HStack $style={{ flexGrow: 1, justifyContent: "center" }}>
               <Button
                 disabled={step === 2 && !recipients.length}
-                loading={loading}
+                loading={submitting}
                 onClick={() => form.submit()}
               >
                 {step > 3 ? "Submit" : "Continue"}
@@ -349,7 +475,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                 gridTemplateColumns: "repeat(2, 1fr)",
               }}
             >
-              <DatePickerFormItem label="End Date" name="endDate" />
+              <AutomationFormDatePicker label="End Date" name="endDate" />
               <Form.Item
                 label="Frequency"
                 name="frequency"
@@ -362,7 +488,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   }))}
                 />
               </Form.Item>
-              <DateCheckboxFormItem name="startDate" />
+              <AutomationFormCheckboxDate name="startDate" />
             </Stack>
             {step === 4 && <Overview {...{ ...values, recipients }} />}
           </Form>
@@ -392,10 +518,9 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   <Form.Item<RecipientProps>
                     label="Amount"
                     name="amount"
-                    normalize={(value) => value && String(value)}
                     rules={[{ required: true }]}
                   >
-                    <InputNumber min={0} />
+                    <InputDigits />
                   </Form.Item>
                 </Stack>
                 <Form.Item<RecipientProps>
@@ -419,7 +544,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   );
 };
 
-const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
+const Overview: FC<DataProps> = ({
   asset,
   endDate,
   frequency,

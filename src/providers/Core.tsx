@@ -3,6 +3,7 @@ import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
 
 import { CoreContext, CoreContextProps } from "@/context/Core";
+import { useQueries } from "@/hooks/useQueries";
 import { storageKeys } from "@/storage/constants";
 import {
   getCurrency,
@@ -12,12 +13,7 @@ import { useLocalStorageWatcher } from "@/storage/hooks/useLocalStorageWatcher";
 import { getTheme, setTheme as setThemeStorage } from "@/storage/theme";
 import { delToken, getToken, setToken } from "@/storage/token";
 import { delVaultId, getVaultId, setVaultId } from "@/storage/vaultId";
-import {
-  getApp,
-  getAuthToken,
-  getBaseValue,
-  getFeeAppStatus,
-} from "@/utils/api";
+import { getAuthToken, getBaseValue, getFeeAppStatus } from "@/utils/api";
 import { feeAppId } from "@/utils/constants";
 import { Currency } from "@/utils/currency";
 import {
@@ -59,6 +55,7 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   } = state;
   const [messageAPI, messageHolder] = Message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
+  const { getAppData } = useQueries();
 
   const clear = useCallback(() => {
     disconnectFromExtension().finally(() => {
@@ -187,9 +184,9 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [currency]);
 
   useEffect(() => {
-    getApp(feeAppId).then((feeApp) =>
-      setState((prevState) => ({ ...prevState, feeApp }))
-    );
+    getAppData(feeAppId)
+      .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })))
+      .catch(() => {});
   }, []);
 
   return (

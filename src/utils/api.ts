@@ -1,9 +1,7 @@
-import { fromBinary, fromJson, JsonObject } from "@bufbuild/protobuf";
-import { base64Decode } from "@bufbuild/protobuf/wire";
+import { fromJson, JsonObject } from "@bufbuild/protobuf";
 import axios, { AxiosRequestConfig } from "axios";
 
 import {
-  PolicySchema,
   PolicySuggest,
   PolicySuggestJson,
   PolicySuggestSchema,
@@ -25,11 +23,10 @@ import { faqs } from "@/utils/mockData";
 import {
   APIResponse,
   App,
+  AppAutomation,
   AppFilters,
-  AppPolicy,
   AuthToken,
   Category,
-  CustomAppPolicy,
   FeeAppStatus,
   JupiterToken,
   ListFilters,
@@ -116,7 +113,7 @@ const post = async <T>(
 //     .then(({ data }) => toCamelCase(data.data));
 // };
 
-export const addPolicy = async (data: AppPolicy): Promise<void> => {
+export const addPolicy = async (data: AppAutomation): Promise<void> => {
   return post<void>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
 };
 
@@ -215,7 +212,6 @@ export const getCategories = async (): Promise<Category[]> => {
 export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
   const status = await externalGet<FeeAppStatus>(`${storeApiUrl}/fee/status`);
   const isInstalled = await isAppInstalled(feeAppId);
-
   return { ...status, isInstalled };
 };
 
@@ -281,30 +277,23 @@ export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
   }));
 };
 
-export const getPolicies = async (
+export const getAutomations = async (
   appId: string,
   { skip, take = defaultPageSize }: ListFilters
-): Promise<{ policies: CustomAppPolicy[]; totalCount: number }> => {
+): Promise<{ automations: AppAutomation[]; totalCount: number }> => {
   try {
-    const { policies, totalCount } = await get<{
-      policies: AppPolicy[];
+    const { policies: automations, totalCount } = await get<{
+      policies: AppAutomation[];
       totalCount: number;
     }>(`${storeApiUrl}/plugin/policies/${appId}`, {
       params: toSnakeCase({ skip, take }),
     });
 
-    if (!totalCount) return { policies: [], totalCount: 0 };
+    if (!totalCount) return { automations: [], totalCount: 0 };
 
-    const modifiedPolicies: CustomAppPolicy[] = policies.map((policy) => {
-      const decoded = base64Decode(policy.recipe);
-      const parsedRecipe = fromBinary(PolicySchema, decoded);
-
-      return { ...policy, parsedRecipe };
-    });
-
-    return { policies: modifiedPolicies, totalCount };
+    return { automations, totalCount };
   } catch {
-    return { policies: [], totalCount: 0 };
+    return { automations: [], totalCount: 0 };
   }
 };
 
@@ -324,16 +313,12 @@ export const getRecipeSuggestion = async (
   appId: string,
   configuration: JsonObject
 ): Promise<PolicySuggest> => {
-  try {
-    const suggest = await post<PolicySuggestJson>(
-      `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
-      { configuration }
-    );
+  const suggest = await post<PolicySuggestJson>(
+    `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
+    { configuration }
+  );
 
-    return fromJson(PolicySuggestSchema, suggest);
-  } catch {
-    return fromJson(PolicySuggestSchema, {});
-  }
+  return fromJson(PolicySuggestSchema, suggest);
 };
 
 export const getReviews = async (

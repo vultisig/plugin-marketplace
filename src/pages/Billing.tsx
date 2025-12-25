@@ -115,7 +115,9 @@ export const BillingPage = () => {
               </Button>
             ) : (
               !feeAppStatus.isInstalled && (
-                <Button onClick={() => navigate(modalHash.payment)}>
+                <Button
+                  onClick={() => navigate(modalHash.payment, { state: true })}
+                >
                   Get
                   <Stack
                     as="span"
