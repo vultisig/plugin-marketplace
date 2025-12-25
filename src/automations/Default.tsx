@@ -579,7 +579,6 @@ export const AutomationForm: FC<AutomationFormProps> = ({
                 pagination={false}
                 rowKey="id"
                 size="small"
-                id="policies"
               />
             ),
             key: "upcoming",

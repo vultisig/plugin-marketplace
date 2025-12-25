@@ -57,6 +57,8 @@ import {
 } from "@/utils/functions";
 import { AppAutomation, Token } from "@/utils/types";
 
+import { AutomationFormAmount } from "./components/Amount";
+
 type CustomAppAutomation = AppAutomation & {
   configuration?: DataProps;
   name: string;
@@ -79,6 +81,7 @@ type DataProps = {
   asset: AssetProps;
   endDate: number;
   frequency: string;
+  recipients: RecipientProps[];
   name: string;
   startDate: number;
 };
@@ -139,6 +142,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   }, [automations]);
 
   const columns: TableProps<CustomAppAutomation>["columns"] = [
+    Table.EXPAND_COLUMN,
     {
       dataIndex: "name",
       key: "name",
@@ -319,11 +323,60 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
               <Table
                 columns={columns}
                 dataSource={modifiedAutomations}
+                expandable={{
+                  rowExpandable: ({ configuration }) => !!configuration,
+                  expandedRowRender: ({ configuration }, index) => {
+                    if (!configuration) return null;
+
+                    const { asset, recipients } = configuration;
+
+                    return (
+                      <Table
+                        columns={[
+                          {
+                            dataIndex: "alias",
+                            key: "alias",
+                            title: "Alias",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "amount",
+                            key: "amount",
+                            render: (value) => (
+                              <AutomationFormAmount
+                                amount={value}
+                                chain={asset.chain}
+                                tokenId={asset.token}
+                              />
+                            ),
+                            title: "Amount",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "toAddress",
+                            key: "toAddress",
+                            render: (value) => (
+                              <MiddleTruncate>{value}</MiddleTruncate>
+                            ),
+                            title: "Address",
+                          },
+                        ]}
+                        dataSource={recipients.map((recipient, index) => ({
+                          ...recipient,
+                          id: index,
+                        }))}
+                        key={index}
+                        pagination={false}
+                        rowKey="id"
+                        size="small"
+                      />
+                    );
+                  },
+                }}
                 loading={loading}
                 pagination={false}
                 rowKey="id"
                 size="small"
-                id="policies"
               />
             ),
             key: "upcoming",
@@ -491,7 +544,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   );
 };
 
-const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
+const Overview: FC<DataProps> = ({
   asset,
   endDate,
   frequency,
