@@ -313,16 +313,12 @@ export const getRecipeSuggestion = async (
   appId: string,
   configuration: JsonObject
 ): Promise<PolicySuggest> => {
-  try {
-    const suggest = await post<PolicySuggestJson>(
-      `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
-      { configuration }
-    );
+  const suggest = await post<PolicySuggestJson>(
+    `${storeApiUrl}/plugins/${appId}/recipe-specification/suggest`,
+    { configuration }
+  );
 
-    return fromJson(PolicySuggestSchema, suggest);
-  } catch {
-    return fromJson(PolicySuggestSchema, {});
-  }
+  return fromJson(PolicySuggestSchema, suggest);
 };
 
 export const getReviews = async (

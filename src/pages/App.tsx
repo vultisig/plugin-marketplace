@@ -24,11 +24,7 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import {
-  getRecipeSpecification,
-  isAppInstalled,
-  uninstallApp,
-} from "@/utils/api";
+import { getRecipeSpecification, isAppInstalled } from "@/utils/api";
 import {
   feeAppId,
   modalHash,
@@ -54,7 +50,7 @@ type StateProps = {
 export const AppPage = () => {
   const [state, setState] = useState<StateProps>({});
   const { app, isInstalled, loading, schema } = state;
-  const { messageAPI, modalAPI } = useAntd();
+  const { messageAPI } = useAntd();
   const { baseValue, connect, currency, isConnected, feeAppStatus } = useCore();
   const { hash } = useLocation();
   const { id = "" } = useParams();
@@ -116,42 +112,6 @@ export const AppPage = () => {
         content: "App installation failed",
       });
     }
-  };
-
-  const handleUninstall = async () => {
-    if (loading) return;
-
-    modalAPI.confirm({
-      title: "Are you sure you want to uninstall this app?",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk() {
-        setState((prevState) => ({ ...prevState, loading: true }));
-
-        uninstallApp(id)
-          .then(() => {
-            setState((prevState) => ({
-              ...prevState,
-              isInstalled: false,
-              loading: false,
-            }));
-
-            messageAPI.open({
-              type: "success",
-              content: "App successfully uninstalled",
-            });
-          })
-          .catch(() => {
-            setState((prevState) => ({ ...prevState, loading: false }));
-
-            messageAPI.open({
-              type: "error",
-              content: "App uninstallation failed",
-            });
-          });
-      },
-    });
   };
 
   useEffect(() => {
@@ -333,24 +293,13 @@ export const AppPage = () => {
                           Free
                         </Button>
                       ) : isInstalled ? (
-                        <>
-                          <Button
-                            disabled={loading || !schema}
-                            href={`${routeTree.automations.link(id)}${
-                              modalHash.automation
-                            }`}
-                          >
-                            Add Automation
-                          </Button>
-                          <Button
-                            loading={loading}
-                            onClick={handleUninstall}
-                            kind="danger"
-                            ghost
-                          >
-                            Uninstall
-                          </Button>
-                        </>
+                        <Button
+                          disabled={loading || !schema}
+                          href={routeTree.automations.link(id)}
+                          state={true}
+                        >
+                          Automations
+                        </Button>
                       ) : (
                         <Button loading={loading} onClick={handleInstall}>
                           Get
@@ -770,13 +719,7 @@ export const AppPage = () => {
             onClick={() => {
               goBack();
 
-              navigate(
-                {
-                  pathname: routeTree.automations.link(id),
-                  hash: modalHash.automation,
-                },
-                { state: true }
-              );
+              navigate(routeTree.automations.link(id), { state: true });
             }}
           >
             Create Automation

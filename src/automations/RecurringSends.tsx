@@ -4,7 +4,6 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   Modal,
   Select,
   Table,
@@ -12,6 +11,7 @@ import {
   Tabs,
 } from "antd";
 import dayjs from "dayjs";
+import { cloneDeep } from "lodash-es";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
@@ -30,6 +30,7 @@ import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
+import { useDiscard } from "@/hooks/useDiscard";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { CrossIcon } from "@/icons/CrossIcon";
@@ -39,6 +40,7 @@ import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
+import { InputDigits } from "@/toolkits/InputDigits";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
@@ -54,6 +56,8 @@ import {
   toNumberFormat,
 } from "@/utils/functions";
 import { AppAutomation, Token } from "@/utils/types";
+
+import { AutomationFormAmount } from "./components/Amount";
 
 type CustomAppAutomation = AppAutomation & {
   configuration?: DataProps;
@@ -77,6 +81,7 @@ type DataProps = {
   asset: AssetProps;
   endDate: number;
   frequency: string;
+  recipients: RecipientProps[];
   name: string;
   startDate: number;
 };
@@ -103,7 +108,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     recipients: [],
   });
   const { isAdded, step, recipients, submitting } = state;
-  const { messageAPI, modalAPI } = useAntd();
+  const { messageAPI } = useAntd();
   const { address = "" } = useCore();
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
@@ -111,6 +116,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const [form] = Form.useForm<DataProps>();
   const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
+  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -136,6 +142,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   }, [automations]);
 
   const columns: TableProps<CustomAppAutomation>["columns"] = [
+    Table.EXPAND_COLUMN,
     {
       dataIndex: "name",
       key: "name",
@@ -194,56 +201,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
   const handleCancel = () => {
     if (step === 4) {
-      const confirm = modalAPI.confirm({
-        centered: true,
-        content: (
-          <VStack $style={{ gap: "24px" }}>
-            <VStack $style={{ gap: "12px" }}>
-              <Stack
-                $style={{
-                  fontSize: "22px",
-                  lineHeight: "24px",
-                  textAlign: "center",
-                }}
-              >
-                Unsaved Changes
-              </Stack>
-              <Stack
-                $style={{
-                  color: colors.textTertiary.toHex(),
-                  lineHeight: "18px",
-                  textAlign: "center",
-                }}
-              >
-                Are you sure you want to leave?
-              </Stack>
-            </VStack>
-            <HStack $style={{ gap: "12px", justifyContent: "center" }}>
-              <Stack
-                as={Button}
-                onClick={() => confirm.destroy()}
-                $style={{ width: "100%" }}
-              >
-                No, go back
-              </Stack>
-              <Stack
-                as={Button}
-                kind="danger"
-                onClick={() => {
-                  confirm.destroy();
-                  goBack();
-                }}
-                $style={{ width: "100%" }}
-              >
-                Yes, leave
-              </Stack>
-            </HStack>
-          </VStack>
-        ),
-        footer: null,
-        icon: null,
-        styles: { container: { padding: "32px 24px 24px" } },
-      });
+      discard(() => goBack());
     } else {
       goBack();
     }
@@ -264,24 +222,21 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
       const configurationData = getConfiguration(
         configuration,
-        { ...values, recipients },
+        cloneDeep({
+          ...values,
+          recipients: recipients.map((recipient) => ({
+            ...recipient,
+            amount: parseUnits(
+              Number(recipient.amount).toFixed(values.asset.decimals),
+              values.asset.decimals
+            ).toString(),
+          })),
+        }),
         configuration.definitions
       );
 
-        // Convert recipient amounts to consider decimals
-      const recipientsWithDecimals = recipients.map((recipient) => ({
-        ...recipient,
-        amount: parseUnits(
-          String(recipient.amount),
-          values.asset.decimals
-        ).toString(),
-      }));
-
-      configurationData["recipients"] = recipientsWithDecimals;
-
-      
-      getRecipeSuggestion(id, configurationData).then(
-        ({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
+      getRecipeSuggestion(id, configurationData)
+        .then(({ maxTxsPerWindow, rateLimitWindow, rules = [] }) => {
           const jsonData = create(PolicySchema, {
             author: "",
             configuration: configurationData,
@@ -329,13 +284,17 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   messageAPI.error(error.message);
                 });
             })
-            .catch((error: Error) => {
-              messageAPI.error(error.message);
+            .catch(() => {
+              messageAPI.error("Failed to sign automation");
 
               setState((prev) => ({ ...prev, submitting: false }));
             });
-        }
-      );
+        })
+        .catch(() => {
+          setState((prev) => ({ ...prev, submitting: false }));
+
+          messageAPI.error("Failed to get suggestion from app");
+        });
     } else {
       setState((prev) => ({ ...prev, step: prev.step + 1 }));
     }
@@ -364,11 +323,60 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
               <Table
                 columns={columns}
                 dataSource={modifiedAutomations}
+                expandable={{
+                  rowExpandable: ({ configuration }) => !!configuration,
+                  expandedRowRender: ({ configuration }, index) => {
+                    if (!configuration) return null;
+
+                    const { asset, recipients } = configuration;
+
+                    return (
+                      <Table
+                        columns={[
+                          {
+                            dataIndex: "alias",
+                            key: "alias",
+                            title: "Alias",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "amount",
+                            key: "amount",
+                            render: (value) => (
+                              <AutomationFormAmount
+                                amount={value}
+                                chain={asset.chain}
+                                tokenId={asset.token}
+                              />
+                            ),
+                            title: "Amount",
+                          },
+                          {
+                            align: "center",
+                            dataIndex: "toAddress",
+                            key: "toAddress",
+                            render: (value) => (
+                              <MiddleTruncate>{value}</MiddleTruncate>
+                            ),
+                            title: "Address",
+                          },
+                        ]}
+                        dataSource={recipients.map((recipient, index) => ({
+                          ...recipient,
+                          id: index,
+                        }))}
+                        key={index}
+                        pagination={false}
+                        rowKey="id"
+                        size="small"
+                      />
+                    );
+                  },
+                }}
                 loading={loading}
                 pagination={false}
                 rowKey="id"
                 size="small"
-                id="policies"
               />
             ),
             key: "upcoming",
@@ -510,10 +518,9 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   <Form.Item<RecipientProps>
                     label="Amount"
                     name="amount"
-                    normalize={(value) => value && String(value)}
                     rules={[{ required: true }]}
                   >
-                    <InputNumber min={0} />
+                    <InputDigits />
                   </Form.Item>
                 </Stack>
                 <Form.Item<RecipientProps>
@@ -537,7 +544,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   );
 };
 
-const Overview: FC<DataProps & { recipients: RecipientProps[] }> = ({
+const Overview: FC<DataProps> = ({
   asset,
   endDate,
   frequency,
