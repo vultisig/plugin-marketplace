@@ -11,19 +11,27 @@ import { CirclePlusIcon } from "@/icons/CirclePlusIcon";
 import { ShieldCheckIcon } from "@/icons/ShieldCheckIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { getRecipeSpecification } from "@/utils/api";
 import { feeAppId, modalHash } from "@/utils/constants";
 import { startReshareSession } from "@/utils/extension";
+import { RecipeSchema } from "@/utils/types";
+
+type StateProps = {
+  loading: boolean;
+  schema?: RecipeSchema;
+  step: number;
+};
 
 export const PaymentModal = () => {
-  const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
+  const [state, setState] = useState<StateProps>({ loading: false, step: 1 });
+  const { loading, schema, step } = state;
   const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
   const visible = hash === modalHash.payment;
 
-  const permissions = [
+  const permissions = schema?.permissions || [
     {
       id: "transaction_signing",
       label: "Access to transaction signing",
@@ -45,18 +53,26 @@ export const PaymentModal = () => {
   const handleInstall = async () => {
     if (loading) return;
 
-    setLoading(true);
+    setState((prev) => ({ ...prev, loading: true }));
 
     await startReshareSession(feeAppId);
 
-    setLoading(false);
+    setState((prev) => ({ ...prev, loading: false }));
 
     updateFeeAppStatus();
   };
 
   useEffect(() => {
-    if (visible) setStep(1);
-  }, [visible]);
+    if (!visible) return;
+
+    setState((prev) => ({ ...prev, step: 1 }));
+
+    if (schema) return;
+
+    getRecipeSpecification(feeAppId)
+      .catch(() => undefined)
+      .then((schema) => setState((prev) => ({ ...prev, schema })));
+  }, [schema, visible]);
 
   if (!feeApp || !feeAppStatus) return null;
 
@@ -148,7 +164,7 @@ export const PaymentModal = () => {
               <HStack $style={{ justifyContent: "flex-start" }}>
                 <Button
                   icon={<CirclePlusIcon fontSize={16} />}
-                  onClick={() => setStep(2)}
+                  onClick={() => setState((prev) => ({ ...prev, step: 2 }))}
                 >
                   Add to Vault
                 </Button>
