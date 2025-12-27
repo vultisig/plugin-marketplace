@@ -23,6 +23,8 @@ import {
   personalSign,
 } from "@/utils/extension";
 import { Theme } from "@/utils/theme";
+import { Vultisig, MemoryStorage } from "@vultisig/sdk";
+import { chains } from "@/utils/chain";
 
 type StateProps = Pick<
   CoreContextProps,
@@ -186,6 +188,60 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
       .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const storage = new MemoryStorage();
+    const sdk = new Vultisig({ storage });
+
+    sdk.initialize().then(() => {
+      getVault().then(
+        ({
+          name,
+          hexChainCode,
+          localPartyId,
+          parties,
+          publicKeyEcdsa,
+          publicKeyEddsa,
+          uid,
+        }) => {
+          const mockVault = {
+            id: uid,
+            name,
+            publicKeys: {
+              ecdsa: publicKeyEcdsa,
+              eddsa: publicKeyEddsa,
+            },
+            hexChainCode,
+            signers: parties,
+            localPartyId,
+            createdAt: Date.now(),
+            libType: "DKLS",
+            isBackedUp: true,
+            order: 0,
+            isEncrypted: false,
+            type: "fast",
+            currency: "usd",
+            chains: [],
+            tokens: {},
+            vultFileContent: "",
+            lastModified: Date.now(),
+          };
+
+          storage.set(`vault:${mockVault.id}`, mockVault).then(async () => {
+            const [vault] = await sdk.listVaults();
+            console.log("List of vaults:", vault);
+            const address = await vault.address(chains.Ethereum);
+            console.log("Address:", address);
+            vault.balance(chains.Ethereum).then((balance) => {
+              console.log("balance:", balance);
+            });
+          });
+        }
+      );
+    });
+  }, [isConnected]);
 
   return (
     <CoreContext.Provider
