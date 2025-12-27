@@ -18,6 +18,18 @@ export default defineConfig({
     }),
     react(),
   ],
+  optimizeDeps: {
+    include: [
+      "buffer",
+      "process",
+      "crypto-browserify",
+      "stream-browserify",
+      "events",
+      "ripple-binary-codec", // Fix CommonJS interop
+      "@cosmjs/stargate", // Fix CommonJS interop
+    ],
+    exclude: ["@vultisig/sdk"], // Let Vite handle SDK imports directly
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
