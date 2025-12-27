@@ -284,7 +284,7 @@ export const AppPage = () => {
                           <Stack
                             as="span"
                             $style={{
-                              backgroundColor: colors.textPrimary.toHex(),
+                              backgroundColor: colors.buttonText.toHex(),
                               borderRadius: "50%",
                               height: "2px",
                               width: "2px",
@@ -306,7 +306,7 @@ export const AppPage = () => {
                           <Stack
                             as="span"
                             $style={{
-                              backgroundColor: colors.textPrimary.toHex(),
+                              backgroundColor: colors.buttonText.toHex(),
                               borderRadius: "50%",
                               height: "2px",
                               width: "2px",

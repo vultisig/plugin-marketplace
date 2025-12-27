@@ -100,7 +100,7 @@ export const MainPage = () => {
                     }
                     $hover={{
                       backgroundColor: colors.bgTertiary.toHex(),
-                      color: colors.buttonTextLight.toHex(),
+                      color: colors.buttonText.toHex(),
                     }}
                     $style={{
                       alignItems: "center",

@@ -19,8 +19,7 @@ declare module "styled-components" {
     buttonPrimaryHover: ColorToken;
     buttonSecondary: ColorToken;
     buttonSecondaryHover: ColorToken;
-    buttonTextDark: ColorToken;
-    buttonTextLight: ColorToken;
+    buttonText: ColorToken;
     textPrimary: ColorToken;
     textSecondary: ColorToken;
     textTertiary: ColorToken;

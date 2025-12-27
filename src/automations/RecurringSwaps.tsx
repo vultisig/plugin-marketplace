@@ -681,7 +681,7 @@ const Template: FC<{
             alignItems: "center",
             backgroundColor: colors.buttonPrimary.toHex(),
             borderRadius: "20px",
-            color: colors.buttonTextLight.toHex(),
+            color: colors.buttonText.toHex(),
             cursor: "pointer",
             flexGrow: "1",
             fontSize: "12px",
