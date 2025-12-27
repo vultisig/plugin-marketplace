@@ -23,8 +23,11 @@ import {
   personalSign,
 } from "@/utils/extension";
 import { Theme } from "@/utils/theme";
-import { Vultisig, MemoryStorage } from "@vultisig/sdk";
-import { debug } from "console";
+import {
+  Vultisig,
+  MemoryStorage,
+  createSdkContext,
+} from "@vultisig/sdk";
 
 type StateProps = Pick<
   CoreContextProps,
@@ -184,26 +187,68 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [currency]);
 
   useEffect(() => {
+    const memoryStorage = new MemoryStorage();
+
     const sdk = new Vultisig({
-      storage: new MemoryStorage(),
+      storage: memoryStorage,
     });
 
     // Initialize WASM modules
-    sdk.initialize().catch((error) => {
-      console.error("Failed to initialize SDK:", error);
-      // Continue app execution even if SDK initialization fails
-    }).then(() => {
-      debugger
-      console.log(sdk)
-    });
+    sdk
+      .initialize()
+      .catch((error) => {
+        console.error("Failed to initialize SDK:", error);
+        // Continue app execution even if SDK initialization fails
+      })
+      .then(() => {
+        console.log(sdk);
+        // Create vault with specific public key
+        const publicKey = "test-public-key-abc123";
+        const vaultData = createMockVaultData("Test Vault", publicKey);
+        memoryStorage
+          .set(`vault:${vaultData.id}`, vaultData)
+          .then(async () => {
+            const [vault] = await sdk.listVaults();
+            console.log("List of vaults:", vault);
+            const btcAddress = await vault.address(Chain.Ethereum);
+            console.log("Eth address:", btcAddress);
+            vault.balance(chain.Ethereum).then((balance) => {
+              console.log("Eth balance:", balance);
+            });
+          });
+      });
 
-    
-  
-    
     getAppData(feeAppId)
       .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })))
       .catch(() => {});
   }, []);
+
+  const createMockVaultData = (name: string, publicKey: string) => {
+    return {
+      id: "347b60b7fc7f0a0c83aff987a036a57b8ac74ae02c2be33569b8867a550d847d", // ID should match public key
+      name: "Fast Vault #1",
+      publicKeys: {
+        ecdsa:
+          "03177d0d3c53b13d7bc11e04dd52d27a2859b9aae498ad0a35309dc1b2038a2481",
+        eddsa: `3a6b3e73b7296bb4a3a53d648614f24d56ff8b6fdf8dc991ce46ca0c0d9bba50`,
+      },
+      hexChainCode:
+        "85a64a42350efc5c9d9d8566a1b4fcc2017b3747c7d156c3b4fbdf0f3d333ff3",
+      signers: ["Server-1", "Device-1"],
+      localPartyId: "Device-1",
+      createdAt: Date.now(),
+      libType: "GG20" as const,
+      isBackedUp: true,
+      order: 0,
+      isEncrypted: false,
+      type: "fast" as const,
+      currency: "usd",
+      chains: [],
+      tokens: {},
+      vultFileContent: "",
+      lastModified: Date.now(),
+    };
+  };
 
   return (
     <CoreContext.Provider
