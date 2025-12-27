@@ -7,6 +7,7 @@ import { createGlobalStyle, useTheme } from "styled-components";
 import { CurrencyModal } from "@/components/CurrencyModal";
 import { PaymentModal } from "@/components/PaymentModal";
 import { useCore } from "@/hooks/useCore";
+import { useExtension } from "@/hooks/useExtension";
 import { ArrowBoxLeftIcon } from "@/icons/ArrowBoxLeftIcon";
 import { ArrowBoxRightIcon } from "@/icons/ArrowBoxRightIcon";
 import { BoxIcon } from "@/icons/BoxIcon";
@@ -37,6 +38,7 @@ export const DefaultLayout = () => {
   const navigate = useNavigate();
   const colors = useTheme();
   const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
+  const { extension, extensionHolder } = useExtension();
 
   const dropdownMenu: MenuProps["items"] = [
     ...(isConnected
@@ -95,7 +97,7 @@ export const DefaultLayout = () => {
             icon: <ArrowBoxLeftIcon color={colors.accentFour.toHex()} />,
             key: "6",
             label: "Sign out",
-            onClick: disconnect,
+            onClick: () => extension(() => disconnect()),
           },
         ]
       : [
@@ -103,7 +105,7 @@ export const DefaultLayout = () => {
             icon: <ArrowBoxRightIcon color={colors.accentFour.toHex()} />,
             key: "7",
             label: "Connect Vault",
-            onClick: connect,
+            onClick: () => extension(() => connect()),
           },
         ]),
   ];
@@ -112,9 +114,11 @@ export const DefaultLayout = () => {
     if (isNotSupport) return;
 
     const timeoutId = setTimeout(() => {
-      getAccount("Ethereum").then((account) => {
-        if (account) connect();
-      });
+      getAccount("Ethereum")
+        .then((account) => {
+          if (account) connect();
+        })
+        .catch(() => {});
     }, 200);
 
     return () => clearTimeout(timeoutId);
@@ -297,6 +301,8 @@ export const DefaultLayout = () => {
       <Outlet />
       <CurrencyModal />
       <PaymentModal />
+
+      {extensionHolder}
     </>
   );
 };

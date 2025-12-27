@@ -113,10 +113,10 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
   const { hash } = useLocation();
+  const { discard, discardHolder } = useDiscard();
   const [form] = Form.useForm<DataProps>();
   const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
-  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -386,7 +386,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
         ]}
       />
 
-      <AutomationFormSuccess visible={visible && isAdded} />
+      <AutomationFormSuccess open={visible && isAdded} />
 
       <Modal
         centered={true}
@@ -540,6 +540,8 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
           )}
         </VStack>
       </Modal>
+
+      {discardHolder}
     </>
   );
 };

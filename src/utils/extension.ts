@@ -5,12 +5,6 @@ import { Chain, evmChains } from "@/utils/chain";
 import { vultiApiUrl } from "@/utils/constants";
 import { Vault } from "@/utils/types";
 
-const isAvailable = async () => {
-  if (!window.vultisig) throw new Error("Please install Vultisig Extension");
-
-  return;
-};
-
 export const connect = async () => {
   await isAvailable();
 
@@ -113,6 +107,12 @@ export const getVault = async () => {
   } else {
     throw new Error("Vault not found");
   }
+};
+
+export const isAvailable = async () => {
+  if (!window.vultisig) throw new Error("Please install Vultisig Extension");
+
+  return;
 };
 
 export const personalSign = async (
