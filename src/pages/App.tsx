@@ -8,7 +8,7 @@ import { RecurringSendsImages } from "@/components/appImages/RecurringSends";
 import { RecurringSwapsImages } from "@/components/appImages/RecurringSwaps";
 import { AppReviews } from "@/components/AppReviews";
 import { FreeTrialBanner } from "@/components/FreeTrialBanner";
-import { SuccessModal } from "@/components/SuccessModal";
+import { StatusModal } from "@/components/StatusModal";
 import { useAntd } from "@/hooks/useAntd";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
@@ -687,9 +687,10 @@ export const AppPage = () => {
         </VStack>
       </VStack>
 
-      <SuccessModal
+      <StatusModal
         onClose={() => goBack()}
-        visible={hash === modalHash.success && isInstalled}
+        open={hash === modalHash.success && isInstalled}
+        success
       >
         <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
           Installation Successful
@@ -735,7 +736,7 @@ export const AppPage = () => {
             My apps
           </Button>
         </HStack>
-      </SuccessModal>
+      </StatusModal>
     </>
   );
 };

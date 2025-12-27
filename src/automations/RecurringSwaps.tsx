@@ -117,9 +117,9 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     requirements,
   } = schema;
   const { hash } = useLocation();
+  const { discard, discardHolder } = useDiscard();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
-  const discard = useDiscard();
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
@@ -361,7 +361,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
         ]}
       />
 
-      <AutomationFormSuccess visible={visible && isAdded} />
+      <AutomationFormSuccess open={visible && isAdded} />
 
       <Modal
         centered={true}
@@ -462,6 +462,8 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
           </Form>
         </VStack>
       </Modal>
+
+      {discardHolder}
     </>
   );
 };
