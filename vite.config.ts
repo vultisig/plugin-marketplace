@@ -1,14 +1,201 @@
 import react from "@vitejs/plugin-react";
+import { copyFileSync, existsSync, mkdirSync } from "fs";
 import path from "path";
+import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import wasm from "vite-plugin-wasm";
+
+// Plugin to resolve vite-plugin-node-polyfills shim imports from the SDK
+function resolvePolyfillShims(): Plugin {
+  return {
+    name: "resolve-polyfill-shims",
+    resolveId(id) {
+      if (id === "vite-plugin-node-polyfills/shims/buffer") {
+        return { id: "\0polyfill-buffer", external: false };
+      }
+      if (id === "vite-plugin-node-polyfills/shims/process") {
+        return { id: "\0polyfill-process", external: false };
+      }
+      if (id === "vite-plugin-node-polyfills/shims/global") {
+        return { id: "\0polyfill-global", external: false };
+      }
+      return null;
+    },
+    load(id) {
+      if (id === "\0polyfill-buffer") {
+        return 'import { Buffer } from "buffer"; export { Buffer }; export default Buffer;';
+      }
+      if (id === "\0polyfill-process") {
+        return 'import process from "process/browser"; export { process }; export default process;';
+      }
+      if (id === "\0polyfill-global") {
+        return "export default globalThis;";
+      }
+      return null;
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [nodePolyfills({ exclude: ["fs"] }), react()],
+  assetsInclude: ["**/*.wasm"], // Include WASM files as assets
+  plugins: [
+    react(),
+    wasm(), // Required for WASM loading
+    resolvePolyfillShims(), // Handle SDK's polyfill shim imports
+    nodePolyfills({
+      exclude: ["fs"], // fs not available in browser
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+      protocolImports: true,
+    }),
+    // Copy WASM files from SDK to public directory
+    {
+      name: "copy-wasm-files",
+      buildStart() {
+        const publicLibPath = path.resolve(__dirname, "public/lib");
+
+        try {
+          // Create lib directories
+          mkdirSync(path.join(publicLibPath, "dkls"), { recursive: true });
+          mkdirSync(path.join(publicLibPath, "schnorr"), { recursive: true });
+
+          // Copy SDK WASM files from dist/lib
+          const sdkLibPath = path.resolve(
+            __dirname,
+            "node_modules/@vultisig/sdk/dist/lib"
+          );
+
+          if (existsSync(sdkLibPath)) {
+            try {
+              // Copy DKLS WASM files
+              const dklsFiles = [
+                "vs_wasm_bg.wasm",
+                "vs_wasm.js",
+                "vs_wasm_bg.wasm.d.ts",
+                "vs_wasm.d.ts",
+              ];
+              for (const file of dklsFiles) {
+                const src = path.join(sdkLibPath, "dkls", file);
+                const dest = path.join(publicLibPath, "dkls", file);
+                if (existsSync(src)) {
+                  copyFileSync(src, dest);
+                }
+              }
+
+              // Copy Schnorr WASM files
+              const schnorrFiles = [
+                "vs_schnorr_wasm_bg.wasm",
+                "vs_schnorr_wasm.js",
+                "vs_schnorr_wasm_bg.wasm.d.ts",
+                "vs_schnorr_wasm.d.ts",
+              ];
+              for (const file of schnorrFiles) {
+                const src = path.join(sdkLibPath, "schnorr", file);
+                const dest = path.join(publicLibPath, "schnorr", file);
+                if (existsSync(src)) {
+                  copyFileSync(src, dest);
+                }
+              }
+              console.log(`✅ Copied SDK WASM files from ${sdkLibPath}`);
+            } catch (error) {
+              console.error("❌ Failed to copy SDK WASM files:", error);
+            }
+          } else {
+            console.error(`❌ SDK WASM files not found at ${sdkLibPath}`);
+          }
+
+          // Copy WalletCore WASM files (from @trustwallet/wallet-core package)
+          try {
+            const walletCoreLibPath = path.resolve(
+              __dirname,
+              "node_modules/@trustwallet/wallet-core/dist/lib"
+            );
+            copyFileSync(
+              path.join(walletCoreLibPath, "wallet-core.wasm"),
+              path.join(__dirname, "public/wallet-core.wasm")
+            );
+            copyFileSync(
+              path.join(walletCoreLibPath, "wallet-core.js"),
+              path.join(__dirname, "public/wallet-core.js")
+            );
+            console.log("✅ Copied WalletCore WASM files");
+          } catch (error) {
+            console.warn(
+              "⚠️  Failed to copy WalletCore WASM files:",
+              error.message
+            );
+          }
+
+          // Copy 7z-wasm files (used for compression during signing)
+          try {
+            const sevenZipPath = path.resolve(
+              __dirname,
+              "node_modules/7z-wasm"
+            );
+            mkdirSync(path.join(__dirname, "public/7z-wasm"), {
+              recursive: true,
+            });
+            copyFileSync(
+              path.join(sevenZipPath, "7zz.wasm"),
+              path.join(__dirname, "public/7z-wasm/7zz.wasm")
+            );
+            console.log("✅ Copied 7z-wasm files");
+          } catch (error) {
+            console.warn("⚠️  Failed to copy 7z-wasm files:", error.message);
+          }
+        } catch (error) {
+          console.error("❌ Error during WASM file copy:", error);
+        }
+      },
+    },
+  ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(__dirname, "./src"),
+      // Polyfills for Node.js modules
+      crypto: "crypto-browserify",
+      stream: "stream-browserify",
+      buffer: "buffer",
+      util: "util",
+      path: "path-browserify",
+      events: "events",
+      "node-fetch": "isomorphic-fetch",
     },
   },
-  server: { allowedHosts: true },
+  optimizeDeps: {
+    include: [
+      "buffer",
+      "process",
+      "crypto-browserify",
+      "stream-browserify",
+      "events",
+      "ripple-binary-codec", // Fix CommonJS interop
+      "@cosmjs/stargate", // Fix CommonJS interop
+    ],
+    exclude: ["@vultisig/sdk"], // Let Vite handle SDK imports directly
+    esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+    },
+  },
+  build: {
+    target: "esnext",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          sdk: ["@vultisig/sdk"],
+        },
+      },
+    },
+  },
+  server: {
+    port: 3000,
+    open: true,
+  },
 });

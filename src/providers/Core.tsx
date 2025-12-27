@@ -23,6 +23,8 @@ import {
   personalSign,
 } from "@/utils/extension";
 import { Theme } from "@/utils/theme";
+import { Vultisig, MemoryStorage } from "@vultisig/sdk";
+import { debug } from "console";
 
 type StateProps = Pick<
   CoreContextProps,
@@ -182,6 +184,22 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, [currency]);
 
   useEffect(() => {
+    const sdk = new Vultisig({
+      storage: new MemoryStorage(),
+    });
+
+    // Initialize WASM modules
+    sdk.initialize().catch((error) => {
+      console.error("Failed to initialize SDK:", error);
+      // Continue app execution even if SDK initialization fails
+    }).then(() => {
+      debugger
+      console.log(sdk)
+    });
+
+    
+  
+    
     getAppData(feeAppId)
       .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })))
       .catch(() => {});
