@@ -124,13 +124,11 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
             }
           })
           .catch((error: Error) => {
-            if (error?.message) messageAPI.error(error?.message);
+            messageAPI.error(error.message);
             clear();
           });
       })
-      .catch((error: Error) => {
-        if (error?.message) messageAPI.error(error?.message);
-      });
+      .catch((error: Error) => messageAPI.error(error.message));
   }, [clear, messageAPI]);
 
   const disconnect = () => {

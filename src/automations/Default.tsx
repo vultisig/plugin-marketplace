@@ -588,7 +588,7 @@ export const AutomationForm: FC<AutomationFormProps> = ({
         ]}
       />
 
-      <AutomationFormSuccess visible={visible && isAdded} />
+      <AutomationFormSuccess open={visible && isAdded} />
 
       <Modal
         centered={true}

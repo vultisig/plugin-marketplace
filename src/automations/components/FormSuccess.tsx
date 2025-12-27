@@ -1,16 +1,16 @@
 import { FC } from "react";
 import { useTheme } from "styled-components";
 
-import { SuccessModal } from "@/components/SuccessModal";
+import { StatusModal } from "@/components/StatusModal";
 import { useGoBack } from "@/hooks/useGoBack";
 import { Stack } from "@/toolkits/Stack";
 
-export const AutomationFormSuccess: FC<{ visible: boolean }> = ({ visible }) => {
+export const AutomationFormSuccess: FC<{ open: boolean }> = ({ open }) => {
   const goBack = useGoBack();
   const colors = useTheme();
 
   return (
-    <SuccessModal onClose={() => goBack()} visible={visible}>
+    <StatusModal onClose={() => goBack()} open={open} success>
       <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
         Success!
       </Stack>
@@ -20,6 +20,6 @@ export const AutomationFormSuccess: FC<{ visible: boolean }> = ({ visible }) => 
       >
         New Automation is added
       </Stack>
-    </SuccessModal>
+    </StatusModal>
   );
 };
