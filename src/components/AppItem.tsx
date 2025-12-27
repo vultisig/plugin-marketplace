@@ -194,7 +194,7 @@ export const AppItem: FC<App & { horizontal?: boolean }> = ({
               alignItems: "center",
               backgroundColor: colors.buttonPrimary.toHex(),
               borderRadius: "44px",
-              color: colors.buttonTextLight.toHex(),
+              color: colors.buttonText.toHex(),
               gap: "8px",
               height: "44px",
               justifyContent: "center",

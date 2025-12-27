@@ -84,15 +84,15 @@ const StyledButton = styled.div<{
           ${match($kind, {
             danger: () => css`
               background-color: ${theme.error.toHex()};
-              color: ${theme.buttonTextLight.toHex()};
+              color: ${theme.buttonText.toHex()};
             `,
             info: () => css`
               background-color: ${theme.info.toHex()};
-              color: ${theme.buttonTextLight.toHex()};
+              color: ${theme.buttonText.toHex()};
             `,
             primary: () => css`
               background-color: ${theme.buttonPrimary.toHex()};
-              color: ${theme.buttonTextLight.toHex()};
+              color: ${theme.buttonText.toHex()};
             `,
             secondary: () => css`
               background-color: ${theme.buttonSecondary.toHex()};
@@ -100,11 +100,11 @@ const StyledButton = styled.div<{
             `,
             success: () => css`
               background-color: ${theme.success.toHex()};
-              color: ${theme.buttonTextLight.toHex()};
+              color: ${theme.buttonText.toHex()};
             `,
             warning: () => css`
               background-color: ${theme.warning.toHex()};
-              color: ${theme.buttonTextLight.toHex()};
+              color: ${theme.buttonText.toHex()};
             `,
           })}
 
@@ -119,7 +119,7 @@ const StyledButton = styled.div<{
               primary: () => css`
                 background-color: ${({ theme }) =>
                   theme.buttonPrimaryHover.toHex()};
-                color: ${theme.buttonTextLight.toHex()};
+                color: ${theme.buttonText.toHex()};
               `,
               secondary: () => css`
                 background-color: ${({ theme }) =>
