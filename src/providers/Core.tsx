@@ -210,10 +210,10 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
           .then(async () => {
             const [vault] = await sdk.listVaults();
             console.log("List of vaults:", vault);
-            const btcAddress = await vault.address(Chain.Ethereum);
-            console.log("Eth address:", btcAddress);
-            vault.balance(chain.Ethereum).then((balance) => {
-              console.log("Eth balance:", balance);
+            const address = await vault.address("Ethereum");
+            console.log("Address:", address);
+            vault.balance("Ethereum").then((balance) => {
+              console.log("balance:", balance);
             });
           });
       });
