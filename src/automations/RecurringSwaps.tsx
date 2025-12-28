@@ -443,7 +443,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
               <AutomationFormCheckboxDate name="startDate" />
               <AssetWidget chains={supportedChains} keys={["from"]} />
               <AutomationFormAmountInput
-                assetKeys={["from"]}
+                asset={values?.from}
                 label="Amount"
                 name="fromAmount"
                 rules={[{ required: true }]}

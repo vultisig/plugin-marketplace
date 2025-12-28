@@ -10,12 +10,10 @@ import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { toNumberFormat } from "@/utils/functions";
 
 export const AutomationFormAmountInput: FC<
-  FormItemProps & { assetKeys: string[]; disabled?: boolean }
-> = ({ assetKeys, disabled, ...rest }) => {
+  FormItemProps & { asset?: AssetProps; disabled?: boolean }
+> = ({ asset, disabled, ...rest }) => {
   const [balance, setBalance] = useState<string>("");
   const { vault } = useCore();
-  const form = Form.useFormInstance();
-  const asset = Form.useWatch<AssetProps>(assetKeys, form);
   const colors = useTheme();
 
   useEffect(() => {

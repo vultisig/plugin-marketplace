@@ -507,21 +507,21 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   >
                     <Input />
                   </Form.Item>
-                  <AutomationFormAmountInput
-                    assetKeys={["asset"]}
-                    label="Amount"
-                    name="amount"
+                  <Form.Item<RecipientProps>
+                    label="To Address"
+                    name="toAddress"
                     rules={[{ required: true }]}
-                  />
+                  >
+                    <Input />
+                  </Form.Item>
                 </Stack>
-                <Form.Item<RecipientProps>
-                  label="To Address"
-                  name="toAddress"
+                <AutomationFormAmountInput
+                  asset={values?.asset}
+                  label="Amount"
+                  name="amount"
                   rules={[{ required: true }]}
-                >
-                  <Input />
-                </Form.Item>
-                <Stack $style={{ display: "flex", justifyContent: "flex-end" }}>
+                />
+                <Stack $style={{ display: "flex", justifyContent: "flex-end", marginTop: "24px" }}>
                   <Button onClick={() => recipientForm.submit()}>
                     Add Recipient
                   </Button>
