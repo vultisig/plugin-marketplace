@@ -18,6 +18,8 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
+import { AutomationFormAmount } from "@/automations/components/Amount";
+import { AutomationFormAmountInput } from "@/automations/components/FormAmountInput";
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
 import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
 import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
@@ -25,7 +27,7 @@ import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
 import { AutomationFormTitle } from "@/automations/components/FormTitle";
 import { AutomationFormToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
-import { AssetWidget } from "@/automations/widgets/Asset";
+import { AssetProps, AssetWidget } from "@/automations/widgets/Asset";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
 import { TokenImage } from "@/components/TokenImage";
 import { useAntd } from "@/hooks/useAntd";
@@ -40,11 +42,10 @@ import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
-import { InputDigits } from "@/toolkits/InputDigits";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
-import { Chain, nativeTokens } from "@/utils/chain";
+import { nativeTokens } from "@/utils/chain";
 import { modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
@@ -57,18 +58,9 @@ import {
 } from "@/utils/functions";
 import { AppAutomation, Token } from "@/utils/types";
 
-import { AutomationFormAmount } from "./components/Amount";
-
 type CustomAppAutomation = AppAutomation & {
   configuration?: DataProps;
   name: string;
-};
-
-type AssetProps = {
-  address: string;
-  chain: Chain;
-  decimals: number;
-  token: string;
 };
 
 type RecipientProps = {
@@ -515,13 +507,12 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                   >
                     <Input />
                   </Form.Item>
-                  <Form.Item<RecipientProps>
+                  <AutomationFormAmountInput
+                    asset={values.asset}
                     label="Amount"
                     name="amount"
                     rules={[{ required: true }]}
-                  >
-                    <InputDigits />
-                  </Form.Item>
+                  />
                 </Stack>
                 <Form.Item<RecipientProps>
                   label="To Address"

@@ -51,7 +51,8 @@ export const AppPage = () => {
   const [state, setState] = useState<StateProps>({});
   const { app, isInstalled, loading, schema } = state;
   const { messageAPI } = useAntd();
-  const { baseValue, connect, currency, isConnected, feeAppStatus } = useCore();
+  const { baseValue, connect, currency, isConnected, feeAppStatus, vault } =
+    useCore();
   const { hash } = useLocation();
   const { id = "" } = useParams();
   const { getAppData } = useQueries();
@@ -90,12 +91,11 @@ export const AppPage = () => {
   }, [id, schema]);
 
   const handleInstall = async () => {
-    if (loading) return;
+    if (loading || !vault) return;
 
     setState((prevState) => ({ ...prevState, loading: true }));
 
-    const isInstalled = await startReshareSession(id);
-
+    const isInstalled = await startReshareSession(id, vault.data);
     if (isInstalled) {
       setState((prevState) => ({
         ...prevState,

@@ -1,3 +1,4 @@
+import { MemoryStorage, VaultBase, Vultisig } from "@vultisig/sdk";
 import { message as Message, Modal } from "antd";
 import { hexlify, randomBytes } from "ethers";
 import { FC, ReactNode, useCallback, useEffect, useState } from "react";
@@ -23,8 +24,6 @@ import {
   personalSign,
 } from "@/utils/extension";
 import { Theme } from "@/utils/theme";
-import { Vultisig, MemoryStorage } from "@vultisig/sdk";
-import { chains } from "@/utils/chain";
 
 type StateProps = Pick<
   CoreContextProps,
@@ -75,56 +74,106 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const connect = useCallback(() => {
     connectToExtension()
       .then((address: string) => {
+        const storage = new MemoryStorage();
+        const sdk = new Vultisig({ storage });
+
         getVault()
-          .then(async (vault) => {
-            const { hexChainCode, publicKeyEcdsa } = vault;
-            const token = getToken(publicKeyEcdsa);
+          .then(
+            ({
+              name,
+              hexChainCode,
+              localPartyId,
+              parties,
+              publicKeyEcdsa,
+              publicKeyEddsa,
+              uid,
+            }) =>
+              sdk.initialize().then(() =>
+                storage.clear().then(() =>
+                  storage
+                    .set<VaultBase["data"]>(`vault:${uid}`, {
+                      publicKeys: {
+                        ecdsa: publicKeyEcdsa,
+                        eddsa: publicKeyEddsa,
+                      },
+                      hexChainCode: hexChainCode,
+                      signers: parties,
+                      localPartyId: localPartyId,
+                      createdAt: Date.now(),
+                      libType: "DKLS",
+                      isEncrypted: false,
+                      type: "fast",
+                      id: uid,
+                      name: name,
+                      isBackedUp: false,
+                      order: 1,
+                      folderId: undefined,
+                      lastModified: Date.now(),
+                      currency: "",
+                      chains: [],
+                      tokens: {},
+                      lastValueUpdate: undefined,
+                      vultFileContent: "",
+                    })
+                    .then(() =>
+                      sdk.listVaults().then(([vault]) => {
+                        const token = getToken(publicKeyEcdsa);
 
-            if (token) {
-              setVaultId(publicKeyEcdsa);
+                        if (token) {
+                          setVaultId(publicKeyEcdsa);
 
-              setState((prevState) => ({
-                ...prevState,
-                address,
-                isConnected: true,
-                vault,
-              }));
-            } else {
-              const nonce = hexlify(randomBytes(16));
-              const expiryTime = new Date(
-                Date.now() + 15 * 60 * 1000
-              ).toISOString();
+                          setState((prevState) => ({
+                            ...prevState,
+                            address,
+                            isConnected: true,
+                            vault,
+                          }));
+                        } else {
+                          const nonce = hexlify(randomBytes(16));
+                          const expiryTime = new Date(
+                            Date.now() + 15 * 60 * 1000
+                          ).toISOString();
 
-              const message = JSON.stringify({
-                message: "Sign into Vultisig App Store",
-                nonce: nonce,
-                expiresAt: expiryTime,
-                address,
-              });
+                          const message = JSON.stringify({
+                            message: "Sign into Vultisig App Store",
+                            nonce: nonce,
+                            expiresAt: expiryTime,
+                            address,
+                          });
 
-              return personalSign(address, message, "connect").then(
-                (signature) =>
-                  getAuthToken({
-                    chainCodeHex: hexChainCode,
-                    publicKey: publicKeyEcdsa,
-                    signature,
-                    message,
-                  }).then((newToken) => {
-                    setToken(publicKeyEcdsa, newToken);
-                    setVaultId(publicKeyEcdsa);
+                          personalSign(address, message, "connect").then(
+                            (signature) =>
+                              getAuthToken({
+                                chainCodeHex: hexChainCode,
+                                publicKey: publicKeyEcdsa,
+                                signature,
+                                message,
+                              })
+                                .then((newToken) => {
+                                  setToken(publicKeyEcdsa, newToken);
+                                  setVaultId(publicKeyEcdsa);
 
-                    setState((prevState) => ({
-                      ...prevState,
-                      address,
-                      isConnected: true,
-                      vault,
-                    }));
+                                  setState((prevState) => ({
+                                    ...prevState,
+                                    address,
+                                    isConnected: true,
+                                    vault,
+                                  }));
 
-                    messageAPI.success("Successfully authenticated!");
-                  })
-              );
-            }
-          })
+                                  messageAPI.success(
+                                    "Successfully authenticated!"
+                                  );
+                                })
+                                .catch(() => {
+                                  messageAPI.error("Authentication failed!");
+                                })
+                          );
+                        }
+                      })
+                    )
+                )
+              )
+          )
           .catch((error: Error) => {
             messageAPI.error(error.message);
             clear();
@@ -185,63 +234,9 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     getAppData(feeAppId)
-      .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })))
-      .catch(() => {});
+      .catch(() => undefined)
+      .then((feeApp) => setState((prevState) => ({ ...prevState, feeApp })));
   }, []);
-
-  useEffect(() => {
-    if (!isConnected) return;
-
-    const storage = new MemoryStorage();
-    const sdk = new Vultisig({ storage });
-
-    sdk.initialize().then(() => {
-      getVault().then(
-        ({
-          name,
-          hexChainCode,
-          localPartyId,
-          parties,
-          publicKeyEcdsa,
-          publicKeyEddsa,
-          uid,
-        }) => {
-          const mockVault = {
-            id: uid,
-            name,
-            publicKeys: {
-              ecdsa: publicKeyEcdsa,
-              eddsa: publicKeyEddsa,
-            },
-            hexChainCode,
-            signers: parties,
-            localPartyId,
-            createdAt: Date.now(),
-            libType: "DKLS",
-            isBackedUp: true,
-            order: 0,
-            isEncrypted: false,
-            type: "fast",
-            currency: "usd",
-            chains: [],
-            tokens: {},
-            vultFileContent: "",
-            lastModified: Date.now(),
-          };
-
-          storage.set(`vault:${mockVault.id}`, mockVault).then(async () => {
-            const [vault] = await sdk.listVaults();
-            console.log("List of vaults:", vault);
-            const address = await vault.address(chains.Ethereum);
-            console.log("Address:", address);
-            vault.balance(chains.Ethereum).then((balance) => {
-              console.log("balance:", balance);
-            });
-          });
-        }
-      );
-    });
-  }, [isConnected]);
 
   return (
     <CoreContext.Provider
