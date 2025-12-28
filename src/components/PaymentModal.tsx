@@ -17,7 +17,7 @@ import { startReshareSession } from "@/utils/extension";
 export const PaymentModal = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
+  const { feeApp, feeAppStatus, vault, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
@@ -43,11 +43,11 @@ export const PaymentModal = () => {
   ];
 
   const handleInstall = async () => {
-    if (loading) return;
+    if (loading || !vault) return;
 
     setLoading(true);
 
-    await startReshareSession(feeAppId);
+    await startReshareSession(feeAppId, vault.data);
 
     setLoading(false);
 
