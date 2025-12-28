@@ -19,6 +19,13 @@ import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Token } from "@/utils/types";
 
+export type AssetProps = {
+  address: string;
+  chain: Chain;
+  decimals: number;
+  token: string;
+};
+
 type AssetWidgetProps = {
   chains: Chain[];
   keys: string[];

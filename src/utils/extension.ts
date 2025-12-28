@@ -1,9 +1,9 @@
+import { VaultBase } from "@vultisig/sdk";
 import { randomBytes } from "crypto";
 
 import { reshareVault } from "@/utils/api";
 import { Chain, evmChains } from "@/utils/chain";
 import { vultiApiUrl } from "@/utils/constants";
-import { Vault } from "@/utils/types";
 
 export const connect = async () => {
   await isAvailable();
@@ -94,7 +94,16 @@ export const getAccount = async (chain: Chain) => {
 export const getVault = async () => {
   await isAvailable();
 
-  const vault: Vault = await window.vultisig.getVault();
+  const vault: {
+    hexChainCode: string;
+    isFastVault: boolean;
+    localPartyId: string;
+    name: string;
+    parties: string[];
+    publicKeyEcdsa: string;
+    publicKeyEddsa: string;
+    uid: string;
+  } = await window.vultisig.getVault();
 
   if (vault) {
     if (!vault.hexChainCode || !vault.publicKeyEcdsa)
@@ -136,14 +145,15 @@ export const personalSign = async (
   return signature as string;
 };
 
-export const startReshareSession = async (pluginId: string) => {
+export const startReshareSession = async (
+  pluginId: string,
+  vaultData: VaultBase["data"]
+) => {
   await isAvailable();
 
   try {
-    const vault = await getVault();
-
     // fetch first party id that does not start with Server
-    const extensionParty = vault.parties.find(
+    const extensionParty = vaultData.signers.find(
       (party) => !party.toLocaleLowerCase().startsWith("server")
     );
 
@@ -223,13 +233,13 @@ export const startReshareSession = async (pluginId: string) => {
 
     await reshareVault({
       email: "", // Not provided by extension, using empty string
-      hexChainCode: vault.hexChainCode,
+      hexChainCode: vaultData.hexChainCode,
       hexEncryptionKey: encryptionKeyHex,
-      localPartyId: vault.localPartyId,
-      name: vault.name,
-      oldParties: vault.parties,
+      localPartyId: vaultData.localPartyId,
+      name: vaultData.name,
+      oldParties: vaultData.signers as string[],
       pluginId, // Use the pluginId parameter passed to function
-      publicKey: vault.publicKeyEcdsa,
+      publicKey: vaultData.publicKeys.ecdsa,
       sessionId: dAppSessionId,
     });
 
