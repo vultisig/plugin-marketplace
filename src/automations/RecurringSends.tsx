@@ -508,7 +508,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                     <Input />
                   </Form.Item>
                   <AutomationFormAmountInput
-                    asset={values.asset}
+                    assetKeys={["asset"]}
                     label="Amount"
                     name="amount"
                     rules={[{ required: true }]}
