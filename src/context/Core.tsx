@@ -1,10 +1,11 @@
+import { VaultBase } from "@vultisig/sdk";
 import { createContext } from "react";
 
 import { setCurrency } from "@/storage/currency";
 import { setTheme } from "@/storage/theme";
 import { Currency } from "@/utils/currency";
 import { Theme } from "@/utils/theme";
-import { App, FeeAppStatus, Vault } from "@/utils/types";
+import { App, FeeAppStatus } from "@/utils/types";
 
 export type CoreContextProps = {
   address?: string;
@@ -19,7 +20,7 @@ export type CoreContextProps = {
   setTheme: typeof setTheme;
   theme: Theme;
   updateFeeAppStatus: () => void;
-  vault?: Vault;
+  vault?: VaultBase;
 };
 
 export const CoreContext = createContext<CoreContextProps | undefined>(

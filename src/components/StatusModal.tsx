@@ -3,16 +3,18 @@ import { FC, ReactNode } from "react";
 
 import { Stack } from "@/toolkits/Stack";
 
-type SuccessModalProps = {
+type StatusModalProps = {
   children?: ReactNode;
   onClose: () => void;
-  visible?: boolean;
+  open?: boolean;
+  success?: boolean;
 };
 
-export const SuccessModal: FC<SuccessModalProps> = ({
+export const StatusModal: FC<StatusModalProps> = ({
   children,
   onClose,
-  visible,
+  success,
+  open,
 }) => (
   <Modal
     centered={true}
@@ -34,12 +36,12 @@ export const SuccessModal: FC<SuccessModalProps> = ({
     title={
       <Stack
         as="img"
-        src="/images/success-banner.jpg"
+        src={`/images/${success ? "success" : "failure"}-banner.jpg`}
         $style={{ display: "block", width: "100%" }}
       />
     }
     width={390}
-    open={visible}
+    open={open}
   >
     {children}
   </Modal>

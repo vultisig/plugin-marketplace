@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 
-import { SuccessModal } from "@/components/SuccessModal";
+import { StatusModal } from "@/components/StatusModal";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { CircleInfoIcon } from "@/icons/CircleInfoIcon";
@@ -17,11 +17,11 @@ import { startReshareSession } from "@/utils/extension";
 export const PaymentModal = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
-  const { feeApp, feeAppStatus, updateFeeAppStatus } = useCore();
+  const { feeApp, feeAppStatus, vault, updateFeeAppStatus } = useCore();
   const { hash } = useLocation();
   const goBack = useGoBack();
   const colors = useTheme();
-  const visible = hash === modalHash.payment;
+  const open = hash === modalHash.payment;
 
   const permissions = [
     {
@@ -43,11 +43,11 @@ export const PaymentModal = () => {
   ];
 
   const handleInstall = async () => {
-    if (loading) return;
+    if (loading || !vault) return;
 
     setLoading(true);
 
-    await startReshareSession(feeAppId);
+    await startReshareSession(feeAppId, vault.data);
 
     setLoading(false);
 
@@ -55,16 +55,17 @@ export const PaymentModal = () => {
   };
 
   useEffect(() => {
-    if (visible) setStep(1);
-  }, [visible]);
+    if (open) setStep(1);
+  }, [open]);
 
   if (!feeApp || !feeAppStatus) return null;
 
   return (
     <>
-      <SuccessModal
+      <StatusModal
         onClose={() => goBack()}
-        visible={visible && feeAppStatus.isInstalled}
+        open={open && feeAppStatus.isInstalled}
+        success
       >
         <Stack as="span" $style={{ fontSize: "22px", lineHeight: "24px" }}>
           Installation Successful
@@ -89,14 +90,14 @@ export const PaymentModal = () => {
             You can now install other apps.
           </Stack>
         </VStack>
-      </SuccessModal>
+      </StatusModal>
 
       <Modal
         centered={true}
         closable={false}
         footer={false}
         onCancel={() => goBack()}
-        open={visible && !feeAppStatus.isInstalled}
+        open={open && !feeAppStatus.isInstalled}
         styles={{
           body: { alignItems: "center", display: "flex", gap: 24 },
           container: { padding: 16 },
