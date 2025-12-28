@@ -146,6 +146,14 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     {
       align: "center",
       dataIndex: "configuration",
+      key: "startDate",
+      render: ({ startDate }: DataProps) =>
+        dayjs(startDate).format("YYYY-MM-DD"),
+      title: "Start Date",
+    },
+    {
+      align: "center",
+      dataIndex: "configuration",
       key: "frequency",
       render: ({ frequency }: DataProps) => kebabCaseToTitle(frequency),
       title: "Frequency",
