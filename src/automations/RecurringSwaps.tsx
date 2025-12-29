@@ -1,12 +1,6 @@
 import { create, fromBinary, toBinary } from "@bufbuild/protobuf";
 import { base64Decode, base64Encode } from "@bufbuild/protobuf/wire";
 import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
-import {
   Empty,
   Form,
   Input,
@@ -51,7 +45,7 @@ import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
-import { chains, nativeTokens } from "@/utils/chain";
+import { nativeTokens } from "@/utils/chain";
 import { modalHash } from "@/utils/constants";
 import { getAccount, personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
@@ -733,27 +727,9 @@ const TemplateItem: FC<{
     getAccount(chain).then((address) => {
       if (cancelled) return;
       if (address) {
-        if (chain === chains.Solana) {
-          const mint = new PublicKey(asset.token);
-          const owner = new PublicKey(address);
-
-          getAssociatedTokenAddress(
-            mint,
-            owner,
-            true,
-            TOKEN_PROGRAM_ID,
-            ASSOCIATED_TOKEN_PROGRAM_ID
-          )
-            .then((address) => {
-              if (!cancelled)
-                setAsset({ ...asset, address: address.toBase58(), decimals });
-            })
-            .catch(() => {
-              if (!cancelled) setAsset({ ...asset, decimals });
-            });
-        } else {
-          setAsset({ ...asset, address, decimals });
-        }
+        // Note: For Solana SPL tokens, we keep the wallet address (not ATA).
+        // The backend metarule will derive the ATA automatically using DeriveATA(wallet, mint).
+        setAsset({ ...asset, address, decimals });
       }
     });
 
