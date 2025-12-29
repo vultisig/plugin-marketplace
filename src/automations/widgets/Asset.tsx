@@ -1,9 +1,3 @@
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress,
-  TOKEN_PROGRAM_ID,
-} from "@solana/spl-token";
-import { PublicKey } from "@solana/web3.js";
 import { Form, Input, Select, SelectProps } from "antd";
 import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
@@ -135,31 +129,8 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
         tokens.find(({ id }) => id === token) || nativeTokens[chain];
 
       form.setFieldValue(decimalsField, selectedToken.decimals);
-
-      if (chain === "Solana") {
-        getAccount(chain).then((address) => {
-          if (address && token) {
-            const mint = new PublicKey(token);
-            const owner = new PublicKey(address);
-
-            getAssociatedTokenAddress(
-              mint,
-              owner,
-              true,
-              TOKEN_PROGRAM_ID,
-              ASSOCIATED_TOKEN_PROGRAM_ID
-            )
-              .then((address) => {
-                form.setFieldValue(addressField, address.toBase58());
-              })
-              .catch(() => {
-                form.setFieldValue(addressField, undefined);
-              });
-          } else {
-            form.setFieldValue(addressField, address);
-          }
-        });
-      }
+      // Note: For Solana SPL tokens, we keep the wallet address (not ATA).
+      // The backend metarule will derive the ATA automatically using DeriveATA(wallet, mint).
     },
     optionRender: ({ data: { label, logo, name } }) => (
       <HStack $style={{ alignItems: "center", cursor: "pointer", gap: "8px" }}>
