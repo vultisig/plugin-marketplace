@@ -17,7 +17,7 @@ export const AutomationFormAmountInput: FC<
   const colors = useTheme();
 
   useEffect(() => {
-    if (!asset || !vault) return;
+    if (!asset?.chain || !vault) return;
 
     vault.balance(asset.chain, asset.token).then(({ amount }) => {
       setBalance(toNumberFormat(formatUnits(BigInt(amount), asset.decimals)));

@@ -57,6 +57,10 @@ export const useWalletCore = () => {
 
     if (!walletCore || !tokenType) return false;
 
+    if (chain === chains.MayaChain) {
+      return walletCore.AnyAddress.isValidBech32(address, tokenType, "maya");
+    }
+
     return walletCore.AnyAddress.isValid(address, tokenType);
   };
 

@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
 import { AutomationFormAmount } from "@/automations/components/Amount";
+import { AutomationFormAddressInput } from "@/automations/components/FormAddressInput";
 import { AutomationFormAmountInput } from "@/automations/components/FormAmountInput";
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
 import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
@@ -73,6 +74,7 @@ type DataProps = {
   asset: AssetProps;
   endDate: number;
   frequency: string;
+  recipient: RecipientProps;
   recipients: RecipientProps[];
   name: string;
   startDate: number;
@@ -107,7 +109,6 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
   const { hash } = useLocation();
   const { discard, discardHolder } = useDiscard();
   const [form] = Form.useForm<DataProps>();
-  const [recipientForm] = Form.useForm<RecipientProps>();
   const values = Form.useWatch([], form);
   const goBack = useGoBack();
   const colors = useTheme();
@@ -185,15 +186,6 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
       width: 80,
     },
   ];
-
-  const handleAdd = (recipient: RecipientProps) => {
-    recipientForm.resetFields();
-
-    setState((prev) => ({
-      ...prev,
-      recipients: [...prev.recipients, recipient],
-    }));
-  };
 
   const handleBack = () => {
     setState((prev) => ({ ...prev, step: prev.step - 1 }));
@@ -295,6 +287,13 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
           messageAPI.error("Failed to get suggestion from app");
         });
+    } else if (step === 2 && !recipients.length) {
+      form.setFieldValue("recipient", { alias: "", amount: "", toAddress: "" });
+
+      setState((prev) => ({
+        ...prev,
+        recipients: [...prev.recipients, values.recipient],
+      }));
     } else {
       setState((prev) => ({ ...prev, step: prev.step + 1 }));
     }
@@ -442,11 +441,20 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
             form={form}
             layout="vertical"
             onFinish={handleStep}
+            onFinishFailed={({ values }) => {
+              if (step === 2 && recipients.length > 0) handleStep(values);
+            }}
           >
             <Stack $style={{ display: step === 1 ? "block" : "none" }}>
               <AssetWidget chains={supportedChains} keys={["asset"]} noStyle />
             </Stack>
-            <Stack $style={{ display: step === 2 ? "block" : "none" }}>
+            <Stack
+              $style={{
+                display: step === 2 ? "flex" : "none",
+                flexDirection: "column",
+                gap: "24px",
+              }}
+            >
               {values?.asset && recipients.length ? (
                 <Stack
                   $style={{
@@ -467,6 +475,44 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
               ) : (
                 <Empty description="No recipients added yet." />
               )}
+              <Divider />
+              <VStack>
+                <Stack
+                  $style={{
+                    columnGap: "16px",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                  }}
+                >
+                  <Form.Item
+                    label="Alias / Name"
+                    name={["recipient", "alias"]}
+                    rules={[{ required: step === 2 }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <AutomationFormAddressInput
+                    chain={values?.asset?.chain}
+                    label="To Address"
+                    name={["recipient", "toAddress"]}
+                    rules={[{ required: step === 2 }]}
+                  />
+                </Stack>
+                <AutomationFormAmountInput
+                  asset={values?.asset}
+                  label="Amount"
+                  name={["recipient", "amount"]}
+                  rules={[{ required: step === 2 }]}
+                />
+              </VStack>
+              <Stack
+                $style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <Button onClick={() => form.submit()}>Add Recipient</Button>
+              </Stack>
             </Stack>
             <Stack
               $style={{
@@ -492,51 +538,6 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
             </Stack>
             {step === 4 && <Overview {...{ ...values, recipients }} />}
           </Form>
-          {step === 2 && (
-            <>
-              <Divider />
-              <Form
-                autoComplete="off"
-                form={recipientForm}
-                layout="vertical"
-                onFinish={handleAdd}
-              >
-                <Stack
-                  $style={{
-                    columnGap: "16px",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
-                >
-                  <Form.Item<RecipientProps>
-                    label="Alias / Name"
-                    name="alias"
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item<RecipientProps>
-                    label="To Address"
-                    name="toAddress"
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </Stack>
-                <AutomationFormAmountInput
-                  asset={values?.asset}
-                  label="Amount"
-                  name="amount"
-                  rules={[{ required: true }]}
-                />
-                <Stack $style={{ display: "flex", justifyContent: "flex-end", marginTop: "24px" }}>
-                  <Button onClick={() => recipientForm.submit()}>
-                    Add Recipient
-                  </Button>
-                </Stack>
-              </Form>
-            </>
-          )}
         </VStack>
       </Modal>
 
