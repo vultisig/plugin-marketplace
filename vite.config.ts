@@ -27,6 +27,7 @@ export default defineConfig({
       "events",
       "ripple-binary-codec", // Fix CommonJS interop
       "@cosmjs/stargate", // Fix CommonJS interop
+      "@solana/web3.js", // Fix CommonJS interop
     ],
     exclude: ["@vultisig/sdk"], // Let Vite handle SDK imports directly
   },

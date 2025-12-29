@@ -36,7 +36,6 @@ import { useGoBack } from "@/hooks/useGoBack";
 import { useQueries } from "@/hooks/useQueries";
 import { ChevronRightIcon } from "@/icons/ChevronRightIcon";
 import { CrossIcon } from "@/icons/CrossIcon";
-import { PencilLineIcon } from "@/icons/PencilLineIcon";
 import { TrashIcon } from "@/icons/TrashIcon";
 import { PolicySchema } from "@/proto/policy_pb";
 import { getVaultId } from "@/storage/vaultId";
@@ -319,11 +318,11 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     }
   };
 
-  const handleTemplate = (data: DataProps, edit?: boolean) => {
+  const handleTemplate = (data: DataProps) => {
     form.resetFields();
     form.setFieldsValue(data);
 
-    setState((prevState) => ({ ...prevState, step: edit ? 2 : 3 }));
+    setState((prevState) => ({ ...prevState, step: 2 }));
   };
 
   useEffect(() => {
@@ -583,7 +582,7 @@ const Overview: FC<DataProps> = ({
 
 const Template: FC<{
   values: DataProps;
-  setValues: (data: DataProps, edit?: boolean) => void;
+  setValues: (data: DataProps) => void;
 }> = ({ values, setValues }) => {
   const [data, setData] = useState(values);
   const { frequency, from, fromAmount, to } = data;
@@ -669,43 +668,24 @@ const Template: FC<{
           </Stack>
         </HStack>
       </VStack>
-      <HStack $style={{ gap: "8px" }}>
-        <VStack
-          as="span"
-          onClick={() => setValues(data)}
-          $style={{
-            alignItems: "center",
-            backgroundColor: colors.buttonPrimary.toHex(),
-            borderRadius: "20px",
-            color: colors.buttonText.toHex(),
-            cursor: "pointer",
-            flexGrow: "1",
-            fontSize: "12px",
-            height: "40px",
-            justifyContent: "center",
-          }}
-          $hover={{ backgroundColor: colors.buttonPrimaryHover.toHex() }}
-        >
-          Use Template
-        </VStack>
-        <VStack
-          as="span"
-          onClick={() => setValues(data, true)}
-          $style={{
-            alignItems: "center",
-            backgroundColor: colors.bgTertiary.toHex(),
-            borderRadius: "50%",
-            cursor: "pointer",
-            fontSize: "16px",
-            height: "40px",
-            justifyContent: "center",
-            width: "40px",
-          }}
-          $hover={{ color: colors.accentFour.toHex() }}
-        >
-          <PencilLineIcon />
-        </VStack>
-      </HStack>
+      <VStack
+        as="span"
+        onClick={() => setValues(data)}
+        $style={{
+          alignItems: "center",
+          backgroundColor: colors.buttonPrimary.toHex(),
+          borderRadius: "20px",
+          color: colors.buttonText.toHex(),
+          cursor: "pointer",
+          flexGrow: "1",
+          fontSize: "12px",
+          height: "40px",
+          justifyContent: "center",
+        }}
+        $hover={{ backgroundColor: colors.buttonPrimaryHover.toHex() }}
+      >
+        Get Started
+      </VStack>
     </VStack>
   );
 };
