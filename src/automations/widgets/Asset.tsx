@@ -3,13 +3,13 @@ import { FC, useEffect, useMemo, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { TokenImage } from "@/components/TokenImage";
+import { useCore } from "@/hooks/useCore";
 import { useQueries } from "@/hooks/useQueries";
 import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { Chain, decimals, ethL2Chains, tickers } from "@/utils/chain";
-import { getAccount } from "@/utils/extension";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Token } from "@/utils/types";
 
@@ -40,6 +40,7 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
 }) => {
   const [state, setState] = useState<StateProps>({ tokens: [] });
   const { loading, tokens } = state;
+  const { vault } = useCore();
   const { getTokenData, getTokenList } = useQueries();
   const { isValidAddress } = useWalletCore();
   const colors = useTheme();
@@ -79,7 +80,9 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const chainSelectProps: SelectProps<Chain, { label: string; value: string }> =
     {
       onChange: (chain) => {
-        getAccount(chain).then((address) => {
+        if (!vault) return;
+
+        vault.address(chain).then((address) => {
           form.setFieldValue(addressField, address);
           form.setFieldValue(decimalsField, nativeTokens[chain].decimals);
           form.setFieldValue(tokenField, "");
