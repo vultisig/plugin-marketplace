@@ -46,7 +46,7 @@ export const AutomationFormToken: FC<{ chain: Chain; id: string }> = ({
           src={token.logo}
           width="20px"
         />
-        {!!id && (
+        {(!!id || chain !== token.chain) && (
           <Stack
             $style={{ bottom: "-2px", position: "absolute", right: "-2px" }}
           >

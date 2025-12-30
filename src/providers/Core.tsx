@@ -32,7 +32,6 @@ type StateProps = Pick<
   | "currency"
   | "feeApp"
   | "feeAppStatus"
-  | "isConnected"
   | "theme"
   | "vault"
 >;
@@ -41,19 +40,10 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<StateProps>({
     baseValue: 1,
     currency: getCurrency(),
-    isConnected: false,
     theme: getTheme(),
   });
-  const {
-    address,
-    baseValue,
-    currency,
-    feeApp,
-    feeAppStatus,
-    isConnected,
-    theme,
-    vault,
-  } = state;
+  const { address, baseValue, currency, feeApp, feeAppStatus, theme, vault } =
+    state;
   const [messageAPI, messageHolder] = Message.useMessage();
   const [modalAPI, modalHolder] = Modal.useModal();
   const { getAppData } = useQueries();
@@ -65,7 +55,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
       setState((prevState) => ({
         ...prevState,
         address: undefined,
-        isConnected: false,
         vault: undefined,
       }));
     });
@@ -73,13 +62,11 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const connect = useCallback(() => {
     connectToExtension()
-      .then((address: string) => {
-        const storage = new MemoryStorage();
-        const sdk = new Vultisig({ storage });
-
+      .then((address: string) =>
         getVault()
-          .then(
-            ({
+          .then(async (vault) => {
+            const vultisig = new Vultisig({ storage: new MemoryStorage() });
+            const {
               name,
               hexChainCode,
               localPartyId,
@@ -87,98 +74,90 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
               publicKeyEcdsa,
               publicKeyEddsa,
               uid,
-            }) =>
-              sdk.initialize().then(() =>
-                storage.clear().then(() =>
-                  storage
-                    .set<VaultBase["data"]>(`vault:${uid}`, {
-                      publicKeys: {
-                        ecdsa: publicKeyEcdsa,
-                        eddsa: publicKeyEddsa,
-                      },
-                      hexChainCode: hexChainCode,
-                      signers: parties,
-                      localPartyId: localPartyId,
-                      createdAt: Date.now(),
-                      libType: "DKLS",
-                      isEncrypted: false,
-                      type: "fast",
-                      id: uid,
-                      name: name,
-                      isBackedUp: false,
-                      order: 1,
-                      folderId: undefined,
-                      lastModified: Date.now(),
-                      currency: "",
-                      chains: [],
-                      tokens: {},
-                      lastValueUpdate: undefined,
-                      vultFileContent: "",
-                    })
-                    .then(() =>
-                      sdk.listVaults().then(([vault]) => {
-                        const token = getToken(publicKeyEcdsa);
+            } = vault;
 
-                        if (token) {
-                          setVaultId(publicKeyEcdsa);
+            return vultisig.initialize().then(() =>
+              vultisig.storage
+                .set<VaultBase["data"]>(`vault:${uid}`, {
+                  publicKeys: { ecdsa: publicKeyEcdsa, eddsa: publicKeyEddsa },
+                  hexChainCode,
+                  signers: parties,
+                  localPartyId,
+                  createdAt: Date.now(),
+                  libType: "DKLS",
+                  isEncrypted: false,
+                  type: "fast",
+                  id: uid,
+                  name,
+                  isBackedUp: false,
+                  order: 1,
+                  folderId: undefined,
+                  lastModified: Date.now(),
+                  currency: "",
+                  chains: [],
+                  tokens: {},
+                  lastValueUpdate: undefined,
+                  vultFileContent: "",
+                })
+                .then(() =>
+                  vultisig.listVaults().then(([vault]) => {
+                    const token = getToken(publicKeyEcdsa);
 
-                          setState((prevState) => ({
-                            ...prevState,
-                            address,
-                            isConnected: true,
-                            vault,
-                          }));
-                        } else {
-                          const nonce = hexlify(randomBytes(16));
-                          const expiryTime = new Date(
-                            Date.now() + 15 * 60 * 1000
-                          ).toISOString();
+                    if (token) {
+                      setVaultId(publicKeyEcdsa);
 
-                          const message = JSON.stringify({
-                            message: "Sign into Vultisig App Store",
-                            nonce: nonce,
-                            expiresAt: expiryTime,
-                            address,
-                          });
+                      setState((prevState) => ({
+                        ...prevState,
+                        address,
+                        vault,
+                      }));
+                    } else {
+                      const nonce = hexlify(randomBytes(16));
+                      const expiryTime = new Date(
+                        Date.now() + 15 * 60 * 1000
+                      ).toISOString();
 
-                          personalSign(address, message, "connect").then(
-                            (signature) =>
-                              getAuthToken({
-                                chainCodeHex: hexChainCode,
-                                publicKey: publicKeyEcdsa,
-                                signature,
-                                message,
-                              })
-                                .then((newToken) => {
-                                  setToken(publicKeyEcdsa, newToken);
-                                  setVaultId(publicKeyEcdsa);
+                      const message = JSON.stringify({
+                        message: "Sign into Vultisig App Store",
+                        nonce: nonce,
+                        expiresAt: expiryTime,
+                        address,
+                      });
 
-                                  setState((prevState) => ({
-                                    ...prevState,
-                                    address,
-                                    isConnected: true,
-                                    vault,
-                                  }));
+                      personalSign(address, message, "connect").then(
+                        (signature) =>
+                          getAuthToken({
+                            chainCodeHex: hexChainCode,
+                            publicKey: publicKeyEcdsa,
+                            signature,
+                            message,
+                          })
+                            .then((newToken) => {
+                              setToken(publicKeyEcdsa, newToken);
+                              setVaultId(publicKeyEcdsa);
 
-                                  messageAPI.success(
-                                    "Successfully authenticated!"
-                                  );
-                                })
-                                .catch(() => {
-                                  messageAPI.error("Authentication failed!");
-                                })
-                          );
-                        }
-                      })
-                    )
+                              setState((prevState) => ({
+                                ...prevState,
+                                address,
+                                vault,
+                              }));
+
+                              messageAPI.success("Successfully authenticated!");
+                            })
+                            .catch(() => {
+                              messageAPI.error("Authentication failed!");
+                            })
+                      );
+                    }
+                  })
                 )
-              )
-          )
+            );
+          })
           .catch((error: Error) => {
             messageAPI.error(error.message);
             clear();
-          });
-      })
+          })
+      )
       .catch((error: Error) => messageAPI.error(error.message));
   }, [clear, messageAPI]);
 
@@ -207,12 +186,12 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const updateFeeAppStatus = useCallback(async () => {
-    if (!isConnected) return;
+    if (!vault) return;
 
     const feeAppStatus = await getFeeAppStatus();
 
     setState((prevState) => ({ ...prevState, feeAppStatus }));
-  }, [isConnected]);
+  }, [vault]);
 
   useLocalStorageWatcher(storageKeys.currency, () => {
     setCurrency(getCurrency(), true);
@@ -248,7 +227,6 @@ export const CoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
         disconnect,
         feeApp,
         feeAppStatus,
-        isConnected,
         setCurrency,
         setTheme,
         theme,

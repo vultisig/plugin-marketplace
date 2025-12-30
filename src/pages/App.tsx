@@ -51,8 +51,7 @@ export const AppPage = () => {
   const [state, setState] = useState<StateProps>({});
   const { app, isInstalled, loading, schema } = state;
   const { messageAPI } = useAntd();
-  const { baseValue, connect, currency, isConnected, feeAppStatus, vault } =
-    useCore();
+  const { baseValue, connect, currency, feeAppStatus, vault } = useCore();
   const { hash } = useLocation();
   const { id = "" } = useParams();
   const { getAppData } = useQueries();
@@ -115,12 +114,12 @@ export const AppPage = () => {
   };
 
   useEffect(() => {
-    if (isConnected) {
-      checkStatus();
-    } else {
+    if (!vault) {
       setState((prevState) => ({ ...prevState, isInstalled: undefined }));
+    } else {
+      checkStatus();
     }
-  }, [checkStatus, isConnected]);
+  }, [checkStatus, vault]);
 
   useEffect(() => {
     if (id === feeAppId) {
@@ -272,51 +271,49 @@ export const AppPage = () => {
                       gap: "12px",
                     }}
                   >
-                    {isConnected ? (
-                      isInstalled === undefined ||
-                      isFeeAppInstalled === undefined ? (
-                        <Button disabled loading>
-                          Checking
-                        </Button>
-                      ) : !isFree && !isFeeAppInstalled ? (
-                        <Button href={modalHash.payment} loading={loading}>
-                          Get
-                          <Stack
-                            as="span"
-                            $style={{
-                              backgroundColor: "currentColor",
-                              borderRadius: "50%",
-                              height: "2px",
-                              width: "2px",
-                            }}
-                          />
-                          Free
-                        </Button>
-                      ) : isInstalled ? (
-                        <Button
-                          disabled={loading || !schema}
-                          href={routeTree.automations.link(id)}
-                          state={true}
-                        >
-                          Automations
-                        </Button>
-                      ) : (
-                        <Button loading={loading} onClick={handleInstall}>
-                          Get
-                          <Stack
-                            as="span"
-                            $style={{
-                              backgroundColor: "currentColor",
-                              borderRadius: "50%",
-                              height: "2px",
-                              width: "2px",
-                            }}
-                          />
-                          Free
-                        </Button>
-                      )
-                    ) : (
+                    {!vault ? (
                       <Button onClick={connect}>Connect</Button>
+                    ) : isInstalled === undefined ||
+                      isFeeAppInstalled === undefined ? (
+                      <Button disabled loading>
+                        Checking
+                      </Button>
+                    ) : !isFree && !isFeeAppInstalled ? (
+                      <Button href={modalHash.payment} loading={loading}>
+                        Get
+                        <Stack
+                          as="span"
+                          $style={{
+                            backgroundColor: "currentColor",
+                            borderRadius: "50%",
+                            height: "2px",
+                            width: "2px",
+                          }}
+                        />
+                        Free
+                      </Button>
+                    ) : isInstalled ? (
+                      <Button
+                        disabled={loading || !schema}
+                        href={routeTree.automations.link(id)}
+                        state={true}
+                      >
+                        Automations
+                      </Button>
+                    ) : (
+                      <Button loading={loading} onClick={handleInstall}>
+                        Get
+                        <Stack
+                          as="span"
+                          $style={{
+                            backgroundColor: "currentColor",
+                            borderRadius: "50%",
+                            height: "2px",
+                            width: "2px",
+                          }}
+                        />
+                        Free
+                      </Button>
                     )}
                     <VStack
                       as="span"

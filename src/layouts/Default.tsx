@@ -22,7 +22,7 @@ import { VultisigLogoIcon } from "@/icons/VultisigLogoIcon";
 import { ZapIcon } from "@/icons/ZapIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { modalHash } from "@/utils/constants";
-import { getAccount } from "@/utils/extension";
+import { getVault } from "@/utils/extension";
 import { routeTree } from "@/utils/routes";
 
 const GlobalStyle = createGlobalStyle`
@@ -33,15 +33,14 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 export const DefaultLayout = () => {
-  const { connect, currency, disconnect, isConnected, setTheme, theme, vault } =
-    useCore();
+  const { connect, currency, disconnect, setTheme, theme, vault } = useCore();
   const navigate = useNavigate();
   const colors = useTheme();
   const isNotSupport = useMediaQuery({ query: "(max-width: 991px)" });
   const { extension, extensionHolder } = useExtension();
 
   const dropdownMenu: MenuProps["items"] = [
-    ...(isConnected
+    ...(vault
       ? [
           {
             icon: <CreditCardIcon />,
@@ -91,7 +90,7 @@ export const DefaultLayout = () => {
         setTheme(theme === "light" ? "dark" : "light");
       },
     },
-    ...(isConnected
+    ...(vault
       ? [
           {
             icon: <ArrowBoxLeftIcon color={colors.accentFour.toHex()} />,
@@ -114,9 +113,9 @@ export const DefaultLayout = () => {
     if (isNotSupport) return;
 
     const timeoutId = setTimeout(() => {
-      getAccount("Ethereum")
-        .then((account) => {
-          if (account) connect();
+      getVault()
+        .then((vault) => {
+          if (vault) connect();
         })
         .catch(() => {});
     }, 200);
@@ -231,7 +230,7 @@ export const DefaultLayout = () => {
             >
               Marketplace
             </Stack>
-            {isConnected && (
+            {!!vault && (
               <Stack
                 as={Link}
                 to={routeTree.myApps.path}

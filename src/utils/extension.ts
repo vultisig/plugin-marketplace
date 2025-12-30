@@ -2,7 +2,6 @@ import { VaultBase } from "@vultisig/sdk";
 import { randomBytes } from "crypto";
 
 import { reshareVault } from "@/utils/api";
-import { Chain, evmChains } from "@/utils/chain";
 import { vultiApiUrl } from "@/utils/constants";
 
 export const connect = async () => {
@@ -26,69 +25,6 @@ export const disconnect = async () => {
   await window.vultisig.ethereum.request({
     method: "wallet_revokePermissions",
   });
-};
-
-export const getAccount = async (chain: Chain) => {
-  await isAvailable();
-
-  if (chain in evmChains) {
-    try {
-      const [account]: string[] = await window.vultisig.ethereum.request({
-        method: "eth_accounts",
-      });
-      return account;
-    } catch {
-      return undefined;
-    }
-  } else {
-    const method = "get_accounts";
-
-    switch (chain) {
-      case "Bitcoin": {
-        try {
-          const [account]: string[] = await window.vultisig.bitcoin.request({
-            method,
-          });
-          return account;
-        } catch {
-          return undefined;
-        }
-      }
-      case "Solana": {
-        try {
-          const [account]: string[] = await window.vultisig.solana.request({
-            method,
-          });
-          return account;
-        } catch {
-          return undefined;
-        }
-      }
-      case "Ripple": {
-        try {
-          const [account]: string[] = await window.vultisig.ripple.request({
-            method,
-          });
-          return account;
-        } catch {
-          return undefined;
-        }
-      }
-      case "Zcash": {
-        try {
-          const [account]: string[] = await window.vultisig.zcash.request({
-            method,
-          });
-          return account;
-        } catch {
-          return undefined;
-        }
-      }
-      default: {
-        return undefined;
-      }
-    }
-  }
 };
 
 export const getVault = async () => {

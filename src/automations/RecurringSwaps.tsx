@@ -46,7 +46,7 @@ import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { addPolicy, getRecipeSuggestion } from "@/utils/api";
 import { nativeTokens } from "@/utils/chain";
 import { modalHash } from "@/utils/constants";
-import { getAccount, personalSign } from "@/utils/extension";
+import { personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
   getConfiguration,
@@ -695,38 +695,30 @@ const TemplateItem: FC<{
   setAsset: (asset: AssetProps) => void;
 }> = ({ asset, setAsset }) => {
   const [token, setToken] = useState<Token | undefined>(undefined);
+  const { vault } = useCore();
   const { getTokenData } = useQueries();
   const colors = useTheme();
 
   useEffect(() => {
-    if (!asset.token || !token) return;
-    let cancelled = false;
+    if (!vault) return;
 
-    const { chain, decimals } = token;
-
-    getAccount(chain).then((address) => {
-      if (cancelled) return;
-      if (address) {
-        // Note: For Solana SPL tokens, we keep the wallet address (not ATA).
-        // The backend metarule will derive the ATA automatically using DeriveATA(wallet, mint).
-        setAsset({ ...asset, address, decimals });
+    vault.address(asset.chain).then((address) => {
+      if (asset.token) {
+        getTokenData(asset.chain, asset.token)
+          .then((token) => {
+            setAsset({ ...asset, address, decimals: token.decimals });
+            setToken(token);
+          })
+          .catch(() => {
+            //Todo: handle error
+          });
+      } else {
+        const token = nativeTokens[asset.chain];
+        setAsset({ ...asset, address, decimals: token.decimals });
+        setToken(token);
       }
     });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [asset.token, token]);
-
-  useEffect(() => {
-    if (asset.token) {
-      getTokenData(asset.chain, asset.token)
-        .catch(() => undefined)
-        .then(setToken);
-    } else {
-      setToken(nativeTokens[asset.chain]);
-    }
-  }, [asset.chain, asset.token]);
+  }, [asset.chain, asset.token, vault]);
 
   return (
     <VStack
@@ -753,15 +745,15 @@ const TemplateItem: FC<{
               src={token.logo}
               width="30px"
             />
-            {!!token.id && (
+            {(!!token.id || token.chain !== asset.chain) && (
               <Stack
                 $style={{ bottom: "-4px", position: "absolute", right: "-4px" }}
               >
                 <TokenImage
-                  alt={token.chain}
+                  alt={asset.chain}
                   borderRadius="50%"
                   height="16px"
-                  src={`/tokens/${token.chain.toLowerCase()}.svg`}
+                  src={`/tokens/${asset.chain.toLowerCase()}.svg`}
                   width="16px"
                 />
               </Stack>

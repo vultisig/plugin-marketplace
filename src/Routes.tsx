@@ -18,8 +18,9 @@ import { TransactionsPage } from "@/pages/Transactions";
 import { routeTree } from "@/utils/routes";
 
 const ProtectedRoute: FC<{ children: ReactNode }> = ({ children }) => {
-  const { isConnected } = useCore();
-  return isConnected ? children : <Navigate to={routeTree.root.path} replace />;
+  const { vault } = useCore();
+
+  return !vault ? <Navigate to={routeTree.root.path} replace /> : children;
 };
 
 export const Routes = () => {
