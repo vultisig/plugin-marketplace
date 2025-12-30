@@ -4,6 +4,7 @@ import { Fragment } from "react";
 import { SEO } from "@/components/SEO";
 import { Divider } from "@/toolkits/Divider";
 import { Stack, VStack } from "@/toolkits/Stack";
+import { routeTree } from "@/utils/routes";
 
 const data = [
   {
@@ -70,63 +71,68 @@ const data = [
 
 export const FaqPage = () => {
   return (
-    <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+    <>
       <SEO
         title="FAQ - Frequently Asked Questions"
         description="Find answers to common questions about Vultisig App Store, self-custodial automation, app security, and developer resources."
-        url="/faq"
+        url={routeTree.faq.path}
         keywords="vultisig faq, app store help, crypto automation help, self-custodial automation, vultisig support"
       />
-      <VStack
-        $style={{
-          gap: "32px",
-          maxWidth: "768px",
-          padding: "48px 16px",
-          width: "100%",
-        }}
-      >
-        <Stack
-          as="span"
+      
+      <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+        <VStack
           $style={{
-            fontSize: "40px",
-            justifyContent: "center",
-            lineHeight: "42px",
+            gap: "32px",
+            maxWidth: "768px",
+            padding: "48px 16px",
+            width: "100%",
           }}
         >
-          FAQ
-        </Stack>
-        <VStack $style={{ gap: "72px" }}>
-          {data.map(({ heading, items }, index) => (
-            <VStack key={index} $style={{ gap: "24px" }}>
-              <Stack
-                as="span"
-                $style={{ fontSize: "22px", lineHeight: "24px" }}
-              >
-                {heading}
-              </Stack>
-              {items.map(({ answer, question }, index) => (
-                <Fragment key={index}>
-                  {index > 0 && <Divider light />}
-                  <Collapse
-                    bordered={false}
-                    items={[
-                      {
-                        key: "1",
-                        label: question,
-                        children: (
-                          <Stack dangerouslySetInnerHTML={{ __html: answer }} />
-                        ),
-                      },
-                    ]}
-                    expandIconPlacement="end"
-                    ghost
-                  />
-                </Fragment>
-              ))}
-            </VStack>
-          ))}
+          <Stack
+            as="span"
+            $style={{
+              fontSize: "40px",
+              justifyContent: "center",
+              lineHeight: "42px",
+            }}
+          >
+            FAQ
+          </Stack>
+          <VStack $style={{ gap: "72px" }}>
+            {data.map(({ heading, items }, index) => (
+              <VStack key={index} $style={{ gap: "24px" }}>
+                <Stack
+                  as="span"
+                  $style={{ fontSize: "22px", lineHeight: "24px" }}
+                >
+                  {heading}
+                </Stack>
+                {items.map(({ answer, question }, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <Divider light />}
+                    <Collapse
+                      bordered={false}
+                      items={[
+                        {
+                          key: "1",
+                          label: question,
+                          children: (
+                            <Stack
+                              dangerouslySetInnerHTML={{ __html: answer }}
+                            />
+                          ),
+                        },
+                      ]}
+                      expandIconPlacement="end"
+                      ghost
+                    />
+                  </Fragment>
+                ))}
+              </VStack>
+            ))}
+          </VStack>
         </VStack>
       </VStack>
-    </VStack>
+    </>
   );
 };

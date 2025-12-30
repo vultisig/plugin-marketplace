@@ -173,20 +173,22 @@ export const AppPage = () => {
 
   if (!app) return <Spin centered />;
 
-  const appDescription = app.description || `${app.title} - A secure cryptocurrency app for your Vultisig wallet`;
-  const appImage = app.thumbnailUrl || app.logoUrl;
-  const appKeywords = `${app.title}, vultisig app, crypto app, ${app.audited ? 'audited crypto app, ' : ''}blockchain app`;
-
   return (
     <>
       <SEO
         title={app.title}
-        description={appDescription}
-        image={appImage}
-        url={`/app/${app.id}`}
+        description={
+          app.description ||
+          `${app.title} - A secure cryptocurrency app for your Vultisig wallet`
+        }
+        image={app.thumbnailUrl || app.logoUrl}
+        url={routeTree.app.link(id)}
         type="product"
-        keywords={appKeywords}
+        keywords={`${app.title}, vultisig app, crypto app, ${
+          app.audited ? "audited crypto app, " : ""
+        }blockchain app`}
       />
+      
       <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
         <VStack
           $style={{

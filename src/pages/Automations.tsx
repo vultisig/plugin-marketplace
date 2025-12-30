@@ -37,6 +37,7 @@ import {
 } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App, CustomAppPolicy, RecipeSchema } from "@/utils/types";
+import { Helmet } from "react-helmet-async";
 
 type StateProps = {
   app?: App;
@@ -199,6 +200,8 @@ export const AutomationsPage = () => {
 
   return (
     <>
+      <Helmet title="Automations" />
+
       <VStack
         $style={{ alignItems: "center", flexGrow: "1", padding: "24px 0" }}
       >

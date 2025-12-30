@@ -12,6 +12,7 @@ import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getApps, getCategories } from "@/utils/api";
 import { App, AppFilters, Category } from "@/utils/types";
+import { routeTree } from "@/utils/routes";
 
 type StateProps = {
   categories: Category[];
@@ -57,125 +58,131 @@ export const MainPage = () => {
   }, []);
 
   return (
-    <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+    <>
       <SEO
         title="Discover Apps"
         description="Browse and discover secure cryptocurrency applications and automations for your Vultisig wallet. Install apps for recurring swaps, automated sends, and more."
-        url="/"
+        url={routeTree.root.path}
         keywords="crypto apps, vultisig apps, cryptocurrency tools, DeFi apps, crypto automation, blockchain applications"
       />
-      <VStack
-        $style={{
-          gap: "48px",
-          maxWidth: "1200px",
-          padding: "16px",
-          width: "100%",
-        }}
-      >
-        <VStack $style={{ gap: "16px" }}>
-          <FreeTrialBanner />
-          <Stack
-            $style={{
-              backgroundImage: "url(/images/banner.jpg)",
-              backgroundPosition: "center center",
-              backgroundSize: "cover",
-              borderRadius: "16px",
-              height: "336px",
-            }}
-          />
-        </VStack>
-        <VStack $style={{ flexGrow: "1", gap: "32px" }}>
-          <VStack $style={{ gap: "24px" }}>
-            <Stack as="span" $style={{ fontSize: "40px", lineHeight: "42px" }}>
-              Discover Apps
-            </Stack>
-            <Divider light />
-            <HStack $style={{ flexGrow: "1", gap: "12px" }}>
-              {categories.map(({ id, name }) => {
-                const isActive =
-                  (!id && !filters.categoryId) || id === filters.categoryId;
-
-                return (
-                  <VStack
-                    as="span"
-                    key={id}
-                    onClick={() =>
-                      setFilters({
-                        ...filters,
-                        categoryId: isActive ? "" : id,
-                      })
-                    }
-                    $hover={{
-                      backgroundColor: colors.bgTertiary.toHex(),
-                      color: colors.buttonTextLight.toHex(),
-                    }}
-                    $style={{
-                      alignItems: "center",
-                      backgroundColor: isActive
-                        ? colors.bgTertiary.toHex()
-                        : colors.bgSecondary.toHex(),
-                      border: `solid 1px ${colors.borderNormal.toHex()}`,
-                      borderRadius: "8px",
-                      color: colors.textPrimary.toHex(),
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      gap: "8px",
-                      justifyContent: "center",
-                      height: "40px",
-                      padding: "0 24px",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {name}
-                  </VStack>
-                );
-              })}
-            </HStack>
+      
+      <VStack $style={{ alignItems: "center", flexGrow: "1" }}>
+        <VStack
+          $style={{
+            gap: "48px",
+            maxWidth: "1200px",
+            padding: "16px",
+            width: "100%",
+          }}
+        >
+          <VStack $style={{ gap: "16px" }}>
+            <FreeTrialBanner />
+            <Stack
+              $style={{
+                backgroundImage: "url(/images/banner.jpg)",
+                backgroundPosition: "center center",
+                backgroundSize: "cover",
+                borderRadius: "16px",
+                height: "336px",
+              }}
+            />
           </VStack>
+          <VStack $style={{ flexGrow: "1", gap: "32px" }}>
+            <VStack $style={{ gap: "24px" }}>
+              <Stack
+                as="span"
+                $style={{ fontSize: "40px", lineHeight: "42px" }}
+              >
+                Discover Apps
+              </Stack>
+              <Divider light />
+              <HStack $style={{ flexGrow: "1", gap: "12px" }}>
+                {categories.map(({ id, name }) => {
+                  const isActive =
+                    (!id && !filters.categoryId) || id === filters.categoryId;
 
-          {loading ? (
-            <Spin centered />
-          ) : apps.length ? (
-            <>
-              {!!newApp && (
+                  return (
+                    <VStack
+                      as="span"
+                      key={id}
+                      onClick={() =>
+                        setFilters({
+                          ...filters,
+                          categoryId: isActive ? "" : id,
+                        })
+                      }
+                      $hover={{
+                        backgroundColor: colors.bgTertiary.toHex(),
+                        color: colors.buttonTextLight.toHex(),
+                      }}
+                      $style={{
+                        alignItems: "center",
+                        backgroundColor: isActive
+                          ? colors.bgTertiary.toHex()
+                          : colors.bgSecondary.toHex(),
+                        border: `solid 1px ${colors.borderNormal.toHex()}`,
+                        borderRadius: "8px",
+                        color: colors.textPrimary.toHex(),
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        gap: "8px",
+                        justifyContent: "center",
+                        height: "40px",
+                        padding: "0 24px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {name}
+                    </VStack>
+                  );
+                })}
+              </HStack>
+            </VStack>
+
+            {loading ? (
+              <Spin centered />
+            ) : apps.length ? (
+              <>
+                {!!newApp && (
+                  <VStack $style={{ flexDirection: "column", gap: "16px" }}>
+                    <Stack
+                      as="span"
+                      $style={{ fontSize: "17px", lineHeight: "20px" }}
+                    >
+                      New
+                    </Stack>
+                    <AppItem {...newApp} horizontal />
+                  </VStack>
+                )}
                 <VStack $style={{ flexDirection: "column", gap: "16px" }}>
                   <Stack
                     as="span"
                     $style={{ fontSize: "17px", lineHeight: "20px" }}
                   >
-                    New
+                    All Apps
                   </Stack>
-                  <AppItem {...newApp} horizontal />
+                  <Stack
+                    $style={{
+                      display: "grid",
+                      gap: "32px",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                    }}
+                    $media={{
+                      xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
+                    }}
+                  >
+                    {apps.map((app) => (
+                      <AppItem key={app.id} {...app} />
+                    ))}
+                  </Stack>
                 </VStack>
-              )}
-              <VStack $style={{ flexDirection: "column", gap: "16px" }}>
-                <Stack
-                  as="span"
-                  $style={{ fontSize: "17px", lineHeight: "20px" }}
-                >
-                  All Apps
-                </Stack>
-                <Stack
-                  $style={{
-                    display: "grid",
-                    gap: "32px",
-                    gridTemplateColumns: "repeat(2, 1fr)",
-                  }}
-                  $media={{
-                    xl: { $style: { gridTemplateColumns: "repeat(3, 1fr)" } },
-                  }}
-                >
-                  {apps.map((app) => (
-                    <AppItem key={app.id} {...app} />
-                  ))}
-                </Stack>
-              </VStack>
-            </>
-          ) : (
-            <Empty />
-          )}
+              </>
+            ) : (
+              <Empty />
+            )}
+          </VStack>
         </VStack>
       </VStack>
-    </VStack>
+    </>
   );
 };

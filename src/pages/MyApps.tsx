@@ -29,111 +29,116 @@ export const MyAppsPage = () => {
   }, []);
 
   return (
-    <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "48px 0" }}>
+    <>
       <SEO
         title="My Apps - Installed Applications"
         description="View and manage your installed Vultisig apps and automations. Access your recurring swaps, automated sends, and other crypto tools."
-        url="/my-apps"
+        url={routeTree.myApps.path}
         noindex={true}
       />
+
       <VStack
-        $style={{
-          gap: "32px",
-          maxWidth: "768px",
-          padding: "0 16px",
-          width: "100%",
-        }}
+        $style={{ alignItems: "center", flexGrow: "1", padding: "48px 0" }}
       >
-        <HStack
-          as="span"
-          $style={{ fontSize: "22px", gap: "8px", lineHeight: "24px" }}
+        <VStack
+          $style={{
+            gap: "32px",
+            maxWidth: "768px",
+            padding: "0 16px",
+            width: "100%",
+          }}
         >
-          <Stack as="span">Installed Apps</Stack>
-          <Stack
+          <HStack
             as="span"
-            $style={{ color: colors.textTertiary.toHex() }}
-          >{`(${apps.length})`}</Stack>
-        </HStack>
-        {loading ? (
-          <Spin />
-        ) : !apps.length ? (
-          <Empty />
-        ) : (
-          <VStack $style={{ gap: "16px" }}>
-            {apps.map((app) => (
-              <HStack
-                as={Link}
-                key={app.id}
-                state={true}
-                to={routeTree.automations.link(app.id)}
-                $style={{
-                  alignItems: "center",
-                  border: `1px solid ${colors.borderLight.toHex()}`,
-                  borderRadius: "24px",
-                  gap: "16px",
-                  justifyContent: "space-between",
-                  padding: "16px",
-                }}
-              >
-                <HStack $style={{ alignItems: "center", gap: "16px" }}>
-                  <Stack
-                    as="img"
-                    alt={app.title}
-                    src={app.logoUrl}
-                    $style={{
-                      borderRadius: "12px",
-                      display: "block",
-                      height: "56px",
-                      width: "56px",
-                    }}
-                  />
-                  <VStack
-                    $style={{
-                      alignItems: "flex-start",
-                      gap: "4px",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Stack $style={{ fontSize: "17px", lineHeight: "20px" }}>
-                      {app.title}
-                    </Stack>
+            $style={{ fontSize: "22px", gap: "8px", lineHeight: "24px" }}
+          >
+            <Stack as="span">Installed Apps</Stack>
+            <Stack
+              as="span"
+              $style={{ color: colors.textTertiary.toHex() }}
+            >{`(${apps.length})`}</Stack>
+          </HStack>
+          {loading ? (
+            <Spin />
+          ) : !apps.length ? (
+            <Empty />
+          ) : (
+            <VStack $style={{ gap: "16px" }}>
+              {apps.map((app) => (
+                <HStack
+                  as={Link}
+                  key={app.id}
+                  state={true}
+                  to={routeTree.automations.link(app.id)}
+                  $style={{
+                    alignItems: "center",
+                    border: `1px solid ${colors.borderLight.toHex()}`,
+                    borderRadius: "24px",
+                    gap: "16px",
+                    justifyContent: "space-between",
+                    padding: "16px",
+                  }}
+                >
+                  <HStack $style={{ alignItems: "center", gap: "16px" }}>
                     <Stack
-                      as="span"
+                      as="img"
+                      alt={app.title}
+                      src={app.logoUrl}
                       $style={{
-                        color: colors.textTertiary.toHex(),
-                        lineHeight: "20px",
+                        borderRadius: "12px",
+                        display: "block",
+                        height: "56px",
+                        width: "56px",
+                      }}
+                    />
+                    <VStack
+                      $style={{
+                        alignItems: "flex-start",
+                        gap: "4px",
+                        justifyContent: "center",
                       }}
                     >
-                      {app.description}
-                    </Stack>
-                  </VStack>
+                      <Stack $style={{ fontSize: "17px", lineHeight: "20px" }}>
+                        {app.title}
+                      </Stack>
+                      <Stack
+                        as="span"
+                        $style={{
+                          color: colors.textTertiary.toHex(),
+                          lineHeight: "20px",
+                        }}
+                      >
+                        {app.description}
+                      </Stack>
+                    </VStack>
+                  </HStack>
+                  <Stack
+                    as={ChevronRightIcon}
+                    $style={{ flex: "none", fontSize: "16px" }}
+                  />
                 </HStack>
-                <Stack
-                  as={ChevronRightIcon}
-                  $style={{ flex: "none", fontSize: "16px" }}
-                />
-              </HStack>
-            ))}
+              ))}
+            </VStack>
+          )}
+          <VStack $style={{ alignItems: "center" }}>
+            <Stack
+              as={Link}
+              to={routeTree.root.path}
+              $style={{
+                borderColor: colors.accentFour.toHex(),
+                borderStyle: "solid",
+                borderWidth: "1px",
+                borderRadius: "24px",
+                lineHeight: "46px",
+                padding: "0 24px",
+              }}
+              $hover={{ color: colors.accentFour.toHex() }}
+            >
+              Discover more apps
+            </Stack>
           </VStack>
-        )}
-        <VStack $style={{ alignItems: "center" }}>
-          <Stack
-            as={Link}
-            to={routeTree.root.path}
-            $style={{
-              borderColor: colors.accentFour.toHex(),
-              borderStyle: "solid",
-              borderWidth: "1px",
-              borderRadius: "24px",
-              lineHeight: "46px",
-              padding: "0 24px",
-            }}
-            $hover={{ color: colors.accentFour.toHex() }}
-          >
-            Discover more apps
-          </Stack>
         </VStack>
       </VStack>
-    </VStack>
+    </>
   );
 };

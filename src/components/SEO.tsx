@@ -1,66 +1,60 @@
 import { FC } from "react";
 import { Helmet } from "react-helmet-async";
 
- type SEOProps = {
-  title?: string;
+type SEOProps = {
+  author?: string;
+  canonical?: string;
   description?: string;
   image?: string;
-  url?: string;
-  type?: "website" | "article" | "product";
   keywords?: string;
-  author?: string;
-  twitterCard?: "summary" | "summary_large_image" | "app" | "player";
-  twitterSite?: string;
-  twitterCreator?: string;
   noindex?: boolean;
-  canonical?: string;
-};
-
-const defaultValues = {
-  siteName: "Vultisig App Store",
-  defaultTitle: "Vultisig App Store - Secure Crypto Apps & Automations",
-  defaultDescription:
-    "Discover and install secure cryptocurrency applications and automations for your Vultisig wallet. Access recurring swaps, automated sends, and more powerful crypto tools.",
-  defaultImage: "https://store.vultisigplugin.app/images/banner.jpg",
-  baseUrl: "https://store.vultisigplugin.app",
-  twitterHandle: "@vultisig",
-  defaultKeywords:
-    "vultisig, crypto wallet, cryptocurrency, blockchain apps, crypto automation, recurring swaps, automated sends, web3, DeFi, bitcoin, ethereum",
+  title?: string;
+  twitterCard?: "summary" | "summary_large_image" | "app" | "player";
+  twitterCreator?: string;
+  twitterSite?: string;
+  type?: "website" | "article" | "product";
+  url?: string;
 };
 
 export const SEO: FC<SEOProps> = ({
-  title,
-  description,
-  image,
-  url,
-  type = "website",
-  keywords,
   author = "Vultisig",
-  twitterCard = "summary_large_image",
-  twitterSite = defaultValues.twitterHandle,
-  twitterCreator = defaultValues.twitterHandle,
-  noindex = false,
   canonical,
+  description,
+  image = "https://store.vultisigplugin.app/images/banner.jpg",
+  keywords,
+  noindex = false,
+  title,
+  twitterCard = "summary_large_image",
+  twitterCreator = "@vultisig",
+  twitterSite = "@vultisig",
+  type = "website",
+  url,
 }) => {
+  const baseUrl = "https://store.vultisigplugin.app";
+  const siteName = "Vultisig App Store";
+
+  const pageDescription =
+    description ||
+    "Discover and install secure cryptocurrency applications and automations for your Vultisig wallet. Access recurring swaps, automated sends, and more powerful crypto tools.";
   const pageTitle = title
-    ? `${title} | ${defaultValues.siteName}`
-    : defaultValues.defaultTitle;
-  const pageDescription = description || defaultValues.defaultDescription;
-  const pageImage = image || defaultValues.defaultImage;
-  const pageUrl = url
-    ? `${defaultValues.baseUrl}${url}`
-    : defaultValues.baseUrl;
-  const pageKeywords = keywords || defaultValues.defaultKeywords;
-  const canonicalUrl = canonical || pageUrl;
+    ? `${title} | ${siteName}`
+    : "Vultisig App Store - Secure Crypto Apps & Automations";
+  const pageUrl = url ? `${baseUrl}${url}` : baseUrl;
 
   return (
     <Helmet>
       {/* Basic Meta Tags */}
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
-      <meta name="keywords" content={pageKeywords} />
+      <meta
+        name="keywords"
+        content={
+          keywords ||
+          "vultisig, crypto wallet, cryptocurrency, blockchain apps, crypto automation, recurring swaps, automated sends, web3, DeFi, bitcoin, ethereum"
+        }
+      />
       <meta name="author" content={author} />
-      <link rel="canonical" href={canonicalUrl} />
+      <link rel="canonical" href={canonical || pageUrl} />
 
       {/* Robots */}
       {noindex && <meta name="robots" content="noindex, nofollow" />}
@@ -69,9 +63,9 @@ export const SEO: FC<SEOProps> = ({
       <meta property="og:type" content={type} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
-      <meta property="og:image" content={pageImage} />
+      <meta property="og:image" content={image} />
       <meta property="og:url" content={pageUrl} />
-      <meta property="og:site_name" content={defaultValues.siteName} />
+      <meta property="og:site_name" content={siteName} />
       <meta property="og:locale" content="en_US" />
 
       {/* Open Graph Image Properties */}
@@ -86,7 +80,7 @@ export const SEO: FC<SEOProps> = ({
       <meta name="twitter:creator" content={twitterCreator} />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={pageDescription} />
-      <meta name="twitter:image" content={pageImage} />
+      <meta name="twitter:image" content={image} />
       <meta name="twitter:image:alt" content={pageTitle} />
 
       {/* Additional SEO Tags */}
@@ -94,7 +88,7 @@ export const SEO: FC<SEOProps> = ({
       <meta name="mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="apple-mobile-web-app-title" content={defaultValues.siteName} />
+      <meta name="apple-mobile-web-app-title" content={siteName} />
     </Helmet>
   );
 };
