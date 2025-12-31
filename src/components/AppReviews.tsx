@@ -34,7 +34,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
     totalCount: 0,
   });
   const { loading, reviews, submitting } = state;
-  const { address, connect, isConnected } = useCore();
+  const { address, connect, vault } = useCore();
   const { hash } = useLocation();
   const [form] = Form.useForm<ReviewForm>();
   const goBack = useGoBack();
@@ -118,10 +118,10 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
                 </Stack>
               </VStack>
             </HStack>
-            {isConnected ? (
-              <Button href={modalHash.review}>Write Review</Button>
-            ) : (
+            {!vault ? (
               <Button onClick={connect}>Connect</Button>
+            ) : (
+              <Button href={modalHash.review}>Write Review</Button>
             )}
           </HStack>
           <HStack $style={{ gap: "24px" }}>

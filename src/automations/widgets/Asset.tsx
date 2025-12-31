@@ -1,5 +1,5 @@
 import { Form, Input, Select, SelectProps } from "antd";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
 import { TokenImage } from "@/components/TokenImage";
@@ -9,7 +9,7 @@ import { useWalletCore } from "@/hooks/useWalletCore";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { Chain, decimals, ethL2Chains, tickers } from "@/utils/chain";
+import { Chain, nativeTokens } from "@/utils/chain";
 import { camelCaseToTitle } from "@/utils/functions";
 import { Token } from "@/utils/types";
 
@@ -51,31 +51,6 @@ export const AssetWidget: FC<AssetWidgetProps> = ({
   const tokenField = [...prefixKeys, ...keys, "token"];
   const form = Form.useFormInstance();
   const chain = Form.useWatch<Chain>(chainField, form);
-
-  const nativeTokens = useMemo(() => {
-    return chains.reduce((acc, chain) => {
-      const isEvm = chain in ethL2Chains;
-
-      acc[chain] = isEvm
-        ? {
-            chain: "Ethereum",
-            decimals: decimals["Ethereum"],
-            id: "",
-            logo: "/tokens/ethereum.svg",
-            name: "Ethereum",
-            ticker: tickers["Ethereum"],
-          }
-        : {
-            chain,
-            decimals: decimals[chain],
-            id: "",
-            logo: `/tokens/${chain.toLowerCase()}.svg`,
-            name: chain,
-            ticker: tickers[chain],
-          };
-      return acc;
-    }, {} as Record<Chain, Token>);
-  }, [chain]);
 
   const chainSelectProps: SelectProps<Chain, { label: string; value: string }> =
     {

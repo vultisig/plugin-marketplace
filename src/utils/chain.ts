@@ -30,7 +30,7 @@ const cosmosChains = {
   THORChain: "THORChain",
 } as const;
 
-export const ethL2Chains = {
+const ethL2Chains = {
   Arbitrum: "Arbitrum",
   Base: "Base",
   Blast: "Blast",
@@ -76,7 +76,7 @@ export const chains = {
   ...otherChains,
 } as const;
 
-export const decimals: Record<Chain, number> = {
+const decimals: Record<Chain, number> = {
   [chains.Akash]: 6,
   [chains.Arbitrum]: 18,
   [chains.Avalanche]: 18,
@@ -115,7 +115,7 @@ export const decimals: Record<Chain, number> = {
   [chains.Zksync]: 18,
 };
 
-export const tickers: Record<Chain, string> = {
+const tickers: Record<Chain, string> = {
   [chains.Akash]: "AKT",
   [chains.Arbitrum]: "ARB",
   [chains.Avalanche]: "AVAX",
@@ -155,14 +155,25 @@ export const tickers: Record<Chain, string> = {
 };
 
 export const nativeTokens = Object.values(chains).reduce((acc, chain) => {
-  acc[chain] = {
-    chain,
-    decimals: decimals[chain],
-    id: "",
-    logo: `/tokens/${chain.toLowerCase()}.svg`,
-    name: chain,
-    ticker: tickers[chain],
-  };
+  const isEvm = chain in ethL2Chains;
+
+  acc[chain] = isEvm
+    ? {
+        chain: chains.Ethereum,
+        decimals: decimals[chains.Ethereum],
+        id: "",
+        logo: `/tokens/${chains.Ethereum.toLowerCase()}.svg`,
+        name: chains.Ethereum,
+        ticker: tickers[chains.Ethereum],
+      }
+    : {
+        chain,
+        decimals: decimals[chain],
+        id: "",
+        logo: `/tokens/${chain.toLowerCase()}.svg`,
+        name: chain,
+        ticker: tickers[chain],
+      };
   return acc;
 }, {} as Record<Chain, Token>);
 

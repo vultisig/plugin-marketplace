@@ -15,7 +15,6 @@ export type CoreContextProps = {
   disconnect: () => void;
   feeApp?: App;
   feeAppStatus?: FeeAppStatus;
-  isConnected: boolean;
   setCurrency: typeof setCurrency;
   setTheme: typeof setTheme;
   theme: Theme;
