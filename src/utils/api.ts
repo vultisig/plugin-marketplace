@@ -36,6 +36,7 @@ import {
   Review,
   ReviewForm,
   Token,
+  Transaction,
 } from "@/utils/types";
 
 const api = axios.create({ headers: { "Content-Type": "application/json" } });
@@ -338,6 +339,29 @@ export const getReviews = async (
     return { reviews, totalCount };
   } catch {
     return { reviews: [], totalCount: 0 };
+  }
+};
+
+export const getTransactions = async ({
+  skip,
+  take = defaultPageSize,
+}: ListFilters): Promise<{
+  totalCount: number;
+  transactions: Transaction[];
+}> => {
+  try {
+    const { history, totalCount } = await get<{
+      history: Transaction[];
+      totalCount: number;
+    }>(`${storeApiUrl}/plugin/${recurringSwapsAppId}/transactions`, {
+      params: toSnakeCase({ skip, take }),
+    });
+
+    if (!totalCount) return { totalCount: 0, transactions: [] };
+
+    return { totalCount, transactions: history };
+  } catch {
+    return { totalCount: 0, transactions: [] };
   }
 };
 
