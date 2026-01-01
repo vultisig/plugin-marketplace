@@ -177,7 +177,7 @@ export type Transaction = {
   pluginId: string;
   policyId: string;
   publicKey: string;
-  status: string;
+  status: "PROPOSED" | "SIGNED" | "VERIFIED";
   statusOnchain: string;
   toPublicKey: string;
   tokenId: string;

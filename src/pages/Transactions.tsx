@@ -75,6 +75,28 @@ export const TransactionsPage = () => {
       dataIndex: "status",
       key: "status",
       title: "Status",
+      render: (value: Transaction["status"]) => {
+        const completed = value === "SIGNED";
+
+        return (
+          <HStack $style={{ justifyContent: "center" }}>
+            <Stack
+              as="span"
+              $style={{
+                backgroundColor:
+                  colors[completed ? "success" : "warning"].toRgba(0.1),
+                borderRadius: "4px",
+                color: colors[completed ? "success" : "warning"].toHex(),
+                fontSize: "12px",
+                lineHeight: "20px",
+                padding: "0 8px",
+              }}
+            >
+              {completed ? "Completed" : "Pending"}
+            </Stack>
+          </HStack>
+        );
+      },
     },
   ];
 
