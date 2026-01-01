@@ -1,38 +1,74 @@
 import { Table, TableProps } from "antd";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
+import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
+import { getMyApps, getTransactions } from "@/utils/api";
+import { toValueFormat } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
+import { App, Transaction } from "@/utils/types";
+
+type StateProps = {
+  apps: App[];
+  loading: boolean;
+  transactions: Transaction[];
+};
 
 export const TransactionsPage = () => {
+  const [state, setState] = useState<StateProps>({
+    apps: [],
+    loading: true,
+    transactions: [],
+  });
+  const { apps, loading, transactions } = state;
+  const { currency } = useCore();
   const goBack = useGoBack();
   const colors = useTheme();
 
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<Transaction>["columns"] = [
     {
-      dataIndex: "date",
-      key: "date",
-      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      title: "Created At",
+      render: (value) => dayjs(value).format("MMMM DD YYYY"),
     },
     {
-      align: "center",
-      dataIndex: "appName",
-      key: "appName",
+      dataIndex: "pluginId",
+      key: "pluginId",
       title: "App Name",
+      render: (value, { appName }) => {
+        const app = apps.find(({ id }) => id === value);
+
+        if (!app) return appName;
+
+        return (
+          <HStack $style={{ alignItems: "center", gap: "8px" }}>
+            <Stack
+              as="img"
+              alt={app.title}
+              src={app.logoUrl}
+              $style={{ borderRadius: "8px", height: "36px", width: "36px" }}
+            />
+            <Stack as="span">{app.title}</Stack>
+          </HStack>
+        );
+      },
     },
-    {
-      align: "center",
-      dataIndex: "type",
-      key: "type",
-      title: "Type",
-    },
+
     {
       align: "center",
       dataIndex: "amount",
       key: "amount",
       title: "Amount",
+      render: (value) => {
+        if (!value) return "-";
+
+        return toValueFormat(value, currency);
+      },
     },
     {
       align: "center",
@@ -41,6 +77,19 @@ export const TransactionsPage = () => {
       title: "Status",
     },
   ];
+
+  useEffect(() => {
+    Promise.all([getMyApps({}), getTransactions({})]).then(
+      ([{ apps }, { transactions }]) => {
+        setState((prevState) => ({
+          ...prevState,
+          loading: false,
+          apps,
+          transactions,
+        }));
+      }
+    );
+  }, []);
 
   return (
     <VStack $style={{ alignItems: "center", flexGrow: "1", padding: "24px 0" }}>
@@ -79,7 +128,8 @@ export const TransactionsPage = () => {
         </Stack>
         <Table
           columns={columns}
-          dataSource={[]}
+          dataSource={transactions}
+          loading={loading}
           pagination={false}
           rowKey="id"
           size="small"

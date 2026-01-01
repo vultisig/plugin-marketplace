@@ -167,4 +167,22 @@ export type Token = {
   ticker: string;
 };
 
+export type Transaction = {
+  amount: string;
+  appName: string;
+  broadcastedAt: string;
+  chainId: number;
+  createdAt: string;
+  id: string;
+  pluginId: string;
+  policyId: string;
+  publicKey: string;
+  status: string;
+  statusOnchain: string;
+  toPublicKey: string;
+  tokenId: string;
+  txHash: string;
+  updatedAt: string;
+};
+
 type Widget = "#/definitions/asset";
