@@ -171,7 +171,7 @@ export type Transaction = {
   amount: string;
   appName: string;
   broadcastedAt: string;
-  chainId: number;
+  chain: Chain;
   createdAt: string;
   id: string;
   pluginId: string;

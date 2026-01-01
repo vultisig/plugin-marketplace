@@ -3,12 +3,11 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { useCore } from "@/hooks/useCore";
+import { AutomationFormAmount } from "@/automations/components/Amount";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getMyApps, getTransactions } from "@/utils/api";
-import { toValueFormat } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App, Transaction } from "@/utils/types";
 
@@ -25,7 +24,6 @@ export const TransactionsPage = () => {
     transactions: [],
   });
   const { apps, loading, transactions } = state;
-  const { currency } = useCore();
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -64,10 +62,16 @@ export const TransactionsPage = () => {
       dataIndex: "amount",
       key: "amount",
       title: "Amount",
-      render: (value) => {
-        if (!value) return "-";
+      render: (_, { amount, chain = "Ethereum", tokenId }) => {
+        if (!amount) return "-";
 
-        return toValueFormat(value, currency);
+        return (
+          <AutomationFormAmount
+            amount={amount}
+            chain={chain}
+            tokenId={tokenId}
+          />
+        );
       },
     },
     {

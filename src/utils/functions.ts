@@ -45,6 +45,14 @@ const toTimestamp = (date: Date) => {
   };
 };
 
+const toValueFormat = (
+  value: number | string,
+  currency: Currency,
+  decimal = 2
+): string => {
+  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
+};
+
 export const camelCaseToTitle = (input: string) => {
   if (!input) return input;
 
@@ -304,12 +312,4 @@ export const toSnakeCase = <T>(obj: T): T => {
   }
 
   return obj;
-};
-
-export const toValueFormat = (
-  value: number | string,
-  currency: Currency,
-  decimal = 2
-): string => {
-  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
 };
