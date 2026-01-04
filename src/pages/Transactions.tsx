@@ -11,23 +11,28 @@ import { EyeOpenIcon } from "@/icons/EyeOpenIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getMyApps, getTransactions } from "@/utils/api";
+import { defaultPageSize } from "@/utils/constants";
 import { camelCaseToTitle, getExplorerUrl } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App, Transaction } from "@/utils/types";
 
 type StateProps = {
   apps: App[];
+  current: number;
   loading: boolean;
+  total: number;
   transactions: Transaction[];
 };
 
 export const TransactionsPage = () => {
   const [state, setState] = useState<StateProps>({
     apps: [],
+    current: 1,
     loading: true,
+    total: 0,
     transactions: [],
   });
-  const { apps, loading, transactions } = state;
+  const { apps, current, loading, total, transactions } = state;
   const goBack = useGoBack();
   const colors = useTheme();
 
@@ -154,17 +159,30 @@ export const TransactionsPage = () => {
     },
   ];
 
-  useEffect(() => {
-    Promise.all([getMyApps({}), getTransactions({})]).then(
-      ([{ apps }, { transactions }]) => {
+  const fetchTransactions = (skip = 0) => {
+    setState((prevState) => ({ ...prevState, loading: true }));
+
+    getTransactions({ skip })
+      .then(({ transactions, totalCount }) => {
         setState((prevState) => ({
           ...prevState,
+          current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
           loading: false,
-          apps,
+          total: totalCount,
           transactions,
         }));
-      }
-    );
+      })
+      .catch(() => {
+        setState((prevState) => ({ ...prevState, loading: false }));
+      });
+  };
+
+  useEffect(() => {
+    getMyApps({}).then(({ apps }) => {
+      setState((prevState) => ({ ...prevState, apps }));
+    });
+
+    fetchTransactions();
   }, []);
 
   return (
@@ -206,7 +224,13 @@ export const TransactionsPage = () => {
           columns={columns}
           dataSource={transactions}
           loading={loading}
-          pagination={false}
+          pagination={{
+            current,
+            onChange: (page) => fetchTransactions((page - 1) * defaultPageSize),
+            pageSize: defaultPageSize,
+            showSizeChanger: false,
+            total,
+          }}
           rowKey="id"
           size="small"
         />
