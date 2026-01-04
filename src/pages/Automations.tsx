@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -15,89 +15,30 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import {
-  delPolicy,
-  getAutomations,
-  getRecipeSpecification,
-  uninstallApp,
-} from "@/utils/api";
+import { getRecipeSpecification, uninstallApp } from "@/utils/api";
 import {
   modalHash,
   recurringSendsAppId,
   recurringSwapsAppId,
 } from "@/utils/constants";
 import { routeTree } from "@/utils/routes";
-import { App, AppAutomation, RecipeSchema } from "@/utils/types";
+import { App, RecipeSchema } from "@/utils/types";
 
 type StateProps = {
   app?: App;
-  loading: boolean;
-  automations: AppAutomation[];
+  loading?: boolean;
   schema?: RecipeSchema;
-  totalCount: number;
 };
 
 export const AutomationsPage = () => {
-  const [state, setState] = useState<StateProps>({
-    loading: true,
-    automations: [],
-    totalCount: 0,
-  });
-  const { app, automations, loading, schema, totalCount } = state;
+  const [state, setState] = useState<StateProps>({});
+  const { app, loading, schema } = state;
   const { messageAPI, modalAPI } = useAntd();
   const { id = "" } = useParams();
   const { getAppData } = useQueries();
   const navigate = useNavigate();
   const goBack = useGoBack();
   const colors = useTheme();
-
-  const fetchAutomations = useCallback(
-    (skip = 0) => {
-      setState((prevState) => ({ ...prevState, loading: true }));
-
-      getAutomations(id, { skip })
-        .then(({ automations, totalCount }) => {
-          setState((prevState) => ({
-            ...prevState,
-            automations,
-            loading: false,
-            totalCount,
-          }));
-        })
-        .catch(() => {
-          setState((prevState) => ({ ...prevState, loading: false }));
-        });
-    },
-    [id]
-  );
-
-  const handleDelete = (id: string, signature: string) => {
-    if (signature) {
-      modalAPI.confirm({
-        title: "Are you sure you want to delete this Automation?",
-        okText: "Yes",
-        okType: "danger",
-        cancelText: "No",
-        onOk() {
-          setState((prevState) => ({ ...prevState, loading: true }));
-
-          delPolicy(id, signature)
-            .then(() => {
-              messageAPI.success("Automation successfully deleted");
-
-              fetchAutomations();
-            })
-            .catch(() => {
-              messageAPI.error("Automation deletion failed");
-
-              setState((prevState) => ({ ...prevState, loading: false }));
-            });
-        },
-      });
-    } else {
-      messageAPI.error("Automation deletion failed");
-    }
-  };
 
   const handleUninstall = () => {
     modalAPI.confirm({
@@ -106,7 +47,7 @@ export const AutomationsPage = () => {
       okType: "danger",
       cancelText: "No",
       onOk() {
-        setState((prevState) => ({ ...prevState, loading: true }));
+        setState((prev) => ({ ...prev, loading: true }));
 
         uninstallApp(id)
           .then(() => {
@@ -123,7 +64,7 @@ export const AutomationsPage = () => {
               content: "App uninstallation failed",
             });
 
-            setState((prevState) => ({ ...prevState, loading: false }));
+            setState((prev) => ({ ...prev, loading: false }));
           });
       },
     });
@@ -131,13 +72,9 @@ export const AutomationsPage = () => {
 
   useEffect(() => {
     Promise.all([getAppData(id), getRecipeSpecification(id)])
-      .then(([app, schema]) => {
-        setState((prevState) => ({ ...prevState, app, schema }));
-
-        fetchAutomations();
-      })
+      .then(([app, schema]) => setState((prev) => ({ ...prev, app, schema })))
       .catch(() => goBack(routeTree.root.path));
-  }, [fetchAutomations]);
+  }, [id]);
 
   if (!app || !schema) return <Spin centered />;
 
@@ -215,35 +152,11 @@ export const AutomationsPage = () => {
           </VStack>
 
           {id === recurringSwapsAppId ? (
-            <RecurringSwapsForm
-              app={app}
-              automations={automations}
-              loading={loading}
-              onCreate={() => fetchAutomations()}
-              onDelete={handleDelete}
-              schema={schema}
-              totalCount={totalCount}
-            />
+            <RecurringSwapsForm app={app} schema={schema} />
           ) : id === recurringSendsAppId ? (
-            <RecurringSendsForm
-              app={app}
-              automations={automations}
-              loading={loading}
-              onCreate={() => fetchAutomations()}
-              onDelete={handleDelete}
-              schema={schema}
-              totalCount={totalCount}
-            />
+            <RecurringSendsForm app={app} schema={schema} />
           ) : (
-            <AutomationForm
-              app={app}
-              automations={automations}
-              loading={loading}
-              onCreate={() => fetchAutomations()}
-              onDelete={handleDelete}
-              schema={schema}
-              totalCount={totalCount}
-            />
+            <AutomationForm app={app} schema={schema} />
           )}
         </VStack>
       </VStack>
