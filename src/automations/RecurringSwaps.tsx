@@ -12,8 +12,8 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { cloneDeep } from "lodash-es";
-import { FC, useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { FC, useCallback, useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
@@ -43,9 +43,14 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { addPolicy, getRecipeSuggestion } from "@/utils/api";
+import {
+  addAutomation,
+  delAutomation,
+  getAutomations,
+  getRecipeSuggestion,
+} from "@/utils/api";
 import { nativeTokens } from "@/utils/chain";
-import { modalHash } from "@/utils/constants";
+import { defaultPageSize, modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
@@ -73,27 +78,40 @@ type DataProps = {
 };
 
 type StateProps = {
+  automations: CustomAppAutomation[];
+  current: number;
+  isActive: boolean;
   isAdded: boolean;
+  loading: boolean;
   submitting: boolean;
   step: number;
+  total: number;
 };
 
 export const RecurringSwapsForm: FC<AutomationFormProps> = ({
   app,
-  automations,
-  loading,
-  onCreate,
-  onDelete,
   schema,
 }) => {
   const [state, setState] = useState<StateProps>({
+    automations: [],
+    current: 1,
+    isActive: true,
     isAdded: false,
+    loading: false,
     submitting: false,
     step: 1,
+    total: 0,
   });
-  const { isAdded, step, submitting } = state;
-  const { messageAPI } = useAntd();
-  const { address = "" } = useCore();
+  const {
+    automations,
+    current,
+    isActive,
+    isAdded,
+    loading,
+    step,
+    submitting,
+    total,
+  } = state;
   const { id, pricing } = app;
   const {
     configuration,
@@ -102,33 +120,18 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     pluginVersion,
     requirements,
   } = schema;
-  const { hash } = useLocation();
+  const { messageAPI, modalAPI } = useAntd();
+  const { address = "" } = useCore();
   const { discard, discardHolder } = useDiscard();
+  const { hash } = useLocation();
+  const { id: appId = "" } = useParams();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
   const goBack = useGoBack();
   const colors = useTheme();
+
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
-
-  const modifiedAutomations: CustomAppAutomation[] = useMemo(() => {
-    return automations.map((automation) => {
-      try {
-        const decoded = base64Decode(automation.recipe);
-        const { configuration, name } = fromBinary(PolicySchema, decoded);
-
-        if (!configuration) return { ...automation, name };
-
-        return {
-          ...automation,
-          configuration: configuration as DataProps,
-          name,
-        };
-      } catch {
-        return { ...automation, name: "" };
-      }
-    });
-  }, [automations]);
 
   const columns: TableProps<CustomAppAutomation>["columns"] = [
     {
@@ -140,8 +143,27 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       align: "center",
       dataIndex: "configuration",
       key: "startDate",
-      render: ({ startDate }: DataProps) =>
-        dayjs(startDate).format("YYYY-MM-DD"),
+      render: ({ startDate }: DataProps) => {
+        const date = dayjs(startDate);
+
+        return (
+          <VStack $style={{ gap: "2px" }}>
+            <Stack as="span" $style={{ lineHeight: "14px" }}>
+              {date.format("YYYY-MM-DD")}
+            </Stack>
+            <Stack
+              as="span"
+              $style={{
+                color: colors.textTertiary.toHex(),
+                fontSize: "12px",
+                lineHeight: "12px",
+              }}
+            >
+              {date.format("HH:mm:ss")}
+            </Stack>
+          </VStack>
+        );
+      },
       title: "Start Date",
     },
     {
@@ -186,6 +208,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     },
     {
       align: "center",
+      dataIndex: "id",
       key: "action",
       render: (_, { id, signature }) => {
         if (!signature) return null;
@@ -195,19 +218,58 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
             <Button
               icon={<TrashIcon fontSize={16} />}
               kind="danger"
-              onClick={() => onDelete(id, signature)}
+              onClick={() => handleDelete(id, signature)}
               ghost
             />
           </HStack>
         );
       },
-      title: "Action",
-      width: 80,
+      title: "",
+      width: 40,
     },
   ];
 
+  const fetchAutomations = useCallback(
+    (skip: number, active: boolean) => {
+      setState((prev) => ({ ...prev, loading: true }));
+
+      getAutomations({ active, appId, skip })
+        .then(({ automations, total }) => {
+          setState((prev) => ({
+            ...prev,
+            automations: automations.map((automation) => {
+              try {
+                const decoded = base64Decode(automation.recipe);
+                const { configuration, name } = fromBinary(
+                  PolicySchema,
+                  decoded
+                );
+
+                if (!configuration) return { ...automation, name };
+
+                return {
+                  ...automation,
+                  configuration: configuration as DataProps,
+                  name,
+                };
+              } catch {
+                return { ...automation, name: "" };
+              }
+            }),
+            current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
+            loading: false,
+            total,
+          }));
+        })
+        .catch(() => {
+          setState((prev) => ({ ...prev, loading: false }));
+        });
+    },
+    [appId]
+  );
+
   const handleBack = () => {
-    setState((prevState) => ({ ...prevState, step: prevState.step - 1 }));
+    setState((prev) => ({ ...prev, step: prev.step - 1 }));
   };
 
   const handleCancel = () => {
@@ -218,21 +280,49 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     }
   };
 
+  const handleDelete = (id: string, signature: string) => {
+    if (signature) {
+      modalAPI.confirm({
+        title: "Are you sure you want to delete this Automation?",
+        okText: "Yes",
+        okType: "danger",
+        cancelText: "No",
+        onOk() {
+          setState((prev) => ({ ...prev, loading: true }));
+
+          delAutomation(id, signature)
+            .then(() => {
+              messageAPI.success("Automation successfully deleted");
+
+              fetchAutomations(0, isActive);
+            })
+            .catch(() => {
+              messageAPI.error("Automation deletion failed");
+
+              setState((prev) => ({ ...prev, loading: false }));
+            });
+        },
+      });
+    } else {
+      messageAPI.error("Automation deletion failed");
+    }
+  };
+
   const handleStep = () => {
     if (!configuration) return;
 
     if (step === 1) {
       form.resetFields();
 
-      setState((prevState) => ({ ...prevState, step: 2 }));
+      setState((prev) => ({ ...prev, step: 2 }));
     } else {
       form
         .validateFields()
         .then((values) => {
           if (step === 2) {
-            setState((prevState) => ({ ...prevState, step: 3 }));
+            setState((prev) => ({ ...prev, step: 3 }));
           } else {
-            setState((prevState) => ({ ...prevState, submitting: true }));
+            setState((prev) => ({ ...prev, submitting: true }));
 
             const configurationData = getConfiguration(
               configuration,
@@ -279,32 +369,25 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
                 personalSign(address, message, "policy", id)
                   .then((signature) => {
-                    addPolicy({ ...policy, signature })
+                    addAutomation({ ...policy, signature })
                       .then(() => {
-                        setState((prevState) => ({
-                          ...prevState,
+                        setState((prev) => ({
+                          ...prev,
                           isAdded: true,
                           submitting: false,
                         }));
-
-                        onCreate();
+                        fetchAutomations(0, isActive);
                       })
                       .catch((error: Error) => {
-                        setState((prevState) => ({
-                          ...prevState,
-                          submitting: false,
-                        }));
+                        setState((prev) => ({ ...prev, submitting: false }));
 
                         messageAPI.error(error.message);
                       });
                   })
                   .catch(() => {
-                    messageAPI.error("Failed to sign automation");
+                    setState((prev) => ({ ...prev, submitting: false }));
 
-                    setState((prevState) => ({
-                      ...prevState,
-                      submitting: false,
-                    }));
+                    messageAPI.error("Failed to sign automation");
                   });
               })
               .catch(() => {
@@ -322,7 +405,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
     form.resetFields();
     form.setFieldsValue(data);
 
-    setState((prevState) => ({ ...prevState, step: 2 }));
+    setState((prev) => ({ ...prev, step: 2 }));
   };
 
   useEffect(() => {
@@ -330,30 +413,48 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
 
     form.resetFields();
 
-    setState({ isAdded: false, step: 1, submitting: false });
+    setState((prev) => ({
+      ...prev,
+      isAdded: false,
+      step: 1,
+      submitting: false,
+    }));
   }, [form, visible]);
+
+  useEffect(() => {
+    fetchAutomations(0, isActive);
+  }, [fetchAutomations, isActive]);
 
   return (
     <>
-      <Tabs
-        items={[
-          {
-            children: (
-              <Table
-                columns={columns}
-                dataSource={modifiedAutomations}
-                loading={loading}
-                pagination={false}
-                rowKey="id"
-                size="small"
-              />
-            ),
-            key: "upcoming",
-            label: "Upcoming",
-          },
-          { disabled: true, key: "history", label: "History" },
-        ]}
-      />
+      <VStack>
+        <Tabs
+          activeKey={isActive ? "1" : "0"}
+          items={[
+            { key: "1", label: "Upcoming" },
+            { key: "0", label: "History" },
+          ]}
+          onChange={(tabKey) =>
+            setState((prev) => ({ ...prev, isActive: tabKey === "1" }))
+          }
+        />
+
+        <Table
+          columns={columns}
+          dataSource={automations}
+          loading={loading}
+          pagination={{
+            current,
+            onChange: (page) =>
+              fetchAutomations((page - 1) * defaultPageSize, isActive),
+            pageSize: defaultPageSize,
+            showSizeChanger: false,
+            total,
+          }}
+          rowKey="id"
+          size="small"
+        />
+      </VStack>
 
       <AutomationFormSuccess open={visible && isAdded} />
 

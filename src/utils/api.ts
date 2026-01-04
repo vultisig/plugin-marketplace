@@ -114,7 +114,7 @@ const post = async <T>(
 //     .then(({ data }) => toCamelCase(data.data));
 // };
 
-export const addPolicy = async (data: AppAutomation): Promise<void> => {
+export const addAutomation = async (data: AppAutomation): Promise<void> => {
   return post<void>(`${storeApiUrl}/plugin/policy`, toSnakeCase(data));
 };
 
@@ -128,7 +128,7 @@ export const addReview = async (
   );
 };
 
-export const delPolicy = async (
+export const delAutomation = async (
   id: string,
   signature: string
 ): Promise<void> => {
@@ -278,23 +278,27 @@ export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
   }));
 };
 
-export const getAutomations = async (
-  appId: string,
-  { skip, take = defaultPageSize }: ListFilters
-): Promise<{ automations: AppAutomation[]; totalCount: number }> => {
+export const getAutomations: (
+  params: { active: boolean; appId: string } & ListFilters
+) => Promise<{ automations: AppAutomation[]; total: number }> = async ({
+  active,
+  appId,
+  skip = 0,
+  take = defaultPageSize,
+}) => {
   try {
-    const { policies: automations, totalCount } = await get<{
+    const { policies: automations, totalCount: total } = await get<{
       policies: AppAutomation[];
       totalCount: number;
     }>(`${storeApiUrl}/plugin/policies/${appId}`, {
-      params: toSnakeCase({ skip, take }),
+      params: toSnakeCase({ active, skip, take }),
     });
 
-    if (!totalCount) return { automations: [], totalCount: 0 };
+    if (!total) return { automations: [], total: 0 };
 
-    return { automations, totalCount };
+    return { automations, total };
   } catch {
-    return { automations: [], totalCount: 0 };
+    return { automations: [], total: 0 };
   }
 };
 

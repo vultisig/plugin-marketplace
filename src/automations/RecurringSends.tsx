@@ -12,13 +12,12 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { cloneDeep } from "lodash-es";
-import { FC, useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { FC, useCallback, useEffect, useState } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { AutomationAmount } from "@/automations/components/Amount";
 import { AutomationFormAddressInput } from "@/automations/components/FormAddressInput";
 import { AutomationFormAmountInput } from "@/automations/components/FormAmountInput";
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
@@ -45,9 +44,14 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { addPolicy, getRecipeSuggestion } from "@/utils/api";
+import {
+  addAutomation,
+  delAutomation,
+  getAutomations,
+  getRecipeSuggestion,
+} from "@/utils/api";
 import { nativeTokens } from "@/utils/chain";
-import { modalHash } from "@/utils/constants";
+import { defaultPageSize, modalHash } from "@/utils/constants";
 import { personalSign } from "@/utils/extension";
 import { frequencies } from "@/utils/frequencies";
 import {
@@ -81,58 +85,56 @@ type DataProps = {
 };
 
 type StateProps = {
+  automations: CustomAppAutomation[];
+  current: number;
+  isActive: boolean;
   isAdded: boolean;
+  loading: boolean;
+  recipients: RecipientProps[];
   submitting: boolean;
   step: number;
-  recipients: RecipientProps[];
+  total: number;
 };
 
 export const RecurringSendsForm: FC<AutomationFormProps> = ({
   app,
-  automations,
-  loading,
-  onCreate,
-  onDelete,
   schema,
 }) => {
   const [state, setState] = useState<StateProps>({
+    automations: [],
+    current: 1,
+    isActive: true,
     isAdded: false,
-    submitting: false,
-    step: 1,
+    loading: false,
     recipients: [],
+    step: 1,
+    submitting: false,
+    total: 0,
   });
-  const { isAdded, step, recipients, submitting } = state;
-  const { messageAPI } = useAntd();
-  const { address = "" } = useCore();
+  const {
+    automations,
+    current,
+    isActive,
+    isAdded,
+    loading,
+    recipients,
+    step,
+    submitting,
+    total,
+  } = state;
   const { id, pricing } = app;
   const { configuration, pluginId, pluginVersion, requirements } = schema;
+  const { messageAPI, modalAPI } = useAntd();
+  const { address = "" } = useCore();
   const { hash } = useLocation();
   const { discard, discardHolder } = useDiscard();
+  const { id: appId = "" } = useParams();
   const [form] = Form.useForm<DataProps>();
   const values = Form.useWatch([], form);
   const goBack = useGoBack();
   const colors = useTheme();
   const supportedChains = requirements?.supportedChains || [];
   const visible = hash === modalHash.automation;
-
-  const modifiedAutomations: CustomAppAutomation[] = useMemo(() => {
-    return automations.map((automation) => {
-      try {
-        const decoded = base64Decode(automation.recipe);
-        const { configuration, name } = fromBinary(PolicySchema, decoded);
-
-        if (!configuration) return { ...automation, name };
-
-        return {
-          ...automation,
-          configuration: configuration as DataProps,
-          name,
-        };
-      } catch {
-        return { ...automation, name: "" };
-      }
-    });
-  }, [automations]);
 
   const columns: TableProps<CustomAppAutomation>["columns"] = [
     Table.EXPAND_COLUMN,
@@ -145,8 +147,27 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
       align: "center",
       dataIndex: "configuration",
       key: "startDate",
-      render: ({ startDate }: DataProps) =>
-        dayjs(startDate).format("YYYY-MM-DD"),
+      render: ({ startDate }: DataProps) => {
+        const date = dayjs(startDate);
+
+        return (
+          <VStack $style={{ gap: "2px" }}>
+            <Stack as="span" $style={{ lineHeight: "14px" }}>
+              {date.format("YYYY-MM-DD")}
+            </Stack>
+            <Stack
+              as="span"
+              $style={{
+                color: colors.textTertiary.toHex(),
+                fontSize: "12px",
+                lineHeight: "12px",
+              }}
+            >
+              {date.format("HH:mm:ss")}
+            </Stack>
+          </VStack>
+        );
+      },
       title: "Start Date",
     },
     {
@@ -167,6 +188,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     },
     {
       align: "center",
+      dataIndex: "id",
       key: "action",
       render: (_, { id, signature }) => {
         if (!signature) return null;
@@ -176,16 +198,55 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
             <Button
               icon={<TrashIcon fontSize={16} />}
               kind="danger"
-              onClick={() => onDelete(id, signature)}
+              onClick={() => handleDelete(id, signature)}
               ghost
             />
           </HStack>
         );
       },
-      title: "Action",
-      width: 80,
+      title: "",
+      width: 40,
     },
   ];
+
+  const fetchAutomations = useCallback(
+    (skip: number, active: boolean) => {
+      setState((prev) => ({ ...prev, loading: true }));
+
+      getAutomations({ active, appId, skip })
+        .then(({ automations, total }) => {
+          setState((prev) => ({
+            ...prev,
+            automations: automations.map((automation) => {
+              try {
+                const decoded = base64Decode(automation.recipe);
+                const { configuration, name } = fromBinary(
+                  PolicySchema,
+                  decoded
+                );
+
+                if (!configuration) return { ...automation, name };
+
+                return {
+                  ...automation,
+                  configuration: configuration as DataProps,
+                  name,
+                };
+              } catch {
+                return { ...automation, name: "" };
+              }
+            }),
+            current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
+            loading: false,
+            total,
+          }));
+        })
+        .catch(() => {
+          setState((prev) => ({ ...prev, loading: false }));
+        });
+    },
+    [appId]
+  );
 
   const handleBack = () => {
     setState((prev) => ({ ...prev, step: prev.step - 1 }));
@@ -196,6 +257,34 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
       discard(() => goBack());
     } else {
       goBack();
+    }
+  };
+
+  const handleDelete = (id: string, signature: string) => {
+    if (signature) {
+      modalAPI.confirm({
+        title: "Are you sure you want to delete this Automation?",
+        okText: "Yes",
+        okType: "danger",
+        cancelText: "No",
+        onOk() {
+          setState((prev) => ({ ...prev, loading: true }));
+
+          delAutomation(id, signature)
+            .then(() => {
+              messageAPI.success("Automation successfully deleted");
+
+              fetchAutomations(0, isActive);
+            })
+            .catch(() => {
+              messageAPI.error("Automation deletion failed");
+
+              setState((prev) => ({ ...prev, loading: false }));
+            });
+        },
+      });
+    } else {
+      messageAPI.error("Automation deletion failed");
     }
   };
 
@@ -260,7 +349,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
 
           personalSign(address, message, "policy", id)
             .then((signature) => {
-              addPolicy({ ...policy, signature })
+              addAutomation({ ...policy, signature })
                 .then(() => {
                   setState((prev) => ({
                     ...prev,
@@ -268,7 +357,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                     submitting: false,
                   }));
 
-                  onCreate();
+                  fetchAutomations(0, isActive);
                 })
                 .catch((error: Error) => {
                   setState((prev) => ({ ...prev, submitting: false }));
@@ -313,77 +402,40 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
     }));
   }, [form, visible]);
 
+  useEffect(() => {
+    fetchAutomations(0, isActive);
+  }, [fetchAutomations, isActive]);
+
   return (
     <>
-      <Tabs
-        items={[
-          {
-            children: (
-              <Table
-                columns={columns}
-                dataSource={modifiedAutomations}
-                expandable={{
-                  rowExpandable: ({ configuration }) => !!configuration,
-                  expandedRowRender: ({ configuration }, index) => {
-                    if (!configuration) return null;
+      <VStack>
+        <Tabs
+          activeKey={isActive ? "1" : "0"}
+          items={[
+            { key: "1", label: "Upcoming" },
+            { key: "0", label: "History" },
+          ]}
+          onChange={(tabKey) =>
+            setState((prev) => ({ ...prev, isActive: tabKey === "1" }))
+          }
+        />
 
-                    const { asset, recipients } = configuration;
-
-                    return (
-                      <Table
-                        columns={[
-                          {
-                            dataIndex: "alias",
-                            key: "alias",
-                            title: "Alias",
-                          },
-                          {
-                            align: "center",
-                            dataIndex: "amount",
-                            key: "amount",
-                            render: (value) => (
-                              <AutomationAmount
-                                amount={value}
-                                chain={asset.chain}
-                                tokenId={asset.token}
-                              />
-                            ),
-                            title: "Amount",
-                          },
-                          {
-                            align: "center",
-                            dataIndex: "toAddress",
-                            key: "toAddress",
-                            render: (value) => (
-                              <MiddleTruncate>{value}</MiddleTruncate>
-                            ),
-                            title: "Address",
-                          },
-                        ]}
-                        dataSource={recipients.map((recipient, index) => ({
-                          ...recipient,
-                          id: index,
-                        }))}
-                        key={index}
-                        pagination={false}
-                        rowKey="id"
-                        size="small"
-                      />
-                    );
-                  },
-                }}
-                loading={loading}
-                pagination={false}
-                rowKey="id"
-                size="small"
-              />
-            ),
-            key: "upcoming",
-            label: "Upcoming",
-          },
-          { disabled: true, key: "history", label: "History" },
-        ]}
-      />
+        <Table
+          columns={columns}
+          dataSource={automations}
+          loading={loading}
+          pagination={{
+            current,
+            onChange: (page) =>
+              fetchAutomations((page - 1) * defaultPageSize, isActive),
+            pageSize: defaultPageSize,
+            showSizeChanger: false,
+            total,
+          }}
+          rowKey="id"
+          size="small"
+        />
+      </VStack>
 
       <AutomationFormSuccess open={visible && isAdded} />
 
