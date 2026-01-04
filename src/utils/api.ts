@@ -353,7 +353,7 @@ export const getTransactions = async ({
     const { history, totalCount } = await get<{
       history: Transaction[];
       totalCount: number;
-    }>(`${storeApiUrl}/plugin/${recurringSwapsAppId}/transactions`, {
+    }>(`${storeApiUrl}/plugin/transactions`, {
       params: toSnakeCase({ skip, take }),
     });
 

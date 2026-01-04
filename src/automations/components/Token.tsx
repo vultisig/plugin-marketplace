@@ -7,7 +7,7 @@ import { HStack, Stack } from "@/toolkits/Stack";
 import { Chain, nativeTokens } from "@/utils/chain";
 import { Token } from "@/utils/types";
 
-export const AutomationFormToken: FC<{ chain: Chain; id: string }> = ({
+export const AutomationToken: FC<{ chain: Chain; id: string }> = ({
   chain,
   id,
 }) => {

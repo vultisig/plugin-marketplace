@@ -1,4 +1,10 @@
-import { ButtonHTMLAttributes, FC, HTMLAttributes, ReactNode } from "react";
+import {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  FC,
+  HTMLAttributes,
+  ReactNode,
+} from "react";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 
@@ -15,6 +21,7 @@ type ButtonProps = HTMLAttributes<HTMLElement> & {
   kind?: Kind;
   loading?: boolean;
   state?: boolean;
+  target?: AnchorHTMLAttributes<HTMLAnchorElement>["target"];
   type?: ButtonHTMLAttributes<HTMLButtonElement>["type"];
 };
 
@@ -147,6 +154,7 @@ export const Button: FC<ButtonProps> = (props) => {
     kind = "primary",
     loading = false,
     state = false,
+    target,
     type = "button",
     onClick,
     ...rest
@@ -162,7 +170,7 @@ export const Button: FC<ButtonProps> = (props) => {
       {...(disabled
         ? { as: "span" }
         : href
-        ? { as: Link, state, to: href }
+        ? { as: Link, state, to: href, target }
         : { as: "button", type })}
     >
       {loading ? <Spin size="small" /> : icon}

@@ -18,14 +18,14 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { AutomationFormAmount } from "@/automations/components/Amount";
+import { AutomationAmount } from "@/automations/components/Amount";
 import { AutomationFormAmountInput } from "@/automations/components/FormAmountInput";
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
 import { AutomationFormDatePicker } from "@/automations/components/FormDatePicker";
 import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
 import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
 import { AutomationFormTitle } from "@/automations/components/FormTitle";
-import { AutomationFormToken } from "@/automations/components/Token";
+import { AutomationToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetProps, AssetWidget } from "@/automations/widgets/Asset";
 import { TokenImage } from "@/components/TokenImage";
@@ -156,7 +156,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       dataIndex: "configuration",
       key: "from",
       render: ({ from }: DataProps) => (
-        <AutomationFormToken chain={from.chain} id={from.token} />
+        <AutomationToken chain={from.chain} id={from.token} />
       ),
       title: "From",
     },
@@ -165,7 +165,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       dataIndex: "configuration",
       key: "to",
       render: ({ to }: DataProps) => (
-        <AutomationFormToken chain={to.chain} id={to.token} />
+        <AutomationToken chain={to.chain} id={to.token} />
       ),
       title: "To",
     },
@@ -175,7 +175,7 @@ export const RecurringSwapsForm: FC<AutomationFormProps> = ({
       key: "amount",
       render: ({ from, fromAmount }: DataProps) => {
         return (
-          <AutomationFormAmount
+          <AutomationAmount
             amount={fromAmount}
             chain={from.chain}
             tokenId={from.token}
@@ -550,7 +550,7 @@ const Overview: FC<DataProps> = ({
             }}
           >
             <Stack as="span">From</Stack>
-            <AutomationFormToken chain={from.chain} id={from.token} />
+            <AutomationToken chain={from.chain} id={from.token} />
           </HStack>
           <Divider />
         </>
@@ -573,7 +573,7 @@ const Overview: FC<DataProps> = ({
           }}
         >
           <Stack as="span">To</Stack>
-          <AutomationFormToken chain={to.chain} id={to.token} />
+          <AutomationToken chain={to.chain} id={to.token} />
         </HStack>
       )}
     </VStack>
