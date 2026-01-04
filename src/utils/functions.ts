@@ -3,6 +3,7 @@ import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { v4 as uuidv4 } from "uuid";
 
 import { BillingFrequency, FeePolicySchema, FeeType } from "@/proto/policy_pb";
+import { Chain, chains, explorerBaseUrl } from "@/utils/chain";
 import { Currency, currencySymbols } from "@/utils/currency";
 import {
   App,
@@ -92,6 +93,95 @@ export const getConfiguration = (
       return [[key, value]];
     })
   );
+};
+
+export const getExplorerUrl = (
+  chain: Chain,
+  entity: "address" | "tx",
+  value: string
+): string => {
+  const baseUrl = explorerBaseUrl[chain];
+
+  return match(entity, {
+    address: () =>
+      match(chain, {
+        [chains.Akash]: () => `${baseUrl}/address/${value}`,
+        [chains.Arbitrum]: () => `${baseUrl}/address/${value}`,
+        [chains.Avalanche]: () => `${baseUrl}/address/${value}`,
+        [chains.Base]: () => `${baseUrl}/address/${value}`,
+        [chains.Bitcoin]: () => `${baseUrl}/address/${value}`,
+        [chains.BitcoinCash]: () => `${baseUrl}/address/${value}`,
+        [chains.Blast]: () => `${baseUrl}/address/${value}`,
+        [chains.BSC]: () => `${baseUrl}/address/${value}`,
+        [chains.Cardano]: () => `${baseUrl}/address/${value}`,
+        [chains.Cosmos]: () => `${baseUrl}/address/${value}`,
+        [chains.CronosChain]: () => `${baseUrl}/address/${value}`,
+        [chains.Dash]: () => `${baseUrl}/address/${value}`,
+        [chains.Dogecoin]: () => `${baseUrl}/address/${value}`,
+        [chains.Dydx]: () => `${baseUrl}/address/${value}`,
+        [chains.Ethereum]: () => `${baseUrl}/address/${value}`,
+        [chains.Hyperliquid]: () => `${baseUrl}/address/${value}`,
+        [chains.Kujira]: () => `${baseUrl}/address/${value}`,
+        [chains.Litecoin]: () => `${baseUrl}/address/${value}`,
+        [chains.Mantle]: () => `${baseUrl}/address/${value}`,
+        [chains.MayaChain]: () => `${baseUrl}/address/${value}`,
+        [chains.Noble]: () => `${baseUrl}/address/${value}`,
+        [chains.Optimism]: () => `${baseUrl}/address/${value}`,
+        [chains.Osmosis]: () => `${baseUrl}/address/${value}`,
+        [chains.Polkadot]: () => `${baseUrl}/account/${value}`,
+        [chains.Polygon]: () => `${baseUrl}/address/${value}`,
+        [chains.Ripple]: () => `${baseUrl}/account/${value}`,
+        [chains.Sei]: () => `${baseUrl}/address/${value}`,
+        [chains.Solana]: () => `${baseUrl}/address/${value}`,
+        [chains.Sui]: () => `${baseUrl}/address/${value}`,
+        [chains.Terra]: () => `${baseUrl}/address/${value}`,
+        [chains.TerraClassic]: () => `${baseUrl}/classic/address/${value}`,
+        [chains.THORChain]: () => `${baseUrl}/address/${value}`,
+        [chains.Ton]: () => `${baseUrl}/${value}`,
+        [chains.Tron]: () => `${baseUrl}/address/${value}`,
+        [chains.Zcash]: () => `${baseUrl}/address/${value}`,
+        [chains.Zksync]: () => `${baseUrl}/address/${value}`,
+      }),
+    tx: () =>
+      match(chain, {
+        [chains.Akash]: () => `${baseUrl}/tx/${value}`,
+        [chains.Arbitrum]: () => `${baseUrl}/tx/${value}`,
+        [chains.Avalanche]: () => `${baseUrl}/tx/${value}`,
+        [chains.Base]: () => `${baseUrl}/tx/${value}`,
+        [chains.Bitcoin]: () => `${baseUrl}/tx/${value}`,
+        [chains.BitcoinCash]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Blast]: () => `${baseUrl}/tx/${value}`,
+        [chains.BSC]: () => `${baseUrl}/tx/${value}`,
+        [chains.Cardano]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Cosmos]: () => `${baseUrl}/tx/${value}`,
+        [chains.CronosChain]: () => `${baseUrl}/tx/${value}`,
+        [chains.Dash]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Dogecoin]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Dydx]: () => `${baseUrl}/tx/${value}`,
+        [chains.Ethereum]: () => `${baseUrl}/tx/${value}`,
+        [chains.Hyperliquid]: () => `${baseUrl}/tx/${value}`,
+        [chains.Kujira]: () => `${baseUrl}/tx/${value}`,
+        [chains.Litecoin]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Mantle]: () => `${baseUrl}/tx/${value}`,
+        [chains.MayaChain]: () => `${baseUrl}/tx/${value}`,
+        [chains.Noble]: () => `${baseUrl}/tx/${value}`,
+        [chains.Optimism]: () => `${baseUrl}/tx/${value}`,
+        [chains.Osmosis]: () => `${baseUrl}/tx/${value}`,
+        [chains.Polkadot]: () => `${baseUrl}/extrinsic/${value}`,
+        [chains.Polygon]: () => `${baseUrl}/tx/${value}`,
+        [chains.Ripple]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Sei]: () => `${baseUrl}/tx/${value}`,
+        [chains.Solana]: () => `${baseUrl}/tx/${value}`,
+        [chains.Sui]: () => `${baseUrl}/tx/${value}`,
+        [chains.Terra]: () => `${baseUrl}/tx/${value}`,
+        [chains.TerraClassic]: () => `${baseUrl}/tx/${value}`,
+        [chains.THORChain]: () => `${baseUrl}/tx/${value}`,
+        [chains.Ton]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Tron]: () => `${baseUrl}/transaction/${value}`,
+        [chains.Zcash]: () => `${baseUrl}/tx/${value}`,
+        [chains.Zksync]: () => `${baseUrl}/tx/${value}`,
+      }),
+  });
 };
 
 export const getFeePolicies = (pricing: AppPricing[]) => {

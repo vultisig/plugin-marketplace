@@ -17,6 +17,9 @@ import {
 import { vultiApiUrl } from "@/utils/constants";
 import { Token } from "@/utils/types";
 
+const cosmosExplorerUrl = "https://www.mintscan.io" as const;
+const hyperliquidExplorerUrl = "https://liquidscan.io" as const;
+
 const cosmosChains = {
   Akash: "Akash",
   Cosmos: "Cosmos",
@@ -233,7 +236,7 @@ export const evmChainInfo: Record<EvmChain, ViemChain> = {
       public: { http: [evmRpcUrls.Hyperliquid] },
     },
     blockExplorers: {
-      default: { name: "LiquidScan", url: "https://liquidscan.io" },
+      default: { name: "LiquidScan", url: hyperliquidExplorerUrl },
     },
   }),
   [evmChains.Mantle]: {
@@ -253,6 +256,45 @@ export const evmChainInfo: Record<EvmChain, ViemChain> = {
     ...zksync,
     rpcUrls: { default: { http: [evmRpcUrls.Zksync] } },
   },
+};
+
+export const explorerBaseUrl: Record<Chain, string> = {
+  [chains.Akash]: `${cosmosExplorerUrl}/akash`,
+  [chains.Arbitrum]: "https://arbiscan.io",
+  [chains.Avalanche]: "https://snowtrace.io",
+  [chains.Base]: "https://basescan.org",
+  [chains.Bitcoin]: "https://mempool.space",
+  [chains.BitcoinCash]: "https://blockchair.com/bitcoin-cash",
+  [chains.Blast]: "https://blastscan.io",
+  [chains.BSC]: "https://bscscan.com",
+  [chains.Cardano]: "https://cardanoscan.io",
+  [chains.Cosmos]: `${cosmosExplorerUrl}/cosmos`,
+  [chains.CronosChain]: "https://cronoscan.com",
+  [chains.Dash]: "https://blockchair.com/dash",
+  [chains.Dogecoin]: "https://blockchair.com/dogecoin",
+  [chains.Dydx]: `${cosmosExplorerUrl}/dydx`,
+  [chains.Ethereum]: "https://etherscan.io",
+  [chains.Hyperliquid]: hyperliquidExplorerUrl,
+  [chains.Kujira]: "https://finder.kujira.network/kaiyo-1",
+  [chains.Litecoin]: "https://blockchair.com/litecoin",
+  [chains.Mantle]: "https://explorer.mantle.xyz",
+  [chains.MayaChain]: "https://www.explorer.mayachain.info",
+  [chains.Noble]: `${cosmosExplorerUrl}/noble`,
+  [chains.Optimism]: "https://optimistic.etherscan.io",
+  [chains.Osmosis]: `${cosmosExplorerUrl}/osmosis`,
+  [chains.Polkadot]: "https://assethub-polkadot.subscan.io",
+  [chains.Polygon]: "https://polygonscan.com",
+  [chains.Ripple]: "https://xrpscan.com",
+  [chains.Sei]: "https://seiscan.io",
+  [chains.Solana]: "https://solscan.io",
+  [chains.Sui]: "https://suiscan.xyz/mainnet",
+  [chains.Terra]: `${cosmosExplorerUrl}/terra`,
+  [chains.TerraClassic]: "https://finder.terra.money/classic",
+  [chains.THORChain]: "https://thorchain.net",
+  [chains.Ton]: "https://tonviewer.com",
+  [chains.Tron]: "https://tronscan.org/#",
+  [chains.Zcash]: "https://blockexplorer.one/zcash/mainnet",
+  [chains.Zksync]: "https://explorer.zksync.io",
 };
 
 export type Chain = (typeof chains)[keyof typeof chains];

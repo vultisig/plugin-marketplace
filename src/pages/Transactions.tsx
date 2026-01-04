@@ -3,11 +3,15 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 
-import { AutomationFormAmount } from "@/automations/components/Amount";
+import { AutomationAmount } from "@/automations/components/Amount";
+import { AutomationToken } from "@/automations/components/Token";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
+import { EyeOpenIcon } from "@/icons/EyeOpenIcon";
+import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
 import { getMyApps, getTransactions } from "@/utils/api";
+import { camelCaseToTitle, getExplorerUrl } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
 import { App, Transaction } from "@/utils/types";
 
@@ -29,17 +33,11 @@ export const TransactionsPage = () => {
 
   const columns: TableProps<Transaction>["columns"] = [
     {
-      dataIndex: "createdAt",
-      key: "createdAt",
-      title: "Created At",
-      render: (value) => dayjs(value).format("MMMM DD YYYY"),
-    },
-    {
       dataIndex: "pluginId",
       key: "pluginId",
       title: "App Name",
-      render: (value, { appName }) => {
-        const app = apps.find(({ id }) => id === value);
+      render: (_, { appName, pluginId }) => {
+        const app = apps.find(({ id }) => id === pluginId);
 
         if (!app) return appName;
 
@@ -56,49 +54,101 @@ export const TransactionsPage = () => {
         );
       },
     },
-
+    {
+      align: "center",
+      dataIndex: "tokenId",
+      key: "tokenId",
+      title: "Token",
+      render: (_, { chain, tokenId }) => {
+        return <AutomationToken chain={chain} id={tokenId} />;
+      },
+    },
     {
       align: "center",
       dataIndex: "amount",
       key: "amount",
       title: "Amount",
-      render: (_, { amount, chain = "Ethereum", tokenId }) => {
+      render: (_, { amount, chain, tokenId }) => {
         if (!amount) return "-";
 
         return (
-          <AutomationFormAmount
-            amount={amount}
-            chain={chain}
-            tokenId={tokenId}
-          />
+          <AutomationAmount amount={amount} chain={chain} tokenId={tokenId} />
         );
       },
     },
     {
       align: "center",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      title: "Created At",
+      render: (_, { createdAt }) => (
+        <VStack $style={{ gap: "4px" }}>
+          <Stack as="span" $style={{ lineHeight: "18px" }}>
+            {dayjs(createdAt).format("MMMM DD YYYY")}
+          </Stack>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              fontSize: "12px",
+              lineHeight: "12px",
+            }}
+          >
+            {dayjs(createdAt).format("HH:mm:ss")}
+          </Stack>
+        </VStack>
+      ),
+    },
+    {
+      align: "center",
+      dataIndex: "statusOnchain",
+      key: "statusOnchain",
       title: "Status",
-      render: (value: Transaction["status"]) => {
-        const completed = value === "SIGNED";
+      render: (_, { statusOnchain }) => {
+        const color =
+          statusOnchain === "SUCCESS"
+            ? colors.success
+            : statusOnchain === "PENDING"
+            ? colors.warning
+            : colors.error;
 
         return (
           <HStack $style={{ justifyContent: "center" }}>
             <Stack
               as="span"
               $style={{
-                backgroundColor:
-                  colors[completed ? "success" : "warning"].toRgba(0.1),
+                backgroundColor: color.toRgba(0.1),
                 borderRadius: "4px",
-                color: colors[completed ? "success" : "warning"].toHex(),
+                color: color.toHex(),
                 fontSize: "12px",
                 lineHeight: "20px",
                 padding: "0 8px",
               }}
             >
-              {completed ? "Completed" : "Pending"}
+              {camelCaseToTitle(statusOnchain.toLowerCase())}
             </Stack>
           </HStack>
+        );
+      },
+    },
+    {
+      align: "center",
+      dataIndex: "txHash",
+      key: "txHash",
+      title: "",
+      render: (_, { chain, txHash }) => {
+        if (!txHash) return null;
+
+        const explorerUrl = getExplorerUrl(chain, "tx", txHash);
+
+        return (
+          <Button
+            href={explorerUrl}
+            icon={<EyeOpenIcon />}
+            kind="info"
+            target="_blank"
+            ghost
+          />
         );
       },
     },

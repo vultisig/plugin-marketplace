@@ -178,7 +178,7 @@ export type Transaction = {
   policyId: string;
   publicKey: string;
   status: "PROPOSED" | "SIGNED" | "VERIFIED";
-  statusOnchain: string;
+  statusOnchain: "FAIL" | "PENDING" | "SUCCESS";
   toPublicKey: string;
   tokenId: string;
   txHash: string;

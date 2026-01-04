@@ -18,7 +18,7 @@ import { useTheme } from "styled-components";
 import { v4 as uuidv4 } from "uuid";
 import { parseUnits } from "viem";
 
-import { AutomationFormAmount } from "@/automations/components/Amount";
+import { AutomationAmount } from "@/automations/components/Amount";
 import { AutomationFormAddressInput } from "@/automations/components/FormAddressInput";
 import { AutomationFormAmountInput } from "@/automations/components/FormAmountInput";
 import { AutomationFormCheckboxDate } from "@/automations/components/FormCheckboxDate";
@@ -26,7 +26,7 @@ import { AutomationFormDatePicker } from "@/automations/components/FormDatePicke
 import { AutomationFormSidebar } from "@/automations/components/FormSidebar";
 import { AutomationFormSuccess } from "@/automations/components/FormSuccess";
 import { AutomationFormTitle } from "@/automations/components/FormTitle";
-import { AutomationFormToken } from "@/automations/components/Token";
+import { AutomationToken } from "@/automations/components/Token";
 import { AutomationFormProps } from "@/automations/Default";
 import { AssetProps, AssetWidget } from "@/automations/widgets/Asset";
 import { MiddleTruncate } from "@/components/MiddleTruncate";
@@ -161,7 +161,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
       dataIndex: "configuration",
       key: "asset",
       render: ({ asset }: DataProps) => (
-        <AutomationFormToken chain={asset.chain} id={asset.token} />
+        <AutomationToken chain={asset.chain} id={asset.token} />
       ),
       title: "Asset",
     },
@@ -342,7 +342,7 @@ export const RecurringSendsForm: FC<AutomationFormProps> = ({
                             dataIndex: "amount",
                             key: "amount",
                             render: (value) => (
-                              <AutomationFormAmount
+                              <AutomationAmount
                                 amount={value}
                                 chain={asset.chain}
                                 tokenId={asset.token}
@@ -650,7 +650,7 @@ const Overview: FC<DataProps> = ({
           <Stack as="span" $style={{ color: colors.textTertiary.toHex() }}>
             Asset
           </Stack>
-          <AutomationFormToken chain={asset.chain} id={asset.token} />
+          <AutomationToken chain={asset.chain} id={asset.token} />
         </HStack>
       </VStack>
       <Divider />

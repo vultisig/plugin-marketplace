@@ -6,7 +6,7 @@ import { Spin } from "@/toolkits/Spin";
 import { Chain, nativeTokens } from "@/utils/chain";
 import { Token } from "@/utils/types";
 
-export const AutomationFormAmount: FC<{
+export const AutomationAmount: FC<{
   amount: string;
   tokenId: string;
   chain: Chain;
