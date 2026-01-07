@@ -311,7 +311,7 @@ export const BillingPage = () => {
             showSizeChanger: false,
             total,
           }}
-          rowKey="appName"
+          rowKey="pluginId"
           size="small"
         />
       </VStack>
