@@ -101,6 +101,18 @@ export type FeeAppStatus = {
   unpaidAmount: number;
 };
 
+export type FeeTransaction = {
+  amount: string;
+  appName: string;
+  createdAt: string;
+  id: string;
+  pluginId: string;
+  policyId: string;
+  publicKey: string;
+  status: "PENDING";
+  transactionType: string;
+};
+
 export type FieldProps = {
   description?: string;
   enum?: string[];

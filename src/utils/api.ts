@@ -29,6 +29,7 @@ import {
   Billing,
   Category,
   FeeAppStatus,
+  FeeTransaction,
   JupiterToken,
   ListFilters,
   OneInchToken,
@@ -215,6 +216,30 @@ export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
   const status = await externalGet<FeeAppStatus>(`${storeApiUrl}/fee/status`);
   const isInstalled = await isAppInstalled(feeAppId);
   return { ...status, isInstalled };
+};
+
+export const getFeeTransactions = async ({
+  appId,
+  skip,
+  take = defaultPageSize,
+}: ListFilters & { appId: string }): Promise<{
+  total: number;
+  transactions: FeeTransaction[];
+}> => {
+  try {
+    const { history: transactions, totalCount: total } = await get<{
+      history: FeeTransaction[];
+      totalCount: number;
+    }>(`${storeApiUrl}/fee/plugins/${appId}/transactions`, {
+      params: toSnakeCase({ skip, take }),
+    });
+
+    if (!total) return { total: 0, transactions: [] };
+
+    return { total, transactions };
+  } catch {
+    return { total: 0, transactions: [] };
+  }
 };
 
 export const getBillings = async ({

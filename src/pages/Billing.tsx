@@ -7,7 +7,6 @@ import { useTheme } from "styled-components";
 import { useCore } from "@/hooks/useCore";
 import { useGoBack } from "@/hooks/useGoBack";
 import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
-import { TrashIcon } from "@/icons/TrashIcon";
 import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
@@ -127,34 +126,15 @@ export const BillingPage = () => {
       render: (_, { totalFees }) =>
         toValueFormat(Number(totalFees) * baseValue, currency),
     },
-    {
-      align: "center",
-      dataIndex: "pluginId",
-      key: "action",
-      render: () => {
-        return (
-          <HStack $style={{ justifyContent: "center" }}>
-            <Button
-              icon={<TrashIcon fontSize={16} />}
-              kind="danger"
-              onClick={() => {}}
-              ghost
-            />
-          </HStack>
-        );
-      },
-      title: "",
-      width: 40,
-    },
   ];
 
   const fetchBillings = (skip = 0) => {
-    setState((prevState) => ({ ...prevState, loading: true }));
+    setState((prev) => ({ ...prev, loading: true }));
 
     getBillings({ skip })
       .then(({ billings, total }) => {
-        setState((prevState) => ({
-          ...prevState,
+        setState((prev) => ({
+          ...prev,
           billings,
           current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
           loading: false,
@@ -162,13 +142,13 @@ export const BillingPage = () => {
         }));
       })
       .catch(() => {
-        setState((prevState) => ({ ...prevState, loading: false }));
+        setState((prev) => ({ ...prev, loading: false }));
       });
   };
 
   useEffect(() => {
     getApps({}).then(({ apps }) => {
-      setState((prevState) => ({ ...prevState, apps }));
+      setState((prev) => ({ ...prev, apps }));
     });
 
     fetchBillings();
@@ -317,6 +297,13 @@ export const BillingPage = () => {
           columns={columns}
           dataSource={billings}
           loading={loading}
+          onRow={({ pluginId }) => ({
+            onClick: () =>
+              navigate(routeTree.feeTransactions.link(pluginId), {
+                state: true,
+              }),
+            style: { cursor: "pointer" },
+          })}
           pagination={{
             current,
             onChange: (page) => fetchBillings((page - 1) * defaultPageSize),
