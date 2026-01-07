@@ -10,7 +10,7 @@ import { ChevronLeftIcon } from "@/icons/ChevronLeftIcon";
 import { EyeOpenIcon } from "@/icons/EyeOpenIcon";
 import { Button } from "@/toolkits/Button";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { getMyApps, getTransactions } from "@/utils/api";
+import { getApps, getTransactions } from "@/utils/api";
 import { defaultPageSize } from "@/utils/constants";
 import { camelCaseToTitle, getExplorerUrl } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
@@ -163,12 +163,12 @@ export const TransactionsPage = () => {
     setState((prevState) => ({ ...prevState, loading: true }));
 
     getTransactions({ skip })
-      .then(({ transactions, totalCount }) => {
+      .then(({ transactions, total }) => {
         setState((prevState) => ({
           ...prevState,
           current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
           loading: false,
-          total: totalCount,
+          total,
           transactions,
         }));
       })
@@ -178,7 +178,7 @@ export const TransactionsPage = () => {
   };
 
   useEffect(() => {
-    getMyApps({}).then(({ apps }) => {
+    getApps({}).then(({ apps }) => {
       setState((prevState) => ({ ...prevState, apps }));
     });
 
@@ -220,7 +220,7 @@ export const TransactionsPage = () => {
         >
           Transaction History
         </Stack>
-        <Table
+        <Table<Transaction>
           columns={columns}
           dataSource={transactions}
           loading={loading}

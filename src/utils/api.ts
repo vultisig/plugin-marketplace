@@ -26,6 +26,7 @@ import {
   AppAutomation,
   AppFilters,
   AuthToken,
+  Billing,
   Category,
   FeeAppStatus,
   JupiterToken,
@@ -216,6 +217,26 @@ export const getFeeAppStatus = async (): Promise<FeeAppStatus> => {
   return { ...status, isInstalled };
 };
 
+export const getBillings = async ({
+  skip,
+  take = defaultPageSize,
+}: ListFilters): Promise<{ billings: Billing[]; total: number }> => {
+  try {
+    const { plugins: billings, totalCount: total } = await get<{
+      plugins: Billing[];
+      totalCount: number;
+    }>(`${storeApiUrl}/fee/plugins`, {
+      params: toSnakeCase({ skip, take }),
+    });
+
+    if (!total) return { billings: [], total: 0 };
+
+    return { billings, total };
+  } catch {
+    return { billings: [], total: 0 };
+  }
+};
+
 export const getMyApps = async ({
   skip,
   take = defaultPageSize,
@@ -278,14 +299,15 @@ export const getOneInchTokens = async (chain: EvmChain): Promise<Token[]> => {
   }));
 };
 
-export const getAutomations: (
-  params: { active: boolean; appId: string } & ListFilters
-) => Promise<{ automations: AppAutomation[]; total: number }> = async ({
+export const getAutomations = async ({
   active,
   appId,
   skip = 0,
   take = defaultPageSize,
-}) => {
+}: ListFilters & { active: boolean; appId: string }): Promise<{
+  automations: AppAutomation[];
+  total: number;
+}> => {
   try {
     const { policies: automations, totalCount: total } = await get<{
       policies: AppAutomation[];
@@ -326,10 +348,14 @@ export const getRecipeSuggestion = async (
   return fromJson(PolicySuggestSchema, suggest);
 };
 
-export const getReviews = async (
-  appId: string,
-  { skip, take = defaultPageSize }: ListFilters
-): Promise<{ reviews: Review[]; totalCount: number }> => {
+export const getReviews = async ({
+  appId,
+  skip,
+  take = defaultPageSize,
+}: ListFilters & { appId: string }): Promise<{
+  reviews: Review[];
+  totalCount: number;
+}> => {
   try {
     const { reviews, totalCount } = await get<{
       reviews: Review[];
@@ -349,23 +375,20 @@ export const getReviews = async (
 export const getTransactions = async ({
   skip,
   take = defaultPageSize,
-}: ListFilters): Promise<{
-  totalCount: number;
-  transactions: Transaction[];
-}> => {
+}: ListFilters): Promise<{ total: number; transactions: Transaction[] }> => {
   try {
-    const { history, totalCount } = await get<{
+    const { history: transactions, totalCount: total } = await get<{
       history: Transaction[];
       totalCount: number;
     }>(`${storeApiUrl}/plugin/transactions`, {
       params: toSnakeCase({ skip, take }),
     });
 
-    if (!totalCount) return { totalCount: 0, transactions: [] };
+    if (!total) return { total: 0, transactions: [] };
 
-    return { totalCount, transactions: history };
+    return { total, transactions };
   } catch {
-    return { totalCount: 0, transactions: [] };
+    return { total: 0, transactions: [] };
   }
 };
 

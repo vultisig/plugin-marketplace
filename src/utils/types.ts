@@ -68,6 +68,15 @@ export type AuthToken = {
   signature: string;
 };
 
+export type Billing = {
+  appName: string;
+  nextPayment?: string;
+  pluginId: string;
+  pricing: string;
+  startDate: string;
+  totalFees: string;
+};
+
 export type Category = {
   id: string;
   name: string;

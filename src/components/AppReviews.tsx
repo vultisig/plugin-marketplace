@@ -25,7 +25,7 @@ type StateProps = {
 };
 
 export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
-  app: { avgRating, id, ratesCount, ratings = [] },
+  app,
   onReload,
 }) => {
   const [state, setState] = useState<StateProps>({
@@ -34,16 +34,12 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
     totalCount: 0,
   });
   const { loading, reviews, submitting } = state;
+  const { avgRating, id: appId, ratesCount, ratings } = app;
   const { address, connect, vault } = useCore();
   const { hash } = useLocation();
   const [form] = Form.useForm<ReviewForm>();
   const goBack = useGoBack();
   const colors = useTheme();
-
-  const sortedRatings = useMemo(
-    () => [...ratings].sort((a, b) => b.rating - a.rating),
-    [ratings]
-  );
 
   const visible = useMemo(() => hash === modalHash.review, [hash]);
 
@@ -51,7 +47,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
     (skip: number) => {
       setState((prevState) => ({ ...prevState, loading: true }));
 
-      getReviews(id, { skip })
+      getReviews({ appId, skip })
         .then(({ reviews, totalCount }) => {
           setState((prevState) => ({
             ...prevState,
@@ -64,14 +60,14 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
           setState((prevState) => ({ ...prevState, loading: false }));
         });
     },
-    [id]
+    [appId]
   );
 
   const onFinishSuccess: FormProps<ReviewForm>["onFinish"] = (values) => {
     if (address) {
       setState((prevState) => ({ ...prevState, submitting: true }));
 
-      addReview(id, { ...values, address })
+      addReview(appId, { ...values, address })
         .then(() => {
           setState((prevState) => ({ ...prevState, submitting: false }));
 
@@ -89,7 +85,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
     }
   };
 
-  useEffect(() => fetchReviews(0), [id, fetchReviews]);
+  useEffect(() => fetchReviews(0), [appId, fetchReviews]);
 
   return (
     <>
@@ -126,7 +122,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
           </HStack>
           <HStack $style={{ gap: "24px" }}>
             <VStack $style={{ flex: "none", gap: "12px" }}>
-              {sortedRatings.map(({ rating }) => (
+              {ratings.map(({ rating }) => (
                 <HStack
                   key={rating}
                   $style={{
@@ -143,7 +139,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
               ))}
             </VStack>
             <VStack $style={{ flexGrow: "1", gap: "12px" }}>
-              {sortedRatings.map((item) => (
+              {ratings.map((item) => (
                 <Stack
                   key={item.rating}
                   $before={{
@@ -167,7 +163,7 @@ export const AppReviews: FC<{ app: App; onReload: () => void }> = ({
               ))}
             </VStack>
             <VStack $style={{ flex: "none", gap: "12px" }}>
-              {sortedRatings.map(({ count, rating }) => (
+              {ratings.map(({ count, rating }) => (
                 <Stack
                   as="span"
                   key={rating}
