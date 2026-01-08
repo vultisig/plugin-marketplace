@@ -11,6 +11,7 @@ import { AppPage } from "@/pages/App";
 import { AutomationsPage } from "@/pages/Automations";
 import { BillingPage } from "@/pages/Billing";
 import { FaqPage } from "@/pages/FAQ";
+import { FeeTransactionsPage } from "@/pages/FeeTransactions";
 import { MainPage } from "@/pages/Main";
 import { MyAppsPage } from "@/pages/MyApps";
 import { NotFoundPage } from "@/pages/NotFound";
@@ -44,6 +45,14 @@ export const Routes = () => {
           element: (
             <ProtectedRoute>
               <BillingPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: routeTree.feeTransactions.path,
+          element: (
+            <ProtectedRoute>
+              <FeeTransactionsPage />
             </ProtectedRoute>
           ),
         },

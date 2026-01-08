@@ -68,6 +68,15 @@ export type AuthToken = {
   signature: string;
 };
 
+export type Billing = {
+  appName: string;
+  nextPayment?: string;
+  pluginId: string;
+  pricing: string;
+  startDate: string;
+  totalFees: string;
+};
+
 export type Category = {
   id: string;
   name: string;
@@ -90,6 +99,18 @@ export type FeeAppStatus = {
   publicKey: string;
   trialRemaining: number;
   unpaidAmount: number;
+};
+
+export type FeeTransaction = {
+  amount: string;
+  appName: string;
+  createdAt: string;
+  id: string;
+  pluginId: string;
+  policyId: string;
+  publicKey: string;
+  status: "PENDING";
+  transactionType: string;
 };
 
 export type FieldProps = {

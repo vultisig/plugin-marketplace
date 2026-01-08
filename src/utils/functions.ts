@@ -46,14 +46,6 @@ const toTimestamp = (date: Date) => {
   };
 };
 
-const toValueFormat = (
-  value: number | string,
-  currency: Currency,
-  decimal = 2
-): string => {
-  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
-};
-
 export const camelCaseToTitle = (input: string) => {
   if (!input) return input;
 
@@ -265,6 +257,7 @@ export const normalizeApp = (app: App) => {
     logoUrl = "",
     pricing = [],
     ratesCount = 0,
+    ratings = [],
     thumbnailUrl = "",
     ...rest
   } = app;
@@ -278,6 +271,7 @@ export const normalizeApp = (app: App) => {
     installations,
     logoUrl,
     pricing,
+    ratings: ratings.sort((a, b) => b.rating - a.rating),
     ratesCount,
     thumbnailUrl,
   };
@@ -402,4 +396,12 @@ export const toSnakeCase = <T>(obj: T): T => {
   }
 
   return obj;
+};
+
+export const toValueFormat = (
+  value: number | string,
+  currency: Currency,
+  decimal = 2
+): string => {
+  return `${currencySymbols[currency]}${toNumberFormat(value, decimal)}`;
 };

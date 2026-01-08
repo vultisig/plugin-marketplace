@@ -1,6 +1,6 @@
 import { Table, TableProps } from "antd";
 import dayjs from "dayjs";
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "styled-components";
 
@@ -11,40 +11,148 @@ import { Button } from "@/toolkits/Button";
 import { Divider } from "@/toolkits/Divider";
 import { Spin } from "@/toolkits/Spin";
 import { HStack, Stack, VStack } from "@/toolkits/Stack";
-import { modalHash } from "@/utils/constants";
+import { getApps, getBillings } from "@/utils/api";
+import { defaultPageSize, modalHash } from "@/utils/constants";
+import { toValueFormat } from "@/utils/functions";
 import { routeTree } from "@/utils/routes";
+import { App, Billing } from "@/utils/types";
+
+type StateProps = {
+  apps: App[];
+  billings: Billing[];
+  current: number;
+  loading: boolean;
+  total: number;
+};
 
 export const BillingPage = () => {
-  const { feeApp, feeAppStatus } = useCore();
+  const [state, setState] = useState<StateProps>({
+    apps: [],
+    billings: [],
+    current: 1,
+    loading: true,
+    total: 0,
+  });
+  const { apps, billings, current, loading, total } = state;
+  const { baseValue, currency, feeApp, feeAppStatus } = useCore();
   const goBack = useGoBack();
   const navigate = useNavigate();
   const colors = useTheme();
 
-  const columns: TableProps["columns"] = [
+  const columns: TableProps<Billing>["columns"] = [
     {
-      dataIndex: "date",
-      key: "date",
-      title: "Date",
+      dataIndex: "pluginId",
+      key: "pluginId",
+      title: "App Name",
+      render: (_, { appName, pluginId }) => {
+        const app = apps.find(({ id }) => id === pluginId);
+
+        if (!app) return appName;
+
+        return (
+          <HStack $style={{ alignItems: "center", gap: "8px" }}>
+            <Stack
+              as="img"
+              alt={app.title}
+              src={app.logoUrl}
+              $style={{ borderRadius: "8px", height: "36px", width: "36px" }}
+            />
+            <Stack as="span">{app.title}</Stack>
+          </HStack>
+        );
+      },
     },
     {
       align: "center",
-      dataIndex: "type",
-      key: "type",
-      title: "Type",
+      dataIndex: "pricing",
+      key: "pricing",
+      title: "Price / Fee",
     },
     {
       align: "center",
-      dataIndex: "amount",
-      key: "amount",
-      title: "Amount",
+      dataIndex: "startDate",
+      key: "startDate",
+      title: "Start Date",
+      render: (_, { startDate }) => (
+        <VStack $style={{ gap: "4px" }}>
+          <Stack as="span" $style={{ lineHeight: "18px" }}>
+            {dayjs(startDate).format("MMMM DD YYYY")}
+          </Stack>
+          <Stack
+            as="span"
+            $style={{
+              color: colors.textTertiary.toHex(),
+              fontSize: "12px",
+              lineHeight: "12px",
+            }}
+          >
+            {dayjs(startDate).format("HH:mm:ss")}
+          </Stack>
+        </VStack>
+      ),
     },
     {
       align: "center",
-      dataIndex: "status",
-      key: "status",
-      title: "Status",
+      dataIndex: "nextPayment",
+      key: "nextPayment",
+      title: "Next Payment",
+      render: (_, { nextPayment }) => {
+        if (!nextPayment) return "-";
+
+        return (
+          <VStack $style={{ gap: "4px" }}>
+            <Stack as="span" $style={{ lineHeight: "18px" }}>
+              {dayjs(nextPayment).format("MMMM DD YYYY")}
+            </Stack>
+            <Stack
+              as="span"
+              $style={{
+                color: colors.textTertiary.toHex(),
+                fontSize: "12px",
+                lineHeight: "12px",
+              }}
+            >
+              {dayjs(nextPayment).format("HH:mm:ss")}
+            </Stack>
+          </VStack>
+        );
+      },
+    },
+    {
+      align: "center",
+      dataIndex: "totalFees",
+      key: "totalFees",
+      title: "Total Fees",
+      render: (_, { totalFees }) =>
+        toValueFormat(Number(totalFees) * baseValue, currency),
     },
   ];
+
+  const fetchBillings = (skip = 0) => {
+    setState((prev) => ({ ...prev, loading: true }));
+
+    getBillings({ skip })
+      .then(({ billings, total }) => {
+        setState((prev) => ({
+          ...prev,
+          billings,
+          current: skip ? Math.floor(skip / defaultPageSize) + 1 : 1,
+          loading: false,
+          total,
+        }));
+      })
+      .catch(() => {
+        setState((prev) => ({ ...prev, loading: false }));
+      });
+  };
+
+  useEffect(() => {
+    getApps({}).then(({ apps }) => {
+      setState((prev) => ({ ...prev, apps }));
+    });
+
+    fetchBillings();
+  }, []);
 
   if (!feeApp || !feeAppStatus) return <Spin centered />;
 
@@ -185,11 +293,25 @@ export const BillingPage = () => {
         >
           Billing
         </Stack>
-        <Table
+        <Table<Billing>
           columns={columns}
-          dataSource={[]}
-          pagination={false}
-          rowKey="id"
+          dataSource={billings}
+          loading={loading}
+          onRow={({ pluginId }) => ({
+            onClick: () =>
+              navigate(routeTree.feeTransactions.link(pluginId), {
+                state: true,
+              }),
+            style: { cursor: "pointer" },
+          })}
+          pagination={{
+            current,
+            onChange: (page) => fetchBillings((page - 1) * defaultPageSize),
+            pageSize: defaultPageSize,
+            showSizeChanger: false,
+            total,
+          }}
+          rowKey="pluginId"
           size="small"
         />
       </VStack>
