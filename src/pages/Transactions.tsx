@@ -178,6 +178,7 @@ export const TransactionsPage = () => {
   };
 
   useEffect(() => {
+    // TODO: Update transactions API to include app icon and remove getApps API call
     getApps({}).then(({ apps }) => {
       setState((prevState) => ({ ...prevState, apps }));
     });

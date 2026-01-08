@@ -147,6 +147,7 @@ export const BillingPage = () => {
   };
 
   useEffect(() => {
+    // TODO: Update billings API to include app icon and remove getApps API call
     getApps({}).then(({ apps }) => {
       setState((prev) => ({ ...prev, apps }));
     });
